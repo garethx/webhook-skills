@@ -103,6 +103,19 @@ If ANY of these files are missing, flag as **CRITICAL** - the skill is incomplet
 - [ ] **Environment variable names are consistent** - Same names in .env.example, code, and docs
 - [ ] **Webhook endpoint paths are consistent** - `/webhooks/{{PROVIDER_KEBAB}}` everywhere
 
+### SKILL.md inline-code shape (see AGENTS.md "Content Guidelines")
+
+- [ ] **Inline code is verification-core only** — `SKILL.md` should NOT contain the full Express/Next.js/FastAPI handler (route wiring, `app.post(...)`, event-type dispatch, error responses, env loading). Those belong in `examples/<framework>/`. Flag any full-handler block in `SKILL.md` and propose replacing it with the verification core (~10-20 lines per language: HMAC compute, header parse, timing-safe compare) plus a pointer to the examples.
+- [ ] **Pointer to examples present** — directly after the verification snippet(s), `SKILL.md` should include a link block of the form:
+
+  ```markdown
+  > **For complete handlers with tests**, see [examples/express/](examples/express/), [examples/nextjs/](examples/nextjs/), [examples/fastapi/](examples/fastapi/).
+  ```
+
+  If the pointer is missing, flag it and propose adding it.
+
+When fixing a violation: keep the verification snippet's algorithm/header parse/timing-safe compare exactly as it is in the example handler (this is the part that must match — verified by the "SKILL.md code snippets match example code" check above). Strip everything around it (route registration, switch statements over event types, response sending) and replace with the pointer block. Reference `skills/stripe-webhooks/SKILL.md`, `skills/github-webhooks/SKILL.md`, and `skills/shopify-webhooks/SKILL.md` for the worked pattern.
+
 ## Output Format
 
 After reviewing, respond with a JSON object in this exact format:
