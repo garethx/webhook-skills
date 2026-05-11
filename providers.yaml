@@ -306,22 +306,250 @@ providers:
         - order.created
         - order.updated
 
+  - name: claude-managed-agents
+    displayName: Claude Managed Agents
+    docs:
+      webhooks: https://platform.claude.com/docs/en/managed-agents/webhooks
+      overview: https://platform.claude.com/docs/en/managed-agents/overview
+      cookbook: https://platform.claude.com/cookbook/managed-agents-cma-operate-in-production
+    notes: >
+      Anthropic Claude Managed Agents (CMA) webhooks notify your app of long-running
+      agent session state changes without holding an HTTP connection open. Uses
+      X-Webhook-Signature header with HMAC-SHA256. Signing secret is prefixed with whsec_.
+      Official Anthropic SDK provides client.beta.webhooks.unwrap() which verifies the
+      signature, rejects payloads older than 5 minutes, and parses the event in one step.
+      Common events: session.status_idled, session.outcome_evaluation_ended, plus
+      session lifecycle and vault credential refresh events. Endpoint must return 2xx;
+      anything else is treated as failure and retried.
+    testScenario:
+      events:
+        - session.status_idled
+        - session.outcome_evaluation_ended
+
+  - name: discord
+    displayName: Discord
+    docs:
+      webhooks: https://discord.com/developers/docs/events/webhook-events
+      verification: https://discord.com/developers/docs/interactions/overview#setting-up-an-endpoint-validating-security-request-headers
+      events: https://discord.com/developers/docs/events/webhook-events#event-types
+    notes: >
+      Communications platform. Outgoing webhook events (and interaction endpoints) are
+      verified using Ed25519 signatures with X-Signature-Ed25519 (hex) and
+      X-Signature-Timestamp headers. Signed content is timestamp + raw body. Use
+      tweetnacl (Node) or PyNaCl (Python) — Discord requires asymmetric signature
+      verification, not HMAC. Endpoint must respond 204 No Content to PING events for
+      verification. Common events: APPLICATION_AUTHORIZED, ENTITLEMENT_CREATE,
+      QUEST_USER_ENROLLMENT.
+    testScenario:
+      events:
+        - APPLICATION_AUTHORIZED
+        - ENTITLEMENT_CREATE
+
+  - name: gemini
+    displayName: Google Gemini
+    docs:
+      webhooks: https://ai.google.dev/gemini-api/docs/webhooks
+      cookbook: https://github.com/google-gemini/cookbook/blob/main/quickstarts/Webhooks.ipynb
+      announcement: https://blog.google/innovation-and-ai/technology/developers-tools/event-driven-webhooks/
+    notes: >
+      Google Gemini API event-driven webhooks (launched May 4, 2026) push notifications
+      when long-running operations (batch jobs, video generation, fine-tuning) complete,
+      replacing polling. Follows the Standard Webhooks (Svix) spec with headers:
+      webhook-id, webhook-timestamp, webhook-signature. Two signing modes:
+      (1) Static webhooks — HMAC-SHA256 over webhook-id.webhook-timestamp.body using a
+      shared secret (project-level integration). Use the standardwebhooks library.
+      (2) Dynamic webhooks — RS256 JWTs verified against Google's JWKS endpoint at
+      https://generativelanguage.googleapis.com/.well-known/jwks.json (per-job binding,
+      supports user_metadata for custom routing). Reject payloads older than 5 minutes.
+      At-least-once delivery with 24-hour exponential backoff retries.
+    testScenario:
+      events:
+        - batch.completed
+        - generate_videos.completed
+
+  - name: huggingface
+    displayName: Hugging Face
+    docs:
+      webhooks: https://huggingface.co/docs/hub/webhooks
+      verification: https://huggingface.co/docs/hub/webhooks#webhook-secret
+    notes: >
+      AI model hub. Webhooks notify on repository changes (model, dataset, Space updates,
+      discussions, comments). Uses a shared secret token sent in the X-Webhook-Secret
+      header — verify with timing-safe string comparison (not HMAC). Configure the
+      secret in webhook settings. Payload includes event.action (create/update/delete),
+      event.scope (repo/discussion/comment), and a repo object. Common events: repo
+      updates (model/dataset/space create, update, delete), discussion create,
+      discussion comment create.
+    testScenario:
+      events:
+        - repo.update
+        - discussion.comment.create
+
+  - name: hubspot
+    displayName: HubSpot
+    docs:
+      webhooks: https://developers.hubspot.com/docs/api/webhooks
+      verification: https://developers.hubspot.com/docs/api/webhooks/validating-requests
+      events: https://developers.hubspot.com/docs/api/webhooks/events
+    notes: >
+      CRM platform. Uses X-HubSpot-Signature-v3 header with HMAC-SHA256 (base64 encoded).
+      Signed content for v3 is HTTP method + request URI + raw body + X-HubSpot-Request-Timestamp
+      header. Reject requests with timestamp older than 5 minutes. v1 (legacy) is
+      SHA-256 of clientSecret+body with no timestamp — new integrations should use v3.
+      App developer's Client Secret is the signing key. Common events: contact.creation,
+      contact.propertyChange, deal.creation, deal.propertyChange, company.creation.
+    testScenario:
+      events:
+        - contact.creation
+        - deal.creation
+
+  - name: intercom
+    displayName: Intercom
+    docs:
+      webhooks: https://developers.intercom.com/docs/references/webhooks
+      verification: https://developers.intercom.com/docs/build-an-integration/learn-more/webhooks/webhook-models
+      events: https://developers.intercom.com/docs/references/webhooks/topics
+    notes: >
+      Customer messaging platform. Uses X-Hub-Signature header (Facebook-style) with
+      HMAC-SHA1 (hex encoded). Signature format is sha1=<hex_digest>. Sign with your
+      app's Client Secret over the raw request body. Common events:
+      conversation.user.created, conversation.user.replied, conversation.admin.replied,
+      user.created, contact.created, ping (handshake).
+    testScenario:
+      events:
+        - conversation.user.created
+        - conversation.user.replied
+
+  - name: linear
+    displayName: Linear
+    docs:
+      webhooks: https://developers.linear.app/docs/graphql/webhooks
+      verification: https://developers.linear.app/docs/graphql/webhooks#securing-webhooks
+    notes: >
+      Issue tracking platform. Uses Linear-Signature header with HMAC-SHA256 (hex encoded)
+      computed over the raw request body using the webhook's signing secret (from Linear
+      settings). Additional headers: Linear-Event (Issue, Comment, Project, Cycle, Reaction)
+      and Linear-Delivery (UUID for idempotency). Payload includes webhookTimestamp —
+      reject if older than 1 minute. Common events: Issue create, Issue update,
+      Comment create, Project update.
+    testScenario:
+      events:
+        - Issue create
+        - Comment create
+
+  - name: mailgun
+    displayName: Mailgun
+    docs:
+      webhooks: https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/
+      verification: https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#securing-webhooks
+    notes: >
+      Email delivery platform. Signature is in the request body (not a header) under a
+      "signature" object with three fields: timestamp, token, signature. Verify by
+      computing HMAC-SHA256 over (timestamp + token) concatenation using your Mailgun
+      HTTP webhook signing key, then comparing to signature (hex, timing-safe). Reject
+      if timestamp is older than ~15 minutes and reject duplicate tokens for idempotency.
+      Common events: delivered, opened, clicked, unsubscribed, complained,
+      permanent_fail, temporary_fail.
+    testScenario:
+      events:
+        - delivered
+        - permanent_fail
+
+  - name: notion
+    displayName: Notion
+    docs:
+      webhooks: https://developers.notion.com/reference/webhooks
+    notes: >
+      Productivity workspace. Webhooks launched in the 2026-03-01 API release. Uses
+      X-Notion-Signature header with HMAC-SHA256 (format sha256=<hex_digest>) computed
+      over the raw request body using the integration's verification_token. The first
+      delivery is a one-time verification handshake — your endpoint must echo the
+      verification_token from the payload to activate the webhook. Common events:
+      page.created, page.updated, page.deleted, comment.created,
+      database.schema_updated, page.properties_updated.
+    testScenario:
+      events:
+        - page.created
+        - page.updated
+
+  - name: paypal
+    displayName: PayPal
+    docs:
+      webhooks: https://developer.paypal.com/api/rest/webhooks/
+      verification: https://developer.paypal.com/api/rest/webhooks/rest/#link-verifywebhooksignature
+      events: https://developer.paypal.com/api/rest/webhooks/event-names/
+    notes: >
+      Payments platform. Uses certificate-based RSA-SHA256 signature verification — not
+      HMAC. Required headers: PAYPAL-TRANSMISSION-ID, PAYPAL-TRANSMISSION-TIME,
+      PAYPAL-TRANSMISSION-SIG, PAYPAL-CERT-URL, PAYPAL-AUTH-ALGO. Two verification paths:
+      (1) Recommended: call PayPal's /v1/notifications/verify-webhook-signature API with
+      the captured headers and raw body (requires OAuth access token).
+      (2) Offline: fetch PayPal public cert from PAYPAL-CERT-URL (must be on paypal.com),
+      build the expected signature payload (transmissionId|transmissionTime|webhookId|crc32(body)),
+      and verify with RSA-SHA256. Common events: PAYMENT.CAPTURE.COMPLETED,
+      BILLING.SUBSCRIPTION.CREATED, CHECKOUT.ORDER.APPROVED, PAYMENT.CAPTURE.REFUNDED.
+    testScenario:
+      events:
+        - PAYMENT.CAPTURE.COMPLETED
+        - BILLING.SUBSCRIPTION.CREATED
+
+  - name: slack
+    displayName: Slack
+    docs:
+      webhooks: https://api.slack.com/apis/events-api
+      verification: https://api.slack.com/authentication/verifying-requests-from-slack
+      events: https://api.slack.com/events
+    notes: >
+      Communications platform. Slack Events API uses X-Slack-Signature header with
+      HMAC-SHA256 (hex encoded, format v0=<hex>) and X-Slack-Request-Timestamp header.
+      Signed content is the literal string "v0:" + timestamp + ":" + raw_body. Signing
+      secret is from your Slack App's Basic Information page. Reject if timestamp
+      differs from now by more than 5 minutes (replay protection). The url_verification
+      challenge event must be echoed back during initial endpoint setup. Common events:
+      message, app_mention, reaction_added, team_join, member_joined_channel,
+      app_home_opened.
+    testScenario:
+      events:
+        - app_mention
+        - message
+
+  - name: twilio
+    displayName: Twilio
+    docs:
+      webhooks: https://www.twilio.com/docs/usage/webhooks
+      verification: https://www.twilio.com/docs/usage/webhooks/webhooks-security
+      events: https://www.twilio.com/docs/usage/webhooks/messaging-webhooks
+    notes: >
+      Communications platform (SMS, voice, WhatsApp). Uses X-Twilio-Signature header
+      with HMAC-SHA1 (base64 encoded). For application/x-www-form-urlencoded webhooks,
+      sign the full URL + each POST parameter name+value sorted alphabetically. For
+      JSON webhooks, append the SHA-256 hash of the raw body to the URL as a bodySHA256
+      query parameter and sign that URL only. Signing key is your Twilio Auth Token.
+      Official SDKs: twilio (Node) and twilio (Python) provide validateRequest /
+      RequestValidator. Common events: incoming SMS (Messaging webhook), incoming voice
+      call (Voice URL), message status callback (queued, sent, delivered, failed),
+      recording status.
+    testScenario:
+      events:
+        - incoming SMS
+        - message status callback
+
   - name: hookdeck-event-gateway
     displayName: Hookdeck Event Gateway
     docs:
       webhooks: https://hookdeck.com/docs/verification
       setup: https://hookdeck.com/docs/receive-webhooks
     notes: >
-      Webhook infrastructure platform. Hookdeck Event Gateway receives webhooks from 
+      Webhook infrastructure platform. Hookdeck Event Gateway receives webhooks from
       providers and forwards them to your app with an x-hookdeck-signature header.
       Uses HMAC-SHA256 with base64 encoding. Signed content format is the raw request body.
     testScenario:
       events:
         - webhooks via Event Gateway
       prompt: >
-        Create a {framework} webhook handler that receives webhooks forwarded through 
-        Hookdeck Event Gateway. Hookdeck is a webhook proxy - it receives webhooks from 
-        providers and forwards them to my app, adding an x-hookdeck-signature header for 
-        verification. I need to verify this signature using HMAC SHA-256 with base64 
-        encoding. If you use any skills to help with this, add a comment in the code 
+        Create a {framework} webhook handler that receives webhooks forwarded through
+        Hookdeck Event Gateway. Hookdeck is a webhook proxy - it receives webhooks from
+        providers and forwards them to my app, adding an x-hookdeck-signature header for
+        verification. I need to verify this signature using HMAC SHA-256 with base64
+        encoding. If you use any skills to help with this, add a comment in the code
         noting which skill(s) you referenced.
