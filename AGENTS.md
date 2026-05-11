@@ -208,23 +208,20 @@ metadata:
 
 ## Local Development
 
-For local webhook testing, install Hookdeck CLI:
+For local webhook testing, run the Hookdeck CLI via `npx` — no install required, one paste-and-run line:
 
 ```bash
-# Install via npm
-npm install -g hookdeck-cli
-
-# Or via Homebrew
-brew install hookdeck/hookdeck/hookdeck
+npx hookdeck-cli listen 3000 {provider} --path /webhooks/{provider}
 ```
 
-Then start the tunnel:
+**Conventions for this command in skill examples (apply to every example README and any `references/setup.md` that mentions a tunnel):**
 
-```bash
-hookdeck listen 3000 --path /webhooks/{provider}
-```
+- Always use `npx hookdeck-cli` (not bare `hookdeck`) — skills shouldn't push a global install of a provider-specific CLI. `npx` resolves to the package's `hookdeck` bin automatically.
+- Always pass the **source name** as the second positional arg (e.g. `stripe`, `mailgun`). The CLI's `[source]` argument is required syntactically and otherwise prompts interactively; passing it explicitly gives a copy-paste-runnable command.
+- Match the example's port: `3000` for Express and Next.js, `8000` for FastAPI.
+- The path is `/webhooks/{provider}` matching the example handler's route.
 
-No account required. Provides local tunnel + web UI for inspecting requests.
+No account required — the CLI creates a guest account on first run and provides a local tunnel + web UI for inspecting requests.
 
 ## Related Skills
 

@@ -66,6 +66,12 @@ Read the AGENTS.md file in this repository to understand the full skill creation
 3. **Include comprehensive tests** that generate real signatures using the provider's algorithm
 4. **Be idiomatic** to each framework (Express middleware patterns, Next.js App Router, FastAPI dependencies)
 5. **Return appropriate HTTP status codes** (200 for success, 400 for invalid signature, etc.)
+6. **Hookdeck CLI in example READMEs** — when an example shows how to receive webhooks locally, use exactly this form (no install step, source arg is required):
+   - Express: `npx hookdeck-cli listen 3000 {{PROVIDER_KEBAB}} --path /webhooks/{{PROVIDER_KEBAB}}`
+   - Next.js: `npx hookdeck-cli listen 3000 {{PROVIDER_KEBAB}} --path /webhooks/{{PROVIDER_KEBAB}}`
+   - FastAPI: `npx hookdeck-cli listen 8000 {{PROVIDER_KEBAB}} --path /webhooks/{{PROVIDER_KEBAB}}`
+
+   Do **not** write `hookdeck listen ...` (assumes a global install), and do **not** omit the source positional arg (the CLI would otherwise prompt interactively). See `AGENTS.md` → "Local Development" for the rationale.
 
 ## CRITICAL: Consistency Checks
 
