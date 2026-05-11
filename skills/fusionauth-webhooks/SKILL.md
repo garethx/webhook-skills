@@ -191,11 +191,8 @@ FUSIONAUTH_WEBHOOK_SECRET=your_hmac_signing_key   # HMAC key from FusionAuth Key
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/fusionauth
+npx hookdeck-cli listen 3000 fusionauth --path /webhooks/fusionauth
 ```
 
 ## Reference Materials

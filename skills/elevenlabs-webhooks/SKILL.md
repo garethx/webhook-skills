@@ -118,16 +118,13 @@ For local webhook testing, install Hookdeck CLI:
 
 ```bash
 # Install via npm (recommended)
-npm install -g hookdeck-cli
 
-# Or via Homebrew
-brew install hookdeck/hookdeck/hookdeck
 ```
 
 Then start the tunnel:
 
 ```bash
-hookdeck listen 3000 --path /webhooks/elevenlabs
+npx hookdeck-cli listen 3000 elevenlabs --path /webhooks/elevenlabs
 ```
 
 No account required. Provides local tunnel + web UI for inspecting requests.

@@ -143,11 +143,8 @@ GITLAB_WEBHOOK_TOKEN=your_secret_token   # Set when creating webhook in GitLab
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/gitlab
+npx hookdeck-cli listen 3000 gitlab --path /webhooks/gitlab
 ```
 
 ## Reference Materials

@@ -84,7 +84,7 @@ Or trigger events by pushing commits, creating issues, etc.
 For local webhook testing, use Hookdeck CLI:
 
 ```bash
-hookdeck listen 3000 --path /webhooks/github
+npx hookdeck-cli listen 3000 github --path /webhooks/github
 ```
 
 Use the provided URL as your webhook endpoint in GitHub.

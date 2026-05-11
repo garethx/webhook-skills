@@ -140,11 +140,8 @@ SHOPIFY_API_SECRET=your_api_secret   # From Shopify Partner dashboard or app set
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/shopify
+npx hookdeck-cli listen 3000 shopify --path /webhooks/shopify
 ```
 
 ## Reference Materials

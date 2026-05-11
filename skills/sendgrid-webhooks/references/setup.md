@@ -71,11 +71,8 @@ For most applications, enable these core events:
 For local development with Hookdeck CLI:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel to your local server
-hookdeck listen 3000 --path /webhooks/sendgrid
+npx hookdeck-cli listen 3000 sendgrid --path /webhooks/sendgrid
 
 # Copy the webhook URL provided
 # Use this URL in SendGrid dashboard for testing

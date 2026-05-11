@@ -52,7 +52,7 @@ npm test
 Use Hookdeck CLI to receive webhooks locally:
 
 ```bash
-hookdeck listen 3000 --path /webhooks/elevenlabs
+npx hookdeck-cli listen 3000 elevenlabs --path /webhooks/elevenlabs
 ```
 
 This creates a public URL that forwards to your local server.

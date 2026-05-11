@@ -80,11 +80,8 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
 For local webhook development, use the Hookdeck CLI:
 
 ```bash
-# Install Hookdeck CLI
-npm install -g hookdeck-cli
-
 # Start local tunnel
-hookdeck listen 8000 --path /webhooks/vercel
+npx hookdeck-cli listen 8000 vercel --path /webhooks/vercel
 
 # Copy the webhook URL and add it to your Vercel dashboard
 ```

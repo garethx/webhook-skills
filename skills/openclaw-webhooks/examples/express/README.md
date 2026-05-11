@@ -34,11 +34,8 @@ Server runs on http://localhost:3000
 ### Using Hookdeck CLI
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Forward webhooks to localhost
-hookdeck listen 3000 --path /webhooks/openclaw
+npx hookdeck-cli listen 3000 openclaw --path /webhooks/openclaw
 ```
 
 Configure the Hookdeck URL in your external service or use it directly with `curl`.

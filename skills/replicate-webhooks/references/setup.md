@@ -59,11 +59,8 @@ webhook: "https://your-app.com/webhooks/replicate?userId=123&jobId=456"
 For local testing, use the Hookdeck CLI instead of ngrok:
 
 ```bash
-# Install Hookdeck CLI
-npm install -g hookdeck-cli
-
 # Create a tunnel to your local server
-hookdeck listen 3000 --path /webhooks/replicate
+npx hookdeck-cli listen 3000 replicate --path /webhooks/replicate
 ```
 
 This provides:
@@ -72,11 +69,9 @@ This provides:
 - Automatic retries and error handling
 - No account required for basic usage
 
-Example with custom source name:
+Example with a custom source name:
 ```bash
-hookdeck listen 3000 \
-  --path /webhooks/replicate \
-  --source replicate-webhooks
+npx hookdeck-cli listen 3000 replicate-webhooks --path /webhooks/replicate
 ```
 
 ## Test Your Webhook

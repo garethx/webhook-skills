@@ -59,11 +59,8 @@ FastAPI provides automatic API documentation:
 Use Hookdeck CLI to test webhooks locally:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel
-hookdeck listen 3000 --path /webhooks/clerk
+npx hookdeck-cli listen 3000 clerk --path /webhooks/clerk
 
 # Use the provided URL in your Clerk webhook settings
 ```

@@ -76,11 +76,8 @@ support.yourdomain.com.  MX  10  <resend-mx-value>
 For local webhook testing, use a tunnel service. We recommend Hookdeck CLI:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account required)
-hookdeck listen 3000 --path /webhooks/resend
+npx hookdeck-cli listen 3000 resend --path /webhooks/resend
 ```
 
 This provides:

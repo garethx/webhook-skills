@@ -7,7 +7,6 @@
 
 ```bash
 # Install CLI
-brew install hookdeck/hookdeck/hookdeck
 # Or: npm install -g hookdeck-cli
 
 # Login to your account

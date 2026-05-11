@@ -60,11 +60,8 @@ Vercel doesn't provide a built-in test button, but you can:
 
 2. **Use Hookdeck CLI for Testing**
    ```bash
-   # Install Hookdeck CLI
-   npm install -g hookdeck-cli
-
    # Create a local tunnel
-   hookdeck listen 3000 --path /webhooks/vercel
+   npx hookdeck-cli listen 3000 vercel --path /webhooks/vercel
 
    # Update your Vercel webhook URL to the Hookdeck URL
    # Now you can inspect all webhook deliveries locally

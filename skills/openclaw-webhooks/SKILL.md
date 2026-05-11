@@ -184,11 +184,8 @@ OPENCLAW_HOOK_TOKEN=your_shared_secret   # Must match hooks.token in Gateway con
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/openclaw
+npx hookdeck-cli listen 3000 openclaw --path /webhooks/openclaw
 ```
 
 ## Reference Materials

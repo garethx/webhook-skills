@@ -160,8 +160,7 @@ WEBHOOK_PASSWORD="your-password"
 For local webhook testing, use Hookdeck CLI:
 
 ```bash
-brew install hookdeck/hookdeck/hookdeck
-hookdeck listen 3000 --path /webhooks/postmark
+npx hookdeck-cli listen 3000 postmark --path /webhooks/postmark
 ```
 
 No account required. Provides local tunnel + web UI for inspecting requests.

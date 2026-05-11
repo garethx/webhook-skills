@@ -121,14 +121,8 @@ WEBHOOK_URL=https://your-domain.com/webhooks/deepgram
 For local webhook testing, install Hookdeck CLI:
 
 ```bash
-# Install via npm
-npm install -g hookdeck-cli
-
-# Or via Homebrew
-brew install hookdeck/hookdeck/hookdeck
-
 # Create a local tunnel (no account required)
-hookdeck listen 3000 --path /webhooks/deepgram
+npx hookdeck-cli listen 3000 deepgram --path /webhooks/deepgram
 
 # Use the provided URL as your callback URL when making Deepgram requests
 ```

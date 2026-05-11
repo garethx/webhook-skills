@@ -179,14 +179,10 @@ PADDLE_WEBHOOK_SECRET=pdl_ntfset_xxxxx_xxxxx   # From notification destination s
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Or via NPM
-npm install -g hookdeck-cli
 
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/paddle
+npx hookdeck-cli listen 3000 paddle --path /webhooks/paddle
 ```
 
 ## Reference Materials

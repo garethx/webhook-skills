@@ -52,5 +52,5 @@ Send a test webhook using SendGrid's dashboard:
 
 Or use Hookdeck CLI for local testing:
 ```bash
-hookdeck listen 3000 --path /webhooks/sendgrid
+npx hookdeck-cli listen 3000 sendgrid --path /webhooks/sendgrid
 ```

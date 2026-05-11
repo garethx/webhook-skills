@@ -44,11 +44,8 @@ API documentation available at http://localhost:8000/docs
 Use Hookdeck CLI to receive webhooks locally:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Forward webhooks to your local server
-hookdeck listen 8000 --path /webhooks/chargebee
+npx hookdeck-cli listen 8000 chargebee --path /webhooks/chargebee
 ```
 
 Then configure your Chargebee webhook to point to the Hookdeck URL.

@@ -43,11 +43,8 @@ Server runs on http://localhost:3000
 Use Hookdeck CLI to receive webhooks locally:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Forward webhooks to your local server
-hookdeck listen 3000 --path /webhooks/chargebee
+npx hookdeck-cli listen 3000 chargebee --path /webhooks/chargebee
 ```
 
 Then configure your Chargebee webhook to point to the Hookdeck URL.

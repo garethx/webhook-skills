@@ -38,11 +38,8 @@ Server runs on http://localhost:3000
 Use Hookdeck CLI to receive webhooks on localhost:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/fusionauth
+npx hookdeck-cli listen 3000 fusionauth --path /webhooks/fusionauth
 ```
 
 Then configure FusionAuth to send webhooks to the Hookdeck URL.

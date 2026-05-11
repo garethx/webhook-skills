@@ -51,11 +51,8 @@ npm test
 For local webhook development, use the Hookdeck CLI:
 
 ```bash
-# Install Hookdeck CLI
-npm install -g hookdeck-cli
-
 # Start local tunnel
-hookdeck listen 3000 --path /webhooks/vercel
+npx hookdeck-cli listen 3000 vercel --path /webhooks/vercel
 
 # Copy the webhook URL and add it to your Vercel dashboard
 ```

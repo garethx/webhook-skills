@@ -35,12 +35,9 @@ Server runs on http://localhost:3000
 ### Using Hookdeck CLI
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Login and start listening
 hookdeck login
-hookdeck listen 3000 --path /webhooks
+npx hookdeck-cli listen 3000 gateway --path /webhooks
 ```
 
 ## Endpoint

@@ -46,11 +46,8 @@ Server runs on http://localhost:3000
 ### Using Hookdeck CLI (Recommended)
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Forward webhooks to localhost (no account required)
-hookdeck listen 3000 --path /webhooks/resend
+npx hookdeck-cli listen 3000 resend --path /webhooks/resend
 ```
 
 Then configure the Hookdeck URL in your Resend webhook settings.

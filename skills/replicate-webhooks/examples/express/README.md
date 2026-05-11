@@ -33,12 +33,11 @@ Server runs on http://localhost:3000
 
 1. Install Hookdeck CLI:
    ```bash
-   npm install -g hookdeck-cli
    ```
 
 2. Forward webhooks to your local server:
    ```bash
-   hookdeck listen 3000 --path /webhooks/replicate
+   npx hookdeck-cli listen 3000 replicate --path /webhooks/replicate
    ```
 
 3. Use the provided Hookdeck URL when creating Replicate predictions:

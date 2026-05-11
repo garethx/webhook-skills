@@ -124,17 +124,12 @@ WEBFLOW_WEBHOOK_SECRET=whsec_xxxxx  # Returned when creating webhook
 For local webhook testing, install Hookdeck CLI:
 
 ```bash
-# Install via npm
-npm install -g hookdeck-cli
-
-# Or via Homebrew
-brew install hookdeck/hookdeck/hookdeck
 ```
 
 Then start the tunnel:
 
 ```bash
-hookdeck listen 3000 --path /webhooks/webflow
+npx hookdeck-cli listen 3000 webflow --path /webhooks/webflow
 ```
 
 No account required. Provides local tunnel + web UI for inspecting requests.

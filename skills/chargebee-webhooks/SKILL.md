@@ -202,8 +202,7 @@ CHARGEBEE_WEBHOOK_PASSWORD=your_webhook_password
 For local webhook testing, use Hookdeck CLI:
 
 ```bash
-brew install hookdeck/hookdeck/hookdeck
-hookdeck listen 3000 --path /webhooks/chargebee
+npx hookdeck-cli listen 3000 chargebee --path /webhooks/chargebee
 ```
 
 No account required. Provides local tunnel + web UI for inspecting requests.

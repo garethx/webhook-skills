@@ -52,11 +52,8 @@ Server runs on http://localhost:3000
 Use the Hookdeck CLI for local testing:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel to your local server
-hookdeck listen 3000 --path /webhooks/postmark
+npx hookdeck-cli listen 3000 postmark --path /webhooks/postmark
 ```
 
 Then use the provided URL in Postmark's webhook configuration.
