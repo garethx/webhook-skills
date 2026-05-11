@@ -170,17 +170,12 @@ VERCEL_TOKEN=your_vercel_api_token
 For local webhook testing, install Hookdeck CLI:
 
 ```bash
-# Install via npm
-npm install -g hookdeck-cli
-
-# Or via Homebrew
-brew install hookdeck/hookdeck/hookdeck
 ```
 
 Then start the tunnel:
 
 ```bash
-hookdeck listen 3000 --path /webhooks/vercel
+npx hookdeck-cli listen 3000 vercel --path /webhooks/vercel
 ```
 
 No account required. Provides local tunnel + web UI for inspecting requests.

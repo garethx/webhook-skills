@@ -154,17 +154,12 @@ CURSOR_WEBHOOK_SECRET=your_webhook_secret_here
 For local webhook testing, install Hookdeck CLI:
 
 ```bash
-# Install via npm
-npm install -g hookdeck-cli
-
-# Or via Homebrew
-brew install hookdeck/hookdeck/hookdeck
 ```
 
 Then start the tunnel:
 
 ```bash
-hookdeck listen 3000 --path /webhooks/cursor
+npx hookdeck-cli listen 3000 cursor --path /webhooks/cursor
 ```
 
 No account required. Provides local tunnel + web UI for inspecting requests.

@@ -60,11 +60,8 @@ API documentation available at http://localhost:8000/docs
 Use the Hookdeck CLI for local testing:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel to your local server
-hookdeck listen 8000 --path /webhooks/postmark
+npx hookdeck-cli listen 8000 postmark --path /webhooks/postmark
 ```
 
 Then use the provided URL in Postmark's webhook configuration.

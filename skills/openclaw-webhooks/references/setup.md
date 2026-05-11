@@ -59,12 +59,7 @@ The Gateway webhook server listens on `http://127.0.0.1:18789` by default. To re
 ### Option 1: Hookdeck CLI (Recommended)
 
 ```bash
-# Install
-brew install hookdeck/hookdeck/hookdeck
-# or: npm i -g hookdeck-cli
-
-# Start tunnel
-hookdeck listen 18789 --path /hooks/agent
+npx hookdeck-cli listen 18789 openclaw --path /hooks/agent
 ```
 
 Hookdeck provides a stable public URL, automatic retries, queuing, and a dashboard for inspecting webhook deliveries.

@@ -95,7 +95,7 @@ Shopify development stores can be used for testing:
 For testing webhooks locally, use Hookdeck CLI:
 
 ```bash
-hookdeck listen 3000 --path /webhooks/shopify
+npx hookdeck-cli listen 3000 shopify --path /webhooks/shopify
 ```
 
 ## Environment Variables

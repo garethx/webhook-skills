@@ -35,11 +35,8 @@
 For local development, use Hookdeck CLI to create a public URL:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel to your local server
-hookdeck listen 3000 --path /webhooks/clerk
+npx hookdeck-cli listen 3000 clerk --path /webhooks/clerk
 
 # You'll get a URL like: https://hdk.sh/abc123
 # Use this URL when registering your endpoint in Clerk

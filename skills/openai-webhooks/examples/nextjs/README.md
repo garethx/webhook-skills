@@ -34,11 +34,8 @@ Server runs on http://localhost:3000
 ## Test with Hookdeck CLI
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel to your local server
-hookdeck listen 3000 --path /webhooks/openai
+npx hookdeck-cli listen 3000 openai --path /webhooks/openai
 
 # Use the provided URL in OpenAI webhook settings
 ```

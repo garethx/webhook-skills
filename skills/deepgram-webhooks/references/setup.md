@@ -63,11 +63,8 @@ curl -X POST \
 ### 1. Local Development with Hookdeck
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create local tunnel
-hookdeck listen 3000 --path /webhooks/deepgram
+npx hookdeck-cli listen 3000 deepgram --path /webhooks/deepgram
 
 # Use the provided URL in your Deepgram requests
 ```

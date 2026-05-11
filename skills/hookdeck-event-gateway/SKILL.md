@@ -33,12 +33,10 @@ The Event Gateway is a webhook proxy and durable message queue that sits between
 Get started immediately — no account required:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
 # Or: npm install -g hookdeck-cli
 
 # Start tunnel to your local server
-hookdeck listen 3000 --path /webhooks
+npx hookdeck-cli listen 3000 gateway --path /webhooks
 ```
 
 This gives you a public URL (e.g., `https://events.hookdeck.com/e/src_xxx`) that forwards webhooks to your local server, plus a web UI for inspecting and replaying requests.
@@ -47,13 +45,13 @@ Already using a provider webhook skill? Point the tunnel at your existing handle
 
 ```bash
 # If you're using stripe-webhooks
-hookdeck listen 3000 --path /webhooks/stripe
+npx hookdeck-cli listen 3000 stripe --path /webhooks/stripe
 
 # If you're using shopify-webhooks
-hookdeck listen 3000 --path /webhooks/shopify
+npx hookdeck-cli listen 3000 shopify --path /webhooks/shopify
 
 # If you're using github-webhooks
-hookdeck listen 3000 --path /webhooks/github
+npx hookdeck-cli listen 3000 github --path /webhooks/github
 ```
 
 ## Why Use the Event Gateway

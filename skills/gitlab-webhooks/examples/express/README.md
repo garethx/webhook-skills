@@ -50,7 +50,7 @@ To test with real GitLab webhooks:
 
 1. Use [Hookdeck CLI](https://hookdeck.com/docs/cli) for local testing:
    ```bash
-   hookdeck listen 3000 --path /webhooks/gitlab
+   npx hookdeck-cli listen 3000 gitlab --path /webhooks/gitlab
    ```
 
 2. Or use GitLab's test feature:

@@ -156,11 +156,8 @@ From Clerk Dashboard → Webhooks → your endpoint → Signing Secret.
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/clerk
+npx hookdeck-cli listen 3000 clerk --path /webhooks/clerk
 ```
 
 Use the tunnel URL in Clerk Dashboard when adding your endpoint. For production, set your live URL and copy the signing secret to production env vars.

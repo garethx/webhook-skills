@@ -215,11 +215,8 @@ RESEND_WEBHOOK_SECRET=whsec_xxxxx # From webhook endpoint settings
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/resend
+npx hookdeck-cli listen 3000 resend --path /webhooks/resend
 ```
 
 ## Reference Materials

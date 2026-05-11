@@ -109,11 +109,8 @@ curl -X DELETE https://api.webflow.com/webhooks/{webhook_id} \
 ### 1. Local Development with Hookdeck
 
 ```bash
-# Install Hookdeck CLI
-npm install -g hookdeck-cli
-
 # Create a tunnel to your local server
-hookdeck listen 3000 --path /webhooks/webflow
+npx hookdeck-cli listen 3000 webflow --path /webhooks/webflow
 ```
 
 ### 2. Test Events

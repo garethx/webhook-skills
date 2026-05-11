@@ -129,8 +129,7 @@ SENDGRID_WEBHOOK_VERIFICATION_KEY="MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE..."
 For local webhook testing, use Hookdeck CLI:
 
 ```bash
-brew install hookdeck/hookdeck/hookdeck
-hookdeck listen 3000 --path /webhooks/sendgrid
+npx hookdeck-cli listen 3000 sendgrid --path /webhooks/sendgrid
 ```
 
 No account required. Provides local tunnel + web UI for inspecting requests.

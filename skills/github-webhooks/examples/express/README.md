@@ -34,11 +34,8 @@ Server runs on http://localhost:3000
 ### Using Hookdeck CLI
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Forward webhooks to localhost
-hookdeck listen 3000 --path /webhooks/github
+npx hookdeck-cli listen 3000 github --path /webhooks/github
 ```
 
 Then configure the Hookdeck URL in your GitHub repository webhook settings.

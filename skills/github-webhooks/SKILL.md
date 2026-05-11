@@ -152,11 +152,8 @@ GITHUB_WEBHOOK_SECRET=your_webhook_secret   # Set when creating webhook in GitHu
 ## Local Development
 
 ```bash
-# Install Hookdeck CLI for local webhook testing
-brew install hookdeck/hookdeck/hookdeck
-
 # Start tunnel (no account needed)
-hookdeck listen 3000 --path /webhooks/github
+npx hookdeck-cli listen 3000 github --path /webhooks/github
 ```
 
 ## Reference Materials

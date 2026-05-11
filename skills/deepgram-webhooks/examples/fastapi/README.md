@@ -49,7 +49,7 @@ API documentation available at http://localhost:8000/docs
 
 2. In another terminal, use Hookdeck CLI to create a tunnel:
    ```bash
-   hookdeck listen 8000 --path /webhooks/deepgram
+   npx hookdeck-cli listen 8000 deepgram --path /webhooks/deepgram
    ```
 
 3. Use the provided URL when making Deepgram requests:

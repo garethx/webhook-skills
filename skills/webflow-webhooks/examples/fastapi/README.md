@@ -51,11 +51,8 @@ API documentation: http://localhost:3000/docs
 Use Hookdeck CLI to create a public URL for your local server:
 
 ```bash
-# Install Hookdeck CLI
-npm install -g hookdeck-cli
-
 # Create tunnel
-hookdeck listen 3000 --path /webhooks/webflow
+npx hookdeck-cli listen 3000 webflow --path /webhooks/webflow
 ```
 
 1. Copy the Hookdeck URL (e.g., `https://events.hookdeck.com/e/src_xxxxx`)

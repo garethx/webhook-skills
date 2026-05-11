@@ -44,11 +44,8 @@ OpenAI provides test events to verify your endpoint is working:
 For local testing, use a tunneling service like Hookdeck CLI:
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel to your local server
-hookdeck listen 3000 --path /webhooks/openai
+npx hookdeck-cli listen 3000 openai --path /webhooks/openai
 ```
 
 This provides:

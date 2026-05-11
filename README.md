@@ -85,16 +85,11 @@ npx skills add hookdeck/webhook-skills --skill stripe-webhooks --skill shopify-w
 
 ### Local Webhook Development
 
-To receive webhooks on localhost during development, install the [Hookdeck CLI](https://hookdeck.com/docs/cli):
+To receive webhooks on localhost during development, run [Hookdeck CLI](https://hookdeck.com/docs/cli) via `npx` — no install required:
 
 ```bash
-npm i -g hookdeck-cli
-
-# or:
-brew install hookdeck/hookdeck/hookdeck
-
 # Start local webhook tunnel (no account required)
-hookdeck listen 3000 --path /webhooks/stripe
+npx hookdeck-cli listen 3000 stripe --path /webhooks/stripe
 ```
 
 This provides a public URL that forwards webhook events to your local server, plus a web UI for inspecting and replaying webhook requests.
@@ -116,7 +111,7 @@ The agent will:
 1. Read `stripe-webhooks/SKILL.md` to understand webhook verification
 2. Reference `stripe-webhooks/references/verification.md` for signature verification details
 3. Copy code from `stripe-webhooks/examples/express/` as a starting point
-4. Suggest `hookdeck listen 3000 --path /webhooks/stripe` for local webhook testing
+4. Suggest `npx hookdeck-cli listen 3000 stripe --path /webhooks/stripe` for local webhook testing
 
 ## Example: How to Verify GitHub Webhook Signatures
 

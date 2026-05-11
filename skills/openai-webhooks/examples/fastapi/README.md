@@ -42,11 +42,8 @@ API documentation available at http://localhost:8000/docs
 ## Test with Hookdeck CLI
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Create tunnel to your local server
-hookdeck listen 8000 --path /webhooks/openai
+npx hookdeck-cli listen 8000 openai --path /webhooks/openai
 
 # Use the provided URL in OpenAI webhook settings
 ```

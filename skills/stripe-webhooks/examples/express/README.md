@@ -48,11 +48,8 @@ stripe trigger payment_intent.succeeded
 ### Using Hookdeck CLI
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Forward webhooks to localhost
-hookdeck listen 3000 --path /webhooks/stripe
+npx hookdeck-cli listen 3000 stripe --path /webhooks/stripe
 ```
 
 Then trigger events from the Stripe Dashboard or CLI.

@@ -42,11 +42,8 @@ npm test
 Use Hookdeck CLI to receive webhooks locally:
 
 ```bash
-# Install Hookdeck CLI
-npm install -g hookdeck-cli
-
 # Forward webhooks to your local server
-hookdeck listen 3000 --path /webhooks/cursor
+npx hookdeck-cli listen 3000 cursor --path /webhooks/cursor
 ```
 
 ## Endpoints

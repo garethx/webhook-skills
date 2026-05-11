@@ -46,6 +46,7 @@ class TestStripeWebhook:
         """Should return 400 when signature is invalid."""
         payload = json.dumps({
             "id": "evt_test",
+            "object": "event",
             "type": "payment_intent.succeeded",
             "data": {"object": {"id": "pi_test"}}
         })
@@ -65,6 +66,7 @@ class TestStripeWebhook:
         """Should return 200 when signature is valid."""
         payload = json.dumps({
             "id": "evt_test_valid",
+            "object": "event",
             "type": "payment_intent.succeeded",
             "data": {"object": {"id": "pi_test_valid"}}
         })
@@ -95,6 +97,7 @@ class TestStripeWebhook:
         for event_type in event_types:
             payload = json.dumps({
                 "id": f"evt_{event_type.replace('.', '_')}",
+                "object": "event",
                 "type": event_type,
                 "data": {"object": {"id": "obj_123"}}
             })

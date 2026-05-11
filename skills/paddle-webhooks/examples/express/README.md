@@ -40,11 +40,8 @@ Server runs on http://localhost:3000
 ### Using Hookdeck CLI
 
 ```bash
-# Install Hookdeck CLI
-brew install hookdeck/hookdeck/hookdeck
-
 # Forward webhooks to localhost
-hookdeck listen 3000 --path /webhooks/paddle
+npx hookdeck-cli listen 3000 paddle --path /webhooks/paddle
 ```
 
 Then use the Hookdeck URL as your notification destination in Paddle.
