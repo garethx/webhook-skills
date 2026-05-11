@@ -755,6 +755,23 @@ providers:
 
 The test script reads scenarios from `providers.yaml` dynamically - no script modifications needed.
 
+## Running the Generator in Sandboxed Environments
+
+When invoking `./scripts/generate-skills.sh generate` or `review` from a sandboxed agent environment (Claude Code on the web, Docker containers, etc.), the spawned `claude` CLI passes `--dangerously-skip-permissions` to skip its interactive permission prompts. The CLI refuses that flag when the process is running as root for safety, so the run fails immediately on every provider with:
+
+```
+--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons
+```
+
+Acknowledge the sandbox by exporting `IS_SANDBOX=1` for the generator invocation. The env var is inherited by the `claude` child processes and unblocks the flag:
+
+```bash
+IS_SANDBOX=1 ./scripts/generate-skills.sh generate {provider} --config providers.yaml
+IS_SANDBOX=1 ./scripts/generate-skills.sh review --config providers.yaml --create-pr=draft
+```
+
+Always pair `IS_SANDBOX=1` with an explicit `--model` (e.g. `--model claude-opus-4-7`) — the adapter's default is pinned to an older Opus build.
+
 ## Reviewing a Provider Skill or PR
 
 When reviewing a provider skill (e.g. from a pull request or before merging):
