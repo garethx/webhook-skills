@@ -463,22 +463,34 @@ providers:
   - name: mailgun
     displayName: Mailgun
     docs:
-      webhooks: https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/webhooks
+      webhooks: https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/webhooks
+      configuring: https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/configuring-webhooks
       verification: https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/securing-webhooks
+      payloads: https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/webhook-payloads
+      retries: https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/webhook-retries
+      events: https://documentation.mailgun.com/docs/mailgun/user-manual/events/events
+      event_structure: https://documentation.mailgun.com/docs/mailgun/user-manual/events/event-structure
+      api: https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/webhooks
     notes: >
-      Email delivery platform. Signature is delivered inside the request body (not a
-      header) as a top-level "signature" object with three fields: timestamp (seconds
-      since epoch), token (randomly generated 50-char string), and signature (hex).
-      Verify by computing HMAC-SHA256 over the concatenation timestamp+token (no
-      separator) using your Mailgun HTTP Webhook Signing Key, then comparing the
-      resulting hex digest to the signature field with timing-safe comparison. Cache
-      tokens to drop replays and optionally reject very stale timestamps (be lenient
-      — there can be processing delay). Common events: delivered, opened, clicked,
-      unsubscribed, complained, permanent_fail, temporary_fail.
+      Email delivery platform. Webhooks can be configured at the account level
+      (apply across all domains on the account) or at the domain level (per-sending-domain),
+      but BOTH use the same signature scheme and the same Webhook Signing Key — this is
+      one skill, not two. Signature is delivered inside the request body (not a header)
+      as a top-level "signature" object with three fields: timestamp (seconds since
+      epoch), token (randomly generated 50-char string), and signature (hex). Verify
+      by computing HMAC-SHA256 over the concatenation timestamp+token (no separator)
+      using your Mailgun HTTP Webhook Signing Key, then comparing the hex digest to
+      the signature field with timing-safe comparison. For subaccounts, payloads
+      additionally include a parent-signature field signed with the parent account's
+      key — verify both when relevant. Cache tokens to drop replays; optionally
+      reject very stale timestamps but stay lenient (delivery can lag). Common event
+      types: accepted, rejected, delivered, failed (with severity: permanent or
+      temporary), opened, clicked, unsubscribed, complained, stored,
+      list_member_uploaded.
     testScenario:
       events:
         - delivered
-        - permanent_fail
+        - failed
 
   - name: notion
     displayName: Notion
