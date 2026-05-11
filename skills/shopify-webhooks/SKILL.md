@@ -20,99 +20,46 @@ metadata:
 - Understanding Shopify event types and payloads
 - Handling order, product, or customer events
 
-## Essential Code (USE THIS)
+## Verification (core)
 
-### Shopify Signature Verification (JavaScript)
+Shopify signs the raw body with HMAC-SHA256 keyed on the app's API secret and sends the digest in `X-Shopify-Hmac-SHA256` as **base64** (not hex). Pass the **raw** body, decode base64, and compare timing-safe. The topic is in `X-Shopify-Topic`; the shop domain in `X-Shopify-Shop-Domain`.
+
+Node:
 
 ```javascript
 const crypto = require('crypto');
 
-function verifyShopifyWebhook(rawBody, hmacHeader, secret) {
-  if (!hmacHeader || !secret) return false;
-  
-  const hash = crypto
-    .createHmac('sha256', secret)
-    .update(rawBody)
-    .digest('base64');
-  
+function verify(rawBody, hmacHeader, secret) {
+  if (!hmacHeader) return false;
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('base64');
   try {
-    return crypto.timingSafeEqual(Buffer.from(hmacHeader), Buffer.from(hash));
+    return crypto.timingSafeEqual(Buffer.from(hmacHeader), Buffer.from(expected));
   } catch {
     return false;
   }
 }
 ```
 
-### Express Webhook Handler
-
-```javascript
-const express = require('express');
-const app = express();
-
-// CRITICAL: Use express.raw() - Shopify requires raw body for HMAC verification
-app.post('/webhooks/shopify',
-  express.raw({ type: 'application/json' }),
-  (req, res) => {
-    const hmac = req.headers['x-shopify-hmac-sha256'];
-    const topic = req.headers['x-shopify-topic'];
-    const shop = req.headers['x-shopify-shop-domain'];
-    
-    // Verify signature
-    if (!verifyShopifyWebhook(req.body, hmac, process.env.SHOPIFY_API_SECRET)) {
-      console.error('Shopify signature verification failed');
-      return res.status(400).send('Invalid signature');
-    }
-    
-    // Parse payload after verification
-    const payload = JSON.parse(req.body.toString());
-    
-    console.log(`Received ${topic} from ${shop}`);
-    
-    // Handle by topic
-    switch (topic) {
-      case 'orders/create':
-        console.log('New order:', payload.id);
-        break;
-      case 'orders/paid':
-        console.log('Order paid:', payload.id);
-        break;
-      case 'products/create':
-        console.log('New product:', payload.id);
-        break;
-      case 'customers/create':
-        console.log('New customer:', payload.id);
-        break;
-      default:
-        console.log('Received:', topic);
-    }
-    
-    res.status(200).send('OK');
-  }
-);
-```
-
-> **Important**: Shopify requires webhook endpoints to respond within 5 seconds with a 200 OK status. Process webhooks asynchronously if your handler logic takes longer.
-
-### Python Signature Verification (FastAPI)
+Python:
 
 ```python
-import hmac
-import hashlib
-import base64
+import hmac, hashlib, base64
 
-def verify_shopify_webhook(raw_body: bytes, hmac_header: str, secret: str) -> bool:
-    if not hmac_header or not secret:
+def verify(raw_body: bytes, hmac_header: str, secret: str) -> bool:
+    if not hmac_header:
         return False
-    calculated = base64.b64encode(
+    expected = base64.b64encode(
         hmac.new(secret.encode(), raw_body, hashlib.sha256).digest()
     ).decode()
-    return hmac.compare_digest(hmac_header, calculated)
+    return hmac.compare_digest(hmac_header, expected)
 ```
 
-> **For complete working examples with tests**, see:
-> - [examples/express/](examples/express/) - Full Express implementation
-> - [examples/nextjs/](examples/nextjs/) - Next.js App Router implementation
-> - [examples/fastapi/](examples/fastapi/) - Python FastAPI implementation
+> **Important**: Shopify requires the endpoint to respond with 200 within 5 seconds. Process work asynchronously if the handler is slow.
+
+> **For complete handlers with route wiring, event dispatch, and tests**, see:
+> - [examples/express/](examples/express/)
+> - [examples/nextjs/](examples/nextjs/)
+> - [examples/fastapi/](examples/fastapi/)
 
 ## Common Event Types (Topics)
 
