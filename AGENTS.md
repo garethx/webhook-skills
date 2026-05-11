@@ -208,23 +208,20 @@ metadata:
 
 ## Local Development
 
-For local webhook testing, install Hookdeck CLI:
+For local webhook testing, run the Hookdeck CLI via `npx` — no install required, one paste-and-run line:
 
 ```bash
-# Install via npm
-npm install -g hookdeck-cli
-
-# Or via Homebrew
-brew install hookdeck/hookdeck/hookdeck
+npx hookdeck-cli listen 3000 {provider} --path /webhooks/{provider}
 ```
 
-Then start the tunnel:
+**Conventions for this command in skill examples (apply to every example README and any `references/setup.md` that mentions a tunnel):**
 
-```bash
-hookdeck listen 3000 --path /webhooks/{provider}
-```
+- Always use `npx hookdeck-cli` (not bare `hookdeck`) — skills shouldn't push a global install of a provider-specific CLI. `npx` resolves to the package's `hookdeck` bin automatically.
+- Always pass the **source name** as the second positional arg (e.g. `stripe`, `mailgun`). The CLI's `[source]` argument is required syntactically and otherwise prompts interactively; passing it explicitly gives a copy-paste-runnable command.
+- Match the example's port: `3000` for Express and Next.js, `8000` for FastAPI.
+- The path is `/webhooks/{provider}` matching the example handler's route.
 
-No account required. Provides local tunnel + web UI for inspecting requests.
+No account required — the CLI creates a guest account on first run and provides a local tunnel + web UI for inspecting requests.
 
 ## Related Skills
 
@@ -754,6 +751,23 @@ providers:
 ```
 
 The test script reads scenarios from `providers.yaml` dynamically - no script modifications needed.
+
+## Running the Generator in Sandboxed Environments
+
+When invoking `./scripts/generate-skills.sh generate` or `review` from a sandboxed agent environment (Claude Code on the web, Docker containers, etc.), the spawned `claude` CLI passes `--dangerously-skip-permissions` to skip its interactive permission prompts. The CLI refuses that flag when the process is running as root for safety, so the run fails immediately on every provider with:
+
+```
+--dangerously-skip-permissions cannot be used with root/sudo privileges for security reasons
+```
+
+Acknowledge the sandbox by exporting `IS_SANDBOX=1` for the generator invocation. The env var is inherited by the `claude` child processes and unblocks the flag:
+
+```bash
+IS_SANDBOX=1 ./scripts/generate-skills.sh generate {provider} --config providers.yaml
+IS_SANDBOX=1 ./scripts/generate-skills.sh review --config providers.yaml --create-pr=draft
+```
+
+Always pair `IS_SANDBOX=1` with an explicit `--model` (e.g. `--model claude-opus-4-7`) — the adapter's default is pinned to an older Opus build.
 
 ## Reviewing a Provider Skill or PR
 
