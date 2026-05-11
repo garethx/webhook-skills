@@ -72,6 +72,13 @@ Read the AGENTS.md file in this repository to understand the full skill creation
    - FastAPI: `npx hookdeck-cli listen 8000 {{PROVIDER_KEBAB}} --path /webhooks/{{PROVIDER_KEBAB}}`
 
    Do **not** write `hookdeck listen ...` (assumes a global install), and do **not** omit the source positional arg (the CLI would otherwise prompt interactively). See `AGENTS.md` → "Local Development" for the rationale.
+7. **`SKILL.md` inline code is for the verification core only** — keep it short (typically under 25 lines) and scoped to the algorithm/header/comparison essentials. The full Express/Next.js/FastAPI handler (route wiring, event dispatch, error responses) belongs in `examples/`, not in `SKILL.md`. After the verification snippet, link the example directories so agents can pull the runnable, CI-tested version:
+
+   ```markdown
+   > **For complete handlers with tests**, see [examples/express/](examples/express/), [examples/nextjs/](examples/nextjs/), [examples/fastapi/](examples/fastapi/).
+   ```
+
+   Do **not** duplicate the full handler from `examples/<framework>/src/...` into `SKILL.md`. Drift between the two is a recurring source of bugs (e.g. SDK API changes captured only in the example).
 
 ## CRITICAL: Consistency Checks
 
@@ -79,7 +86,7 @@ Read the AGENTS.md file in this repository to understand the full skill creation
 
 1. **Event names** - SKILL.md, overview.md, and all three example handlers must use identical event names
 2. **Header names** - All files must reference the same signature header(s)
-3. **Verification algorithm** - SKILL.md inline code must match example implementations exactly
+3. **Verification algorithm** - the verification core snippet in `SKILL.md` (algorithm + header parse + timing-safe compare) must match how the example handlers verify. Keep the SKILL.md snippet short and focused; the full handler lives in `examples/`
 4. **Environment variable names** - Consistent across .env.example and code files
 
 **Check for these common mistakes:**

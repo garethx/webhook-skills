@@ -147,6 +147,17 @@ metadata:
 
 - Keep SKILL.md under 500 lines / < 5,000 tokens
 - Put detailed reference material in `references/` files
+- **Inline code in `SKILL.md` is for the verification core only** — keep it short (typically under 25 lines) and limit it to the algorithm/header/comparison essentials an agent needs to answer "how do I verify X?" without loading another file. The full Express/Next.js/FastAPI handler (route wiring, event dispatch, error responses) lives in `examples/`. Point to the example by path rather than duplicating the handler:
+  ```markdown
+  ## Verification (core)
+
+  ```javascript
+  // ~10–20 lines: HMAC compute + timing-safe compare
+  ```
+
+  > **For complete handlers with tests**, see [examples/express/](examples/express/), [examples/nextjs/](examples/nextjs/), [examples/fastapi/](examples/fastapi/).
+  ```
+  This keeps `SKILL.md` focused, lets agents copy the canonical verification fast, and avoids drift between `SKILL.md` and the runnable (CI-tested) examples.
 - **Links within the same skill:** Use relative paths (e.g. `references/verification.md`, `examples/express/`).
 - **Links to another skill:** Use absolute GitHub URLs so links resolve when only one skill is installed. Use the `main` branch: `https://github.com/hookdeck/webhook-skills/blob/main/skills/{skill-name}/…` for a file, or `https://github.com/hookdeck/webhook-skills/tree/main/skills/{skill-name}` for the skill root.
 
