@@ -59,6 +59,30 @@ app.post('/webhooks/scrapfly',
       return res.status(401).send('Invalid signature');
     }
 
+    console.log(`Scrapfly webhook (id=${webhookId} resource=${resourceType} job=${jobId})`);
+
+    // Dispatch BEFORE JSON parsing — screenshot deliveries are raw image
+    // bytes (JPEG / PNG / WebP / GIF) regardless of the Content-Type you
+    // configured in the Scrapfly dashboard (json or msgpack — both apply
+    // verbatim to scrape/extraction deliveries, but screenshot bodies are
+    // binary either way). Trying to JSON.parse a binary body throws after
+    // verification has already succeeded.
+    if (resourceType === 'screenshot') {
+      console.log(`Screenshot received: ${req.body.length} bytes (binary, ${jobId})`);
+      // req.body is a Buffer of the rendered image. Persist it to storage
+      // (S3, disk, ImgIX, etc.) keyed on jobId / webhookId. Do not call
+      // JSON.parse here. The synchronous Screenshot API response exposes
+      // metadata in headers like X-Scrapfly-Screenshot-Url, but the
+      // webhook delivery only carries the image bytes — fetch the metadata
+      // from the synchronous response or the Scrapfly dashboard if needed.
+      return res.status(200).send('OK');
+    }
+
+    // Remaining resource types are serialised per your dashboard's
+    // Content-Type setting. This handler assumes `application/json`; if
+    // you configured `application/msgpack`, swap JSON.parse for a msgpack
+    // decoder (e.g. `@msgpack/msgpack`).
+
     let payload;
     try {
       payload = JSON.parse(req.body.toString('utf8'));
@@ -67,9 +91,7 @@ app.post('/webhooks/scrapfly',
       return res.status(400).send('Invalid JSON payload');
     }
 
-    console.log(`Scrapfly webhook (id=${webhookId} resource=${resourceType} job=${jobId})`);
-
-    // Route by resource type for the Scrape / Extraction / Screenshot APIs.
+    // Route by resource type for the Scrape / Extraction APIs.
     switch (resourceType) {
       case 'scrape':
         // Scrape API places the fetched URL at result.url (see scrapfly.io/docs/scrape-api/getting-started).
@@ -82,13 +104,14 @@ app.post('/webhooks/scrapfly',
         break;
 
       case 'extraction':
-        console.log('Extraction result:', payload?.result?.data);
+        // Extraction body shape (from a real capture):
+        // { content_type, data: { ... }, context: { webhook, job } }
+        // The extracted fields live at payload.data, NOT payload.result.data.
+        console.log('Extraction result:', {
+          content_type: payload?.content_type,
+          data: payload?.data,
+        });
         // TODO: Save structured data, trigger downstream enrichment
-        break;
-
-      case 'screenshot':
-        console.log('Screenshot result URL:', payload?.result?.screenshot_url);
-        // TODO: Store image, generate thumbnail, notify user
         break;
 
       default: {

@@ -87,12 +87,22 @@ const safe = { ...payload, context: { ...payload.context, webhook: { ...payload.
 
 ## Common Gotchas
 
-- **Parsed JSON breaks signatures.** Verify against the exact bytes Scrapfly sent. In Express, mount `express.raw({ type: '*/*' })` on the webhook route (not `express.json`). In Next.js App Router, read with `await request.text()`. In FastAPI, use `await request.body()`.
+- **Parsed JSON breaks signatures.** Verify against the exact bytes Scrapfly sent. In Express, mount `express.raw({ type: '*/*' })` on the webhook route (not `express.json`). In Next.js App Router, read with `await request.arrayBuffer()` and wrap with `Buffer.from(...)` — do **not** use `await request.text()`, which UTF-8-decodes the bytes (corrupts binary screenshot bodies). In FastAPI, use `await request.body()`.
+- **Screenshot deliveries are binary regardless of the Content-Type you configured.** Scrapfly's webhook config has a Content-Type dropdown (`application/json` or `application/msgpack`); whichever you pick is sent on every delivery as the `Content-Type` header. For Scrape and Extraction API deliveries the body shape matches what you configured (JSON or msgpack). For Screenshot API deliveries the body is raw image bytes (JPEG / PNG / WebP / GIF) no matter what's in the header — an upstream Scrapfly quirk: the configured Content-Type is sent verbatim, but the screenshot delivery is the binary image and never actually a serialised object. **Dispatch on `X-Scrapfly-Webhook-Resource-Type`, not on `Content-Type`, and only parse the body after dispatching.** Verification works fine over any body — only the parse step needs to know what to expect. The example handlers in this skill follow that pattern: signature check → resource-type dispatch → JSON parse only for scrape / extraction / crawler.
+- **JSON vs msgpack parsing.** The example handlers in this skill assume the Scrapfly dashboard is configured to send `application/json`. If you configured `application/msgpack` instead, swap the parse step in the scrape / extraction / crawler branches for a msgpack decoder (e.g. [`@msgpack/msgpack`](https://www.npmjs.com/package/@msgpack/msgpack) on Node, [`msgpack`](https://pypi.org/project/msgpack/) on Python). The signature check, the binary screenshot path, and the rest of the handler don't change.
 - **Case of the hex digest.** Scrapfly's primary header is uppercase, but the `-Lowercase` variant exists for a reason. Always normalise both sides before comparing (the snippets above use `.toUpperCase()` / `.upper()`).
 - **Header casing in HTTP frameworks.** HTTP header names are case-insensitive. Express lowercases everything; Next.js's `headers.get(...)` is also case-insensitive. Read `x-scrapfly-webhook-signature`.
 - **No timestamp tolerance.** Don't reject for old timestamps — there isn't one. If you need replay protection, dedupe on `X-Scrapfly-Webhook-Id`.
 - **Secret format.** Use the dashboard string verbatim. There is no `whsec_` prefix to strip and no base64 decode step.
 - **Body encoding.** The HMAC is over bytes, not text. Avoid any middleware that transforms encoding (gzip middleware, BOM strippers, etc.) on the route.
+
+## Alternative: Verify at the Gateway with Hookdeck
+
+If your handlers sit behind Hookdeck Event Gateway, you can offload Scrapfly signature verification to the gateway and have your handler verify only Hookdeck's signature downstream. Hookdeck has a built-in `SCRAPFLY` source type that knows the exact algorithm (uppercase hex HMAC-SHA256, dual-case headers, raw-body) and will reject invalid deliveries at the edge.
+
+Set up by creating a Hookdeck source with `--type SCRAPFLY` and the same signing secret you configured in Scrapfly, then have your handler verify `x-hookdeck-signature` instead of `X-Scrapfly-Webhook-Signature`. See the [hookdeck-event-gateway](https://github.com/hookdeck/webhook-skills/tree/main/skills/hookdeck-event-gateway) and [hookdeck-event-gateway-webhooks](https://github.com/hookdeck/webhook-skills/tree/main/skills/hookdeck-event-gateway-webhooks) skills for the downstream verification pattern.
+
+A known caveat (May 2026): if your Scrapfly dashboard is configured to send `application/json` (the default), Hookdeck rejects Scrapfly screenshot deliveries with `UNPARSABLE_JSON` because the configured Content-Type doesn't match the binary screenshot body. This is upstream Scrapfly behaviour: the Content-Type dropdown applies to every delivery, but screenshot bodies are binary regardless. Pending resolution, route screenshot deliveries directly to your handler without the gateway preset, or configure the webhook to send `application/msgpack` if you can use a parser that tolerates binary bodies on the screenshot path.
 
 ## Debugging Verification Failures
 
