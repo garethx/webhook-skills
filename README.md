@@ -71,6 +71,7 @@ Framework-agnostic best practices for webhook handling, applicable across any we
 
 | Skill | What It Does |
 |-------|--------------|
+| [`standard-webhooks`](skills/standard-webhooks/) | Verify [Standard Webhooks](https://www.standardwebhooks.com/) signatures (`webhook-id` / `webhook-timestamp` / `webhook-signature`, HMAC-SHA256 base64 with `whsec_` secret) — the canonical spec used by Clerk, ElevenLabs, OpenAI, Replicate, Resend, and Gemini static mode |
 | [`webhook-handler-patterns`](skills/webhook-handler-patterns/) | Implement webhook idempotency, error handling, retry logic, async processing |
 
 ### Webhook Infrastructure Skills
@@ -100,7 +101,7 @@ npx skills add hookdeck/webhook-skills --skill stripe-webhooks --skill shopify-w
 
 ### Install with `/plugin` (Claude Code)
 
-Claude Code distributes this repo as a [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). Add the marketplace once, then install either a single provider skill or the bundle of all 37 skills.
+Claude Code distributes this repo as a [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). Add the marketplace once, then install either a single provider skill or the bundle of all 40 skills.
 
 ```text
 # Add this marketplace
@@ -109,7 +110,7 @@ Claude Code distributes this repo as a [plugin marketplace](https://code.claude.
 # Install one provider skill (each is ~200 KB)
 /plugin install stripe-webhooks@webhook-skills
 
-# Or install all 37 webhook skills as one bundle (~3 MB)
+# Or install all 40 webhook skills as one bundle (~3 MB)
 /plugin install webhook-skills@webhook-skills
 ```
 

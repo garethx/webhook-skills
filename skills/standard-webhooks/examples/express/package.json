@@ -1,0 +1,22 @@
+{
+  "name": "standard-webhooks-express-example",
+  "version": "1.0.0",
+  "description": "Express example for receiving Standard Webhooks",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --testTimeout=10000 --forceExit"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "dotenv": "^16.0.3",
+    "standardwebhooks": "^1.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

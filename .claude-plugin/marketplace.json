@@ -826,6 +826,31 @@
       ]
     },
     {
+      "name": "standard-webhooks",
+      "description": "Verify Standard Webhooks (standardwebhooks.com) signatures: `webhook-id` / `webhook-timestamp` / `webhook-signature` headers, HMAC-SHA256 base64 over `{id}.{ts}.{body}`, `whsec_<base64>` secrets, 5-minute replay window, multi-signature rotation. The canonical pattern used by Clerk, ElevenLabs, OpenAI, Replicate, Resend, and Gemini static mode.",
+      "source": "./skills/standard-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "development",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/standard-webhooks",
+      "keywords": [
+        "webhooks",
+        "standard-webhooks",
+        "svix",
+        "signature-verification",
+        "hmac-sha256",
+        "pattern"
+      ]
+    },
+    {
       "name": "webhook-handler-patterns",
       "description": "Framework-agnostic webhook handler patterns: idempotency, error handling, retry logic, async processing for Express, Next.js, and FastAPI.",
       "source": "./skills/webhook-handler-patterns",
@@ -922,7 +947,7 @@
     },
     {
       "name": "webhook-skills",
-      "description": "Bundle of all webhook integration skills in this repo: 33 provider skills (Stripe, Shopify, GitHub, and 30 others) for verifying signatures and handling provider-specific events, framework-agnostic webhook handler patterns covering idempotency, error handling and retries, plus three Hookdeck infrastructure skills for the Event Gateway and Outpost. Each skill includes Express, Next.js, and FastAPI examples. Install this plugin to get all 37 skills; install individual `<name>-webhooks@webhook-skills` plugins for narrower per-provider use.",
+      "description": "Bundle of all webhook integration skills in this repo: 35 provider skills (Stripe, Shopify, GitHub, and 32 others) for verifying signatures and handling provider-specific events, two framework-agnostic webhook handler pattern skills (Standard Webhooks spec implementation plus general idempotency, error handling, and retry patterns), and three Hookdeck infrastructure skills for the Event Gateway and Outpost. Each skill includes Express, Next.js, and FastAPI examples. Install this plugin to get all 40 skills; install individual `<name>-webhooks@webhook-skills` plugins for narrower per-provider use.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -956,6 +981,7 @@
         "./skills/sendgrid-webhooks",
         "./skills/shopify-webhooks",
         "./skills/slack-webhooks",
+        "./skills/standard-webhooks",
         "./skills/stripe-webhooks",
         "./skills/twilio-webhooks",
         "./skills/vercel-webhooks",
