@@ -670,6 +670,96 @@ providers:
         - app_mention
         - message
 
+  - name: standard
+    displayName: Standard Webhooks
+    docs:
+      spec: https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md
+      libraries: https://www.standardwebhooks.com/#resources
+      site: https://www.standardwebhooks.com/
+    notes: >
+      Standard Webhooks is an open specification (not a vendor) for webhook
+      signature verification, originally extracted from Svix's webhook scheme.
+      Adopted by Clerk, ElevenLabs, OpenAI, Replicate, Resend, and the static
+      mode of Google Gemini webhooks. This skill teaches the canonical
+      implementation so handlers can be shared across all of those providers
+      and any future Standard-Webhooks-compliant source.
+
+      THIS IS A PATTERN SKILL, NOT A PROVIDER. There is no Standard Webhooks
+      dashboard to sign in to and no "Standard Webhooks API" — the spec
+      describes how compliant senders sign requests and how receivers verify
+      them. Frame setup steps as "how to verify a Standard Webhooks payload"
+      generically, with cross-references to the provider-specific skills
+      (clerk-webhooks, elevenlabs-webhooks, openai-webhooks, replicate-webhooks,
+      resend-webhooks, gemini-webhooks) that show where to obtain the signing
+      secret for each vendor.
+
+      Required headers (lowercase, per spec — receivers MUST normalise as
+      HTTP headers are case-insensitive):
+      - `webhook-id`: unique message identifier (use for idempotency)
+      - `webhook-timestamp`: integer seconds since Unix epoch (NOT milliseconds)
+      - `webhook-signature`: space-separated list of one or more
+        `<version>,<signature>` pairs to support secret rotation (e.g.
+        `v1,base64sig1 v1,base64sig2`). Currently only `v1` is defined.
+
+      Signed content: the literal UTF-8 string
+      `{webhook-id}.{webhook-timestamp}.{raw-body}` — three fields joined by
+      single period characters. The body is the raw request bytes; do NOT
+      JSON.parse and re-serialise before verifying.
+
+      Algorithm: HMAC-SHA256 over the signed content using the signing
+      secret's decoded bytes, output as base64. Verification:
+      1. Decode the secret: strip the `whsec_` prefix and base64-decode the
+         remainder. This decoded byte string is the HMAC key.
+      2. Compute `base64(HMAC_SHA256(decoded_secret, "{id}.{ts}.{body}"))`.
+      3. For each `v1,<sig>` pair in `webhook-signature`, compare against
+         the computed signature with a constant-time comparator. Accept if
+         ANY pair matches (supports key rotation: senders sign with both
+         old and new secrets during the cutover window).
+      4. Reject payloads whose `webhook-timestamp` differs from current
+         time by more than 5 minutes (300 seconds), in either direction.
+         This is the spec-mandated replay window.
+
+      Secret format: `whsec_<base64-encoded-key>` — the prefix is part of
+      the on-the-wire format but must be stripped before base64-decoding.
+      Common error: passing the prefixed string verbatim as the HMAC key.
+
+      Reference libraries (do the unwrap-and-verify in one call):
+      - `standardwebhooks` on npm (Node/TypeScript)
+      - `standardwebhooks` on PyPI (Python)
+      - Also published for Go, Ruby, Java, C#/.NET, PHP, Rust, Kotlin
+        (see https://www.standardwebhooks.com/#resources).
+      Both npm and PyPI packages are named identically (`standardwebhooks`).
+      Skill should show the library-based path as the recommended approach
+      AND a manual stdlib implementation for reference / educational value.
+
+      Cross-references for vendor-specific dashboards / secret retrieval:
+      - Clerk: clerk-webhooks
+      - ElevenLabs: elevenlabs-webhooks
+      - OpenAI: openai-webhooks
+      - Replicate: replicate-webhooks
+      - Resend: resend-webhooks
+      - Google Gemini (static mode only — dynamic mode uses JWKS):
+        gemini-webhooks
+    sdks:
+      npm:
+        - standardwebhooks
+      pip:
+        - standardwebhooks
+    testScenario:
+      events:
+        - signature verification
+        - replay protection (5-minute window)
+        - multi-signature rotation
+      prompt: >
+        Add Standard Webhooks signature verification to my {framework} app.
+        I'm receiving webhooks from a provider that follows the Standard
+        Webhooks spec (e.g., Clerk, OpenAI, Replicate). The signing secret
+        starts with `whsec_`. Show me how to verify the `webhook-id`,
+        `webhook-timestamp`, and `webhook-signature` headers using the
+        `standardwebhooks` library AND a stdlib manual implementation.
+        If you use any skills to help with this, add a comment in the code
+        noting which skill(s) you referenced.
+
   - name: stripe
     displayName: Stripe
     docs:
