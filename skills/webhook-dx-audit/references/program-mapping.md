@@ -1,0 +1,24 @@
+# Mapping Findings to Hookdeck Offerings
+
+When a finding has a matching Hookdeck tool, product, or content offering that would help close the gap, the recommendations section can name it as an option. Keep the framing the review uses elsewhere: "this may point to which tools, features, or content would help next," with no obligation to act. Name the option, do not pitch.
+
+Use this table to match a gap to an offering. Only surface an offering when there is a real gap it addresses; do not list offerings the platform already does well.
+
+| Gap found in review | Offering | What it does | Notes |
+|---|---|---|---|
+| No test endpoint / hard to see test events land | **Hookdeck Console test URLs with event inspection** | Throwaway test URL plus inspector for body, headers, response. No customer account needed. | Available today, no integration on the platform's side. |
+| Onboarding lacks an in-product way to fire and see a test event | **In-product test URL generation** (Console source API) | Generate test URLs on the fly inside the platform's own dashboard so developers fire events without a Hookdeck account. | Requires a small integration on the platform's side. Early access. |
+| Weak or undocumented local-dev story; no inspect/replay | **Hookdeck CLI** | `hookdeck listen <port> <source>` forwards events to localhost; inspect and replay from CLI or Console. | Works without an account via `npx hookdeck-cli listen`. |
+| No sample payloads per event type | **Realistic sample event payloads** | Provider listing in Hookdeck Console with sample payloads per event type, linkable from the platform's docs. | e.g. `console.hookdeck.com/?provider=<name>`. |
+| Verification is manual / no first-class verify; receiving setup is fiddly | **Dedicated Source Type in Hookdeck Event Gateway** | The platform appears in the EG Source Type dropdown; selecting it pre-configures signature verification so developers skip manual HMAC setup. | Helps the local-to-production transition too. |
+| No agent/AI integration path; AI tools hallucinate the integration | **Webhook skill for AI agents** | Hookdeck generates a webhook skill (signing, event taxonomy, sample code) from the platform's public docs, hosted in the public `webhook-skills` repo for discovery. | Maps to rubric category 12. |
+| Developers can't see a working end-to-end integration before building | **Webhooks by Example** | Video plus blog walking a real end-to-end integration, joint launch with co-marketing. | Optional, usually after value from the review or tools. |
+| Customer wants public proof of their event-destinations story | **Outpost case study** | Hookdeck-led case study on how the customer uses Outpost to offer event destinations. | Co-marketing, when they are ready. Not a DX-gap remedy. |
+
+## Suggested entry points
+
+Two natural starting points are the **DX review** (this audit) and a **webhook skill** generated from public docs, since both can be produced from public surfaces without anything from the platform's side. If the review surfaces an agent-readiness gap (category 12) and little else blocking, the webhook skill is a natural, low-friction follow-up to name.
+
+## Commercial note (managed Outpost only)
+
+For managed Outpost customers, messages delivered from Hookdeck Outpost to Hookdeck Event Gateway are zero-rated and do not count toward per-message charges. This does not apply to self-hosted deployments, though every offering above still does. Only mention this if delivery-cost or EG-as-destination comes up; it is not part of the DX score.

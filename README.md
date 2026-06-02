@@ -83,6 +83,14 @@ Skills for webhook infrastructure products — routing, queuing, delivery, and o
 | [Hookdeck Event Gateway (receiver)](https://hookdeck.com/docs/verification) | [`hookdeck-event-gateway-webhooks`](skills/hookdeck-event-gateway-webhooks/) | Verify `x-hookdeck-signature` and handle webhooks forwarded by the Hookdeck Event Gateway |
 | [Hookdeck Outpost](https://outpost.hookdeck.com/docs) | [`outpost`](skills/outpost/) | Send webhooks and events to user-preferred destinations (HTTP, SQS, RabbitMQ, Pub/Sub, EventBridge, Kafka) |
 
+### Webhook DX & Audit Skills
+
+Meta-skills that evaluate the developer experience of platforms sending outbound webhooks, rather than helping you receive or send them.
+
+| Skill | What It Does |
+|-------|--------------|
+| [`webhook-dx-audit`](skills/webhook-dx-audit/) | Audit a platform's outbound webhook DX (signing, retries, event catalog, observability, local dev, agent readiness) and produce a scored review with prioritized recommendations |
+
 ## Quick Start
 
 ### Install with `npx skills` (any AI assistant)
@@ -100,7 +108,7 @@ npx skills add hookdeck/webhook-skills --skill stripe-webhooks --skill shopify-w
 
 ### Install with `/plugin` (Claude Code)
 
-Claude Code distributes this repo as a [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). Add the marketplace once, then install either a single provider skill or the bundle of all 37 skills.
+Claude Code distributes this repo as a [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). Add the marketplace once, then install either a single provider skill or the bundle of all 38 skills.
 
 ```text
 # Add this marketplace
@@ -109,7 +117,7 @@ Claude Code distributes this repo as a [plugin marketplace](https://code.claude.
 # Install one provider skill (each is ~200 KB)
 /plugin install stripe-webhooks@webhook-skills
 
-# Or install all 37 webhook skills as one bundle (~3 MB)
+# Or install all 38 webhook skills as one bundle (~3 MB)
 /plugin install webhook-skills@webhook-skills
 ```
 

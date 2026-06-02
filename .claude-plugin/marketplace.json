@@ -921,8 +921,32 @@
       ]
     },
     {
+      "name": "webhook-dx-audit",
+      "description": "Audit the developer experience of any platform that sends outbound webhooks or event destinations, and produce a scored review with prioritized recommendations across signing, retries, event catalog, observability, local dev, and agent readiness.",
+      "source": "./skills/webhook-dx-audit",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "development",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/webhook-dx-audit",
+      "keywords": [
+        "webhooks",
+        "audit",
+        "developer-experience",
+        "review",
+        "evaluation"
+      ]
+    },
+    {
       "name": "webhook-skills",
-      "description": "Bundle of all webhook integration skills in this repo: 33 provider skills (Stripe, Shopify, GitHub, and 30 others) for verifying signatures and handling provider-specific events, framework-agnostic webhook handler patterns covering idempotency, error handling and retries, plus three Hookdeck infrastructure skills for the Event Gateway and Outpost. Each skill includes Express, Next.js, and FastAPI examples. Install this plugin to get all 37 skills; install individual `<name>-webhooks@webhook-skills` plugins for narrower per-provider use.",
+      "description": "Bundle of all webhook integration skills in this repo: 33 provider skills (Stripe, Shopify, GitHub, and 30 others) for verifying signatures and handling provider-specific events, framework-agnostic webhook handler patterns covering idempotency, error handling and retries, three Hookdeck infrastructure skills for the Event Gateway and Outpost, and a webhook DX audit skill for scoring how a platform sends outbound webhooks. Each provider skill includes Express, Next.js, and FastAPI examples. Install this plugin to get all 38 skills; install individual `<name>-webhooks@webhook-skills` plugins for narrower per-provider use.",
       "source": "./",
       "strict": false,
       "skills": [
@@ -964,7 +988,8 @@
         "./skills/webhook-handler-patterns",
         "./skills/hookdeck-event-gateway",
         "./skills/hookdeck-event-gateway-webhooks",
-        "./skills/outpost"
+        "./skills/outpost",
+        "./skills/webhook-dx-audit"
       ],
       "category": "integration",
       "license": "MIT",
