@@ -62,7 +62,7 @@ How a developer learns what events exist and what each payload contains. Heavily
 
 - **Event type catalog.** Is there a complete list of event types with descriptions? 0: none. 1: partial or scattered. 2: complete, single source.
 - **Payload definitions.** Are payload fields defined (types, required, meaning), not just one example blob? 0: example only. 1: examples plus loose notes. 2: defined fields per event.
-- **Machine-readable spec.** Are events/payloads in OpenAPI, AsyncAPI, or published JSON Schema for programmatic use? 0: none. 1: spec exists but omits webhook events. 2: events covered in a fetchable spec. (This is about formal schemas a developer uses for codegen and validation, not the `llms.txt`/agent-docs signal, which is scored in category 12.)
+- **Machine-readable spec.** Are events/payloads in OpenAPI 3.1's `webhooks` block, AsyncAPI, or per-event JSON Schema for programmatic use? 0: no spec. 1: a REST API spec exists but does not declare per-event payload contracts (no OpenAPI 3.1 `webhooks` block, no AsyncAPI, no per-event JSON Schema, only a generic `event` envelope schema). 2: per-event payloads declared in a fetchable spec, suitable for codegen and validation. (This is about formal schemas a developer uses for codegen and validation, not the `llms.txt`/agent-docs signal, which is scored in category 12.)
 - **Sample payloads.** Are realistic sample payloads available per event type (in docs or fireable)? 0: none. 2: representative samples per type.
 - **Versioning & evolution.** Is there a stated policy for schema changes (versioning, additive-only, deprecation notice)? 0: none. 1: mentioned, vague. 2: clear policy.
 - **Payload shape guidance.** Thin (id + fetch) vs fat (full object) is explained, or a standard envelope (e.g. CloudEvents) is used. 0: unaddressed. 1: implicit. 2: explicit choice and rationale, or standard envelope.
@@ -73,11 +73,13 @@ The capability most often weak and most consequential. Heavily weighted.
 
 Security must match the destination type. For HTTP webhooks the bar is signing (HMAC or asymmetric), replay protection, secret rotation, and optional egress controls. For non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Azure Event Grid) the platform should use the destination's native auth: IAM roles / cross-account ARNs for AWS, service accounts and Workload Identity for GCP, managed identities for Azure, SASL/mTLS for Kafka brokers. Native destination auth is often stronger than HMAC + bearer because the cloud provider handles key management, rotation, and revocation. Score each criterion against the destination types the platform actually supports: a queue-only platform has no HMAC signatures to score, so the signing criteria become Not assessed for it, and the destination-native auth criterion below covers what *is* in scope.
 
+**If the platform offers both webhooks and non-HTTP destinations (e.g. Stripe with webhooks + EventBridge + Event Grid), score all six criteria.** The conditional "Not assessed" clauses on each criterion apply only when one of the two surfaces is genuinely missing, not when both are present.
+
 - **Signature scheme (webhooks).** Is HTTP delivery signed (HMAC-SHA256 baseline, asymmetric a plus) with the scheme documented? 0: unsigned or undocumented. 1: signed but thinly documented. 2: documented, robust scheme. (Not assessed if webhooks are not offered.)
 - **Replay protection (webhooks).** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance. (Not assessed if webhooks are not offered.)
 - **Secret rotation (webhooks).** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented. (Not assessed if webhooks are not offered.)
 - **Destination-native auth (non-HTTP).** For each non-HTTP destination type offered, is the platform's auth model the destination's native one (IAM/cross-account roles for SQS/EventBridge, service accounts for Pub/Sub, managed identities for Event Grid, SASL/mTLS for Kafka), with clear setup docs? 0: relies on shared secrets or undocumented. 1: native auth but thinly documented or limited. 2: native auth, well documented per destination. (Not assessed if only webhooks are offered.)
-- **Destination auth options (webhooks).** Beyond signatures: bearer/custom headers, OAuth2 client credentials, or mTLS for the receiving endpoint. 0: none. 1: one option. 2: multiple, documented. (Not assessed if webhooks are not offered.)
+- **Destination auth options (webhooks).** Beyond the platform's signature on its own request: configurable bearer tokens, custom headers, OAuth2 client credentials, or mTLS that the integrator can require of the receiving endpoint. Score this separately from the signature scheme above; "none" here means the only authentication is the platform-side signature. 0: none beyond the signature. 1: one configurable option (e.g. bearer token only). 2: multiple options, documented. (Not assessed if webhooks are not offered.)
 - **Source IP / egress (webhooks).** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range. (Not assessed if webhooks are not offered; not meaningful for queue/stream destinations.)
 
 ## 6. Delivery semantics & reliability
@@ -87,9 +89,9 @@ What happens after "send", and whether the developer can reason about it. Heavil
 - **Destination type breadth.** Does the platform deliver to more than one destination type, including at least one beyond HTTP webhooks (SQS, Pub/Sub, RabbitMQ, EventBridge, Kafka, Azure Event Grid, etc.)? This is the Event Destinations initiative's required capability. 0: webhooks only. 1: webhooks plus one additional type (meets the minimum bar). 2: webhooks plus multiple additional types covering at least one AWS and one non-AWS target. Note in the evidence which destination types are documented and whether each has parity for the rest of this category (retries, replay, observability).
 - **Retry policy.** Is the retry behavior (backoff, max attempts, total window) documented? 0: silent. 1: mentioned, vague. 2: precise and clear.
 - **Delivery guarantee stated.** Is at-least-once (or other) delivery explicitly stated, with dedup guidance tied to idempotency? 0: unstated. 1: implied. 2: explicit, with dedup guidance.
-- **Manual replay / redelivery.** Can a failed or past event be redelivered via UI and/or API? 0: no. 1: one path. 2: UI and API.
-- **Failure handling & auto-disable.** Is the behavior after exhausting retries defined (endpoint disable, dead-letter), with reactivation? 0: undefined. 1: partial. 2: defined with recovery path.
-- **Failure alerting.** Are consumers notified of sustained failures or a disabled endpoint (email, Slack, callback)? 0: none. 1: limited. 2: configurable alerting. (Folds in "state transition / meta webhooks": treat meta-webhooks as one valid implementation of this, not a separate requirement.)
+- **Manual replay / redelivery.** Can a failed or past event be redelivered via UI and/or API/CLI? 0: no replay path. 1: one path available (UI-only or API/CLI-only), OR partial coverage (e.g. replay in test/sandbox mode but not in live). 2: both UI and API/CLI, available in all modes.
+- **Failure handling & auto-disable.** Two related questions, scored together: (a) Is post-retry behavior defined in docs (endpoint disabled, dead-lettered, dropped)? (b) Is auto-disable an actual platform feature with a documented reactivation path? 0: neither documented. 1: post-retry behavior described but no auto-disable feature, OR auto-disable exists but reactivation is undocumented. 2: both documented (post-retry behavior + auto-disable with reactivation path).
+- **Failure alerting.** Are consumers *pushed* a notification of sustained failures or a disabled endpoint (email, Slack, callback, meta-webhook)? Score only push channels: the platform must tell the integrator without them having to check. A dashboard widget the integrator must look at counts as 0 here; that surface is scored under category 10 (observability) instead. 0: none. 1: one push channel, limited or undocumented configurability. 2: configurable push alerting across channels. (Folds in "state transition / meta webhooks": treat meta-webhooks as one valid implementation of this, not a separate requirement.)
 - **Ordering & rate controls.** Is ordering behavior documented, and can the consumer cap delivery rate to protect their endpoint? 0: neither. 1: one. 2: both addressed.
 
 ## 7. Setup surfaces (UI / API / CLI / IaC)
@@ -99,7 +101,7 @@ Whether a developer can configure webhooks the way they work, not just one way.
 - **Dashboard configuration.** Can webhooks/destinations be created and managed in a UI? 0: no. 2: full UI management.
 - **API configuration.** Are there documented API endpoints to create/update/delete webhook config? 0: none. 1: partial/undocumented. 2: complete and documented.
 - **CLI support.** Is there a CLI that can manage or test webhook config? 0: none. 1: exists but limited. 2: covers config/testing.
-- **Infrastructure as code.** Terraform provider or equivalent for declarative webhook config? 0: none. 1: community/partial. 2: maintained provider covering webhooks.
+- **Infrastructure as code.** Terraform provider or equivalent for declarative webhook/destination config? 0: none. 1: community provider with current resource coverage, OR vendor-maintained but missing webhook/destination resources. 2: vendor-maintained AND covers current webhook/destination resources. Note in evidence whether the provider is community or official, and which resources are covered.
 
 ## 8. SDKs & verification libraries
 
@@ -123,7 +125,7 @@ Whether the developer can see and debug their own deliveries, distinct from the 
 
 - **Delivery logs.** Can the consumer see per-event delivery attempts (status code, timestamp)? 0: none. 1: limited/recent only. 2: searchable log.
 - **Payload & response inspection.** Can they inspect the sent payload and their endpoint's response/body? 0: no. 2: full request/response visible.
-- **Latency / attempt detail.** Are attempt counts, next-retry time, and latency visible? 0: none. 1: partial. 2: full attempt detail.
+- **Latency / attempt detail.** Three distinct signals: (a) attempt count, (b) next-retry time, (c) response latency per attempt. 0: none visible. 1: attempt count and/or next-retry time visible but response latency missing. 2: all three (attempt count, next-retry time, and per-attempt response latency).
 
 ## 11. Local dev, testing & local-to-production transition
 
@@ -144,7 +146,7 @@ Information layer:
 
 - **Discoverable index (`llms.txt`).** Is there an `llms.txt` at a stable URL that maps the docs and points to `.md` page versions? 0: none. 1: present but thin, or points only to HTML. 2: present, points to `.md`, scoped sensibly.
 - **Markdown doc versions.** Are docs available as `.md` at fetchable URLs, ideally served with `Content-Type: text/markdown` so agent tooling gets lossless passthrough? 0: HTML only. 1: `.md` exists but wrong/missing content-type or incomplete coverage. 2: `.md` at clean URLs with the right content-type.
-- **Push-to-agent doc actions.** Do doc pages offer actions to hand content to an agent (Copy as Markdown, Open in Claude/ChatGPT/Cursor)? 0: none. 2: present.
+- **Push-to-agent doc actions.** Do doc pages offer actions to hand content to an agent (Copy as Markdown, Open in Claude/ChatGPT/Cursor)? 0: none. 1: Copy-as-Markdown only, OR a single Open-in-X destination. 2: multiple push-to-agent destinations (e.g. Copy as Markdown + Open in Claude/ChatGPT/Cursor).
 
 Guidance layer:
 
@@ -153,4 +155,4 @@ Guidance layer:
 Action layer:
 
 - **CLI for agents.** If there is a CLI, does it cover core workflows with structured output (`--output json` or equivalent) and actionable error messages that tell an agent what to do next? 0: no CLI. 1: CLI without structured output. 2: structured output plus actionable errors. (Mark Not assessed if a CLI is out of scope for the platform type.)
-- **MCP / scoped programmatic surface.** Is there an MCP server or a clean, scoped programmatic surface an agent can drive (small tool surface, idempotent operations)? 0: none. 1: raw API only, no agent affordance. 2: MCP or a deliberately agent-friendly surface.
+- **MCP / scoped programmatic surface.** Is there an MCP server or a clean, scoped programmatic surface an agent can drive (small tool surface, idempotent operations)? 0: raw API only, no agent-shaped surface. 1: an agent SDK or function-calling toolkit exists but no MCP or comparable agent-protocol surface. 2: a hosted or shipped MCP server, or a deliberately agent-friendly scoped tool surface.

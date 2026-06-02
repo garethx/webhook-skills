@@ -1,6 +1,6 @@
 # Webhook DX Review: [Platform name]
 
-**Reviewed:** [date] · **Access:** [public only / test account / customer-provided access] · **Reviewer:** [name]
+**Reviewed:** [date] · **Access:** [public only (Pass 1) / test account (Pass 1 + Pass 2) / customer-provided access (Pass 2)] · **Reviewer:** [name]
 
 ## Summary
 
@@ -26,9 +26,11 @@
 | Agent / AI readiness | [n]% | 4 | |
 | **Overall** | **[NN]%** | **100** | **[grade]** |
 
+*Overall is the weight-adjusted mean of the category percentages, not a simple average of the rows. See `scoring.md` for the formula and renormalization when a category is fully Not assessed.*
+
 ## Findings by category
 
-For each category, a short paragraph of what you found, then the criterion scores with evidence. Keep evidence concrete: link the doc page, name the API field, or reference the screenshot. Mark Not assessed items and why.
+For each category, a short paragraph of what you found, then the criterion scores with evidence. Keep evidence concrete: link the doc page, name the API field, or reference the screenshot. Always list every criterion: mark unreached ones "Not assessed" inline rather than omitting them, so the reader sees the complete rubric and knows what was and was not in scope.
 
 ### [N]. [Category name] - [n]%
 

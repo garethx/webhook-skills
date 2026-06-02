@@ -30,9 +30,11 @@ For each category, using only criteria you actually scored (exclude Not assessed
 category_pct = (sum of criterion scores) / (2 * number of scored criteria) * 100
 ```
 
-Example: Security has 5 criteria; you score 2, 1, 1, 0, 2 (all assessed). Sum = 6, max = 10, so 60%.
+Example 1, all criteria assessed: Security has 5 criteria; you score 2, 1, 1, 0, 2. Sum = 6, max = 10, so 60%.
 
-If every criterion in a category is Not assessed, drop the whole category and renormalize: divide each remaining category's weight by the sum of remaining weights so they total 100 again. Note any dropped category in the report's Access limits.
+Example 2, one criterion Not assessed: Security has 6 criteria; one is Not assessed; the remaining 5 score 2, 2, 1, 0, 2 = 7. Max = 2 * 5 = 10, so 70%. The Not assessed criterion is excluded from both the numerator and the denominator; it is not scored 0.
+
+If every criterion in a category is Not assessed, drop the whole category and renormalize: each remaining category's effective weight is `original_weight / (100 - dropped_weight) * 100`. Example: if you drop the 4-weight Discovery category, the remaining categories sum to 96 in weight; multiply each by `100/96 = 1.0417` so they total 100 again. Note any dropped category in the report's Access limits.
 
 ## Computing the overall score
 
