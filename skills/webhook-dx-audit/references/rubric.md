@@ -43,7 +43,9 @@ The categories below are ordered roughly along the integration journey. Weights 
 
 ## N/A logic: source of truth
 
-The following table is the authoritative list of when a criterion is **Not Applicable**. Apply it mechanically based on the destination types the platform offers (identified at methodology step 0); do not re-derive N/A from per-criterion text. If you add a new criterion whose applicability depends on a structural fact about the platform, add a row here rather than introducing a new inline clause.
+The following tables are the authoritative list of when a criterion is **Not Applicable**. Apply mechanically based on the destination types the platform offers (Table 1) and the platform's intended audience (Table 2), both declared at methodology step 0. Do not re-derive N/A from per-criterion text. If you add a new criterion whose applicability depends on a structural fact about the platform or its audience, add a row to one of these tables rather than introducing a new inline clause.
+
+### Table 1: Destination-type-driven N/A
 
 | Step-0 fact | Criteria that become N/A | Why |
 |---|---|---|
@@ -51,6 +53,18 @@ The following table is the authoritative list of when a criterion is **Not Appli
 | Platform does NOT offer non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Event Grid, etc.) | Cat 5: Destination-native auth. | No non-HTTP destinations exist to score native auth for. |
 | Platform offers BOTH webhooks AND non-HTTP destinations | (none) - score all criteria. | The full Cat 5 surface applies. |
 | Platform offers NEITHER webhooks NOR non-HTTP destinations | The audit does not apply. Stop and report "no outbound event surface" rather than producing a 0/F grade. | Auditing a platform with no event-delivery surface is out of scope. |
+
+### Table 2: Audience-driven N/A
+
+Some criteria are load-bearing for a developer-platform audience (where integrators are software engineers writing production code) but irrelevant for a no-code/low-code SaaS audience (where integrators are power users wiring up automations through a UI). The auditor declares the platform's intended audience at the start of the audit; criteria not relevant to that audience are N/A.
+
+| Audience | Criteria that become N/A | Why |
+|---|---|---|
+| **developer-platform** (default) | (none) - score all criteria. | Integrators are software engineers; the full rubric applies. |
+| **no-code-saas** | Cat 7: Infrastructure as code. Cat 11: Workflow / scenario simulation; Local-to-production transition. | Integrators are power users wiring up automations; IaC, scripted workflow simulation, and local-dev-to-prod handoff are not part of their toolkit. |
+| **mixed** | Use judgment per criterion; default to scoring all criteria unless the platform clearly serves one audience exclusively. | Many platforms straddle both audiences. Err toward scoring to surface the gap. |
+
+Pick one audience; do not default away from the rubric without reason. The audience declaration goes in the report's Access frontmatter line and should be cited when a criterion is marked N/A under Table 2.
 
 Reminder: N/A is **not** for "recommended capability absent" - that's Not Supported (score 0). See the three-state taxonomy above. The decision rule: "Does this criterion make sense as a question for this platform?" If the answer is no (no SQS destinations -> "is the SQS auth native?" is incoherent), it's N/A. If the answer is yes but the platform doesn't ship the capability (every dev platform should have a CLI -> "is the CLI agent-friendly?" makes sense and the answer is "there isn't one"), it's 0.
 
@@ -103,7 +117,7 @@ Lightweight. How quickly a developer finds the webhook offering and gets to a st
 
 - **Findability of webhook docs.** Can you reach the webhook/event docs from the top-level docs or product nav in one or two clicks? 0: buried or search-only. 2: clearly linked section.
 - **Signup friction to webhook config.** From a new account, how many steps to the screen where a webhook/destination is configured? 0: requires sales contact or opaque gating. 1: possible but slow or unclear. 2: self-serve and obvious.
-- **Free/test access.** Can a developer try webhooks without a paid plan or production data? 0: no. 2: sandbox, test mode, or free tier reaches webhook config.
+- **Free/test access.** Can a developer reach a state where they can fire test webhooks without paying or producing real domain activity? Two underlying questions, scored together: (a) does a free or persistent test tier reach webhook configuration? (b) once configured, are test deliveries free of incremental cost? 0: neither — webhook config is gated behind a paid plan AND test deliveries are not free. 1: paid plan required to reach webhook config BUT test deliveries are free once configured (or vice versa: free config but billed deliveries). 2: free or test tier reaches webhook config AND test deliveries are free of incremental cost.
 
 ## 2. Onboarding & first event
 
@@ -131,7 +145,7 @@ How a developer learns what events exist and what each payload contains. Heavily
 - **Machine-readable spec.** Are events/payloads in OpenAPI 3.1's `webhooks` block, AsyncAPI, or per-event JSON Schema for programmatic use? 0: no spec. 1: a REST API spec exists but does not declare per-event payload contracts (no OpenAPI 3.1 `webhooks` block, no AsyncAPI, no per-event JSON Schema, only a generic `event` envelope schema). 2: per-event payloads declared in a fetchable spec, suitable for codegen and validation. (This is about formal schemas a developer uses for codegen and validation, not the `llms.txt`/agent-docs signal, which is scored in category 12.)
 - **Sample payloads.** Are realistic sample payloads available per event type (in docs or fireable)? 0: none. 2: representative samples per type.
 - **Versioning & evolution.** Is there a stated policy for schema changes (versioning, additive-only, deprecation notice)? 0: none. 1: mentioned, vague. 2: clear policy.
-- **Payload shape guidance.** Thin (id + fetch) vs fat (full object) is explained, or a standard envelope (e.g. CloudEvents) is used. 0: unaddressed. 1: implicit. 2: explicit choice and rationale, or standard envelope.
+- **Payload shape guidance.** Is the event envelope (the top-level shape wrapping each event payload) consistent across all event types and documented? 0: envelope varies between events, or is undocumented. 1: envelope is consistent in practice but not surfaced in docs. 2: envelope is consistent and documented (whether on each event page or as a shared envelope description). Bonus signals worth noting in evidence: explicit thin (id + fetch) vs fat (full object) rationale; alignment to a standard envelope like CloudEvents. These are not required to score 2; their presence is a quality signal worth citing in evidence.
 
 ## 5. Security & authentication
 
@@ -145,7 +159,7 @@ Which Cat 5 criteria apply depends on the destination types the platform offers.
 - **Replay protection (webhooks).** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance.
 - **Secret rotation (webhooks).** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented.
 - **Destination-native auth (non-HTTP).** For each non-HTTP destination type offered, is the platform's auth model the destination's native one (IAM/cross-account roles for SQS/EventBridge, service accounts for Pub/Sub, managed identities for Event Grid, SASL/mTLS for Kafka), with clear setup docs? 0: relies on shared secrets or undocumented. 1: native auth but thinly documented or limited. 2: native auth, well documented per destination.
-- **Destination auth options (webhooks).** Beyond the platform's signature on its own request: configurable bearer tokens, custom headers, OAuth2 client credentials, or mTLS that the integrator can require of the receiving endpoint. Score this separately from the signature scheme above; "none" here means the only authentication is the platform-side signature. 0: none beyond the signature. 1: one configurable option (e.g. bearer token only). 2: multiple options, documented.
+- **Destination auth options (webhooks).** Beyond the platform's signature on its own request: configurable bearer tokens, custom headers, OAuth2 client credentials, or mTLS that the integrator can require of the receiving endpoint. The mechanism must be documented as an authentication option (not just shipped as an arbitrary header passthrough); an integrator scanning the docs for "how do I authenticate inbound deliveries" should find concrete guidance. Score this separately from the signature scheme. 0: none documented as auth — either the only authentication is the platform-side signature, or the platform ships a passthrough field (e.g. arbitrary custom headers) without framing it as an auth mechanism. 1: one configurable option, documented as auth (e.g. bearer token only, with usage guidance). 2: multiple options, each documented as auth.
 - **Source IP / egress (webhooks).** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range.
 
 ## 6. Delivery semantics & reliability

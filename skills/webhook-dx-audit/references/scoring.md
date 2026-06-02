@@ -70,15 +70,17 @@ Round to a whole number. Report both Public-scope and Provisional minimum with t
 
 ## Grade bands
 
-| Overall | Grade | Reading |
-|---------|-------|---------|
-| 85-100 | A | Production-grade. A developer can integrate confidently with little friction. |
-| 70-84 | B | Strong. Solid foundation, a few meaningful gaps. |
-| 50-69 | C | Adequate. Workable, but notable gaps cost integrators time or trust. |
-| 30-49 | D | Weak. Significant gaps; integration is painful or risky. |
-| 0-29 | F | Poor. Core webhook DX is missing or undocumented. |
+| Overall | Grade |
+|---------|-------|
+| 85-100 | A |
+| 70-84 | B |
+| 50-69 | C |
+| 30-49 | D |
+| 0-29 | F |
 
-The band is a headline, not the point. The recommendations are what the customer acts on. Two platforms can share a band with very different gap profiles, so always pair the grade with the category scorecard and the prioritized list.
+The band is a headline, not the point. The recommendations are what the customer acts on. Two platforms can share a band with very different gap profiles, so always pair the grade with the category scorecard and the prioritized list. Do not write qualitative judgments of the grade ("painful", "production-grade", "strong") into the audit report; the grade letter and the findings speak for themselves.
+
+Note on boundary effects: rounding-sensitive grades (e.g. an overall in the 28-32 zone where F and D meet, or the 83-87 zone where B and A meet) should not be over-interpreted. Reviewers should sanity-check the grade by reading the per-category scores and the recommendations.
 
 ## Prioritizing recommendations
 
