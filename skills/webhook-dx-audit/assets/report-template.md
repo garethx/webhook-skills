@@ -1,7 +1,9 @@
 # Webhook DX Review: [Platform name]
 
-**Reviewed:** [date] · **Access:** [public only (Pass 1) / test account (Pass 1 + Pass 2) / customer-provided access (Pass 2)] · **Reviewer:** [name]
+**Reviewed:** [date] · **Access:** [L0: public only / L1: account access / L2: active usage] · **Reviewer:** [name]
 **Context:** [standalone review / existing Outpost customer / specific commercial context — optional, omit if not relevant]
+
+The Access level declares the deepest level reached during this audit (see `references/rubric.md` "Access level requirements"). How it was obtained (human signup, agent-driven signup, shared session) does not matter — only what evidence the audit could reach.
 
 ## Summary
 

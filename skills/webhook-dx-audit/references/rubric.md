@@ -56,6 +56,45 @@ Reminder: N/A is **not** for "recommended capability absent" - that's Not Suppor
 
 ---
 
+## Access level requirements: source of truth for Not Assessed
+
+Each criterion is reachable at a defined minimum access level. The audit declares the access level it actually has, and any criterion above that level is **Not Assessed** for this run. The table below is the authoritative source. Apply mechanically, exactly like the N/A table.
+
+**Access levels (each builds on the previous):**
+
+| Level | What the audit has |
+|---|---|
+| **L0: Public** | Docs, SDK source, machine specs (OpenAPI/AsyncAPI/JSON Schema), llms.txt, public GitHub repos. No login. |
+| **L1: Account** | A logged-in session: can read the dashboard, settings, configuration screens, and any account-gated documentation. |
+| **L2: Active usage** | L1 plus at least one delivered event observed: can see delivery logs, retry attempts, response bodies, and alerting behavior in practice. |
+
+How L1 or L2 was obtained does not matter to the rubric. The auditor may have signed up themselves (human), used agent-driven signup (e.g. Stripe Projects, https://projects.dev), or been given access by the platform's operator or another party. The audit declares the access level it has reached, regardless of means.
+
+**Criteria with access requirements above L0** (everything else is L0 and always assessable):
+
+| Criterion | Minimum level |
+|---|---|
+| Cat 1: Signup friction to webhook config | L1 |
+| Cat 1: Free/test access | L1 |
+| Cat 2: Time to first event (walked) | L1 (or L0 if docs clearly reconstruct the path) |
+| Cat 2: Test event / trigger (verified) | L1 |
+| Cat 7: Dashboard configuration (verified) | L1 (L0 if the docs describe the UI in detail enough to judge) |
+| Cat 9: Self-serve endpoint management (verified) | L1 (L0 if fully documented in API + dashboard docs) |
+| Cat 10: Delivery logs | L2 |
+| Cat 10: Payload & response inspection | L2 |
+| Cat 10: Latency / attempt detail | L2 |
+| Cat 11: Inspect & replay in dev | L2 |
+| Cat 11: Test / sandbox parity | L2 |
+| Cat 11: Workflow / scenario simulation (verified) | L2 (L0 if docs explicitly enumerate scenarios) |
+
+For criteria marked "L1 (or L0 if ...)", score from L0 evidence if available; otherwise mark Not Assessed until access is reached. Never invent evidence to avoid the Not Assessed label.
+
+A criterion's "Not Assessed" status under this table is deterministic given the run's declared access level. If a criterion is not in this table, it is L0 and must be scored (0/1/2 or N/A per the N/A logic table) — Not Assessed should never apply to it.
+
+If you add a new criterion that requires more than public access, add a row to this table.
+
+---
+
 ## 1. Discovery & signup
 
 Lightweight. How quickly a developer finds the webhook offering and gets to a state where they can configure one.
