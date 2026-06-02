@@ -83,13 +83,13 @@ Skills for webhook infrastructure products — routing, queuing, delivery, and o
 | [Hookdeck Event Gateway (receiver)](https://hookdeck.com/docs/verification) | [`hookdeck-event-gateway-webhooks`](skills/hookdeck-event-gateway-webhooks/) | Verify `x-hookdeck-signature` and handle webhooks forwarded by the Hookdeck Event Gateway |
 | [Hookdeck Outpost](https://outpost.hookdeck.com/docs) | [`outpost`](skills/outpost/) | Send webhooks and events to user-preferred destinations (HTTP, SQS, RabbitMQ, Pub/Sub, EventBridge, Kafka) |
 
-### Webhook DX & Audit Skills
+### Webhook & Event Destinations DX Audit Skills
 
-Meta-skills that evaluate the developer experience of platforms sending outbound webhooks, rather than helping you receive or send them.
+Meta-skills that evaluate the developer experience of platforms sending outbound webhooks and event destinations, rather than helping you receive or send them. "Event destinations" covers the broader case where a platform delivers events to user-chosen destinations beyond HTTP (SQS, Pub/Sub, RabbitMQ, EventBridge, Kafka), not only webhooks.
 
 | Skill | What It Does |
 |-------|--------------|
-| [`webhook-dx-audit`](skills/webhook-dx-audit/) | Audit a platform's outbound webhook DX (signing, retries, event catalog, observability, local dev, agent readiness) and produce a scored review with prioritized recommendations |
+| [`webhook-dx-audit`](skills/webhook-dx-audit/) | Audit a platform's outbound webhook and event destinations DX (signing, retries, event catalog, observability, local dev, agent readiness) and produce a scored review with prioritized recommendations |
 
 ## Quick Start
 

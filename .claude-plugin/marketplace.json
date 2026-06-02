@@ -922,7 +922,7 @@
     },
     {
       "name": "webhook-dx-audit",
-      "description": "Audit the developer experience of any platform that sends outbound webhooks or event destinations, and produce a scored review with prioritized recommendations across signing, retries, event catalog, observability, local dev, and agent readiness.",
+      "description": "Audit the developer experience of any platform that sends outbound webhooks or event destinations (HTTP, SQS, RabbitMQ, Pub/Sub, EventBridge, Kafka) to its customers, and produce a scored review with prioritized recommendations across signing, retries, event catalog, observability, local dev, and agent readiness.",
       "source": "./skills/webhook-dx-audit",
       "strict": false,
       "skills": [
@@ -938,6 +938,7 @@
       "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/webhook-dx-audit",
       "keywords": [
         "webhooks",
+        "event-destinations",
         "audit",
         "developer-experience",
         "review",
