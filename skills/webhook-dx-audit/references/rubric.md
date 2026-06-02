@@ -41,6 +41,21 @@ The categories below are ordered roughly along the integration journey. Weights 
 
 ---
 
+## N/A logic: source of truth
+
+The following table is the authoritative list of when a criterion is **Not Applicable**. Apply it mechanically based on the destination types the platform offers (identified at methodology step 0); do not re-derive N/A from per-criterion text. If you add a new criterion whose applicability depends on a structural fact about the platform, add a row here rather than introducing a new inline clause.
+
+| Step-0 fact | Criteria that become N/A | Why |
+|---|---|---|
+| Platform does NOT offer HTTP webhooks | Cat 5: Signature scheme; Replay protection; Secret rotation; Destination auth options; Source IP / egress. Cat 8: Verification helper. | No HTTP webhook deliveries exist to sign, time, secure, or verify. |
+| Platform does NOT offer non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Event Grid, etc.) | Cat 5: Destination-native auth. | No non-HTTP destinations exist to score native auth for. |
+| Platform offers BOTH webhooks AND non-HTTP destinations | (none) - score all criteria. | The full Cat 5 surface applies. |
+| Platform offers NEITHER webhooks NOR non-HTTP destinations | The audit does not apply. Stop and report "no outbound event surface" rather than producing a 0/F grade. | Auditing a platform with no event-delivery surface is out of scope. |
+
+Reminder: N/A is **not** for "recommended capability absent" - that's Not Supported (score 0). See the three-state taxonomy above. The decision rule: "Does this criterion make sense as a question for this platform?" If the answer is no (no SQS destinations -> "is the SQS auth native?" is incoherent), it's N/A. If the answer is yes but the platform doesn't ship the capability (every dev platform should have a CLI -> "is the CLI agent-friendly?" makes sense and the answer is "there isn't one"), it's 0.
+
+---
+
 ## 1. Discovery & signup
 
 Lightweight. How quickly a developer finds the webhook offering and gets to a state where they can configure one.
@@ -83,20 +98,14 @@ The capability most often weak and most consequential. Heavily weighted.
 
 Security must match the destination type. For HTTP webhooks the bar is signing (HMAC or asymmetric), replay protection, secret rotation, and optional egress controls. For non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Azure Event Grid) the platform should use the destination's native auth: IAM roles / cross-account ARNs for AWS, service accounts and Workload Identity for GCP, managed identities for Azure, SASL/mTLS for Kafka brokers. Native destination auth is often stronger than HMAC + bearer because the cloud provider handles key management, rotation, and revocation.
 
-**Which criteria apply depends on which destination types the platform offers:**
+Which Cat 5 criteria apply depends on the destination types the platform offers. See the N/A logic table above; it is the source of truth.
 
-- **Webhook-only platforms** (most platforms today, e.g. GitHub, Resend): score the 5 webhook criteria; mark the Destination-native auth (non-HTTP) criterion **Not Applicable**.
-- **Non-HTTP-only platforms** (rare, queue-only): score the Destination-native auth criterion; mark the 5 webhook criteria **Not Applicable**.
-- **Multi-destination platforms** (e.g. Stripe with webhooks + EventBridge + Event Grid, Shopify with webhooks + EventBridge + Pub/Sub): score **all six** criteria.
-
-The N/A clauses on each criterion below encode these logical rules. They are Not Applicable, not Not Assessed, because the platform's destination shape structurally rules them out, not because of an access gap.
-
-- **Signature scheme (webhooks).** Is HTTP delivery signed (HMAC-SHA256 baseline, asymmetric a plus) with the scheme documented? 0: unsigned or undocumented. 1: signed but thinly documented. 2: documented, robust scheme. (Not Applicable if webhooks are not offered.)
-- **Replay protection (webhooks).** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance. (Not Applicable if webhooks are not offered.)
-- **Secret rotation (webhooks).** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented. (Not Applicable if webhooks are not offered.)
-- **Destination-native auth (non-HTTP).** For each non-HTTP destination type offered, is the platform's auth model the destination's native one (IAM/cross-account roles for SQS/EventBridge, service accounts for Pub/Sub, managed identities for Event Grid, SASL/mTLS for Kafka), with clear setup docs? 0: relies on shared secrets or undocumented. 1: native auth but thinly documented or limited. 2: native auth, well documented per destination. (Not Applicable if only webhooks are offered.)
-- **Destination auth options (webhooks).** Beyond the platform's signature on its own request: configurable bearer tokens, custom headers, OAuth2 client credentials, or mTLS that the integrator can require of the receiving endpoint. Score this separately from the signature scheme above; "none" here means the only authentication is the platform-side signature. 0: none beyond the signature. 1: one configurable option (e.g. bearer token only). 2: multiple options, documented. (Not Applicable if webhooks are not offered.)
-- **Source IP / egress (webhooks).** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range. (Not Applicable if webhooks are not offered; not meaningful for queue/stream destinations.)
+- **Signature scheme (webhooks).** Is HTTP delivery signed (HMAC-SHA256 baseline, asymmetric a plus) with the scheme documented? 0: unsigned or undocumented. 1: signed but thinly documented. 2: documented, robust scheme.
+- **Replay protection (webhooks).** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance.
+- **Secret rotation (webhooks).** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented.
+- **Destination-native auth (non-HTTP).** For each non-HTTP destination type offered, is the platform's auth model the destination's native one (IAM/cross-account roles for SQS/EventBridge, service accounts for Pub/Sub, managed identities for Event Grid, SASL/mTLS for Kafka), with clear setup docs? 0: relies on shared secrets or undocumented. 1: native auth but thinly documented or limited. 2: native auth, well documented per destination.
+- **Destination auth options (webhooks).** Beyond the platform's signature on its own request: configurable bearer tokens, custom headers, OAuth2 client credentials, or mTLS that the integrator can require of the receiving endpoint. Score this separately from the signature scheme above; "none" here means the only authentication is the platform-side signature. 0: none beyond the signature. 1: one configurable option (e.g. bearer token only). 2: multiple options, documented.
+- **Source IP / egress (webhooks).** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range.
 
 ## 6. Delivery semantics & reliability
 
@@ -124,7 +133,7 @@ Whether a developer can configure webhooks the way they work, not just one way.
 The libraries a developer reaches for, especially for verification. This category is webhook-focused on purpose: webhooks remain the most common destination type, and a hand-rolled HMAC implementation is where most integrators get burned. For non-HTTP destinations the equivalent concern (signed deliveries, message authentication) is handled by the destination's native SDK (AWS SDK, Google Cloud client, Kafka client), so it is not re-scored here, only noted as evidence under category 5's destination-native auth criterion.
 
 - **SDK availability.** Are there official SDKs in the languages the audience uses? 0: none. 1: one or two. 2: broad coverage.
-- **Verification helper (webhooks).** Does an SDK expose a first-class verify/constructEvent helper for HTTP webhooks (not hand-rolled HMAC)? 0: none. 1: documented manual verification only. 2: SDK helper with examples. (Not Applicable if webhooks are not offered.)
+- **Verification helper (webhooks).** Does an SDK expose a first-class verify/constructEvent helper for HTTP webhooks (not hand-rolled HMAC)? 0: no helper exists (either because no SDKs ship one or because there is no signature scheme to verify against — in the latter case the upstream gap is Cat 5). 1: documented manual verification only. 2: SDK helper with examples.
 - **Typed events / payloads.** Are event payloads typed (TypeScript types, generated models) for safe handling across destination types? 0: none. 1: partial. 2: typed across SDKs.
 
 ## 9. Consumer self-serve & subscription management
