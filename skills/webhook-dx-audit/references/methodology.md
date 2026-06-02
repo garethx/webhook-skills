@@ -54,7 +54,11 @@ These help you produce evidence quickly, and several are the same tools you may 
 
 ## What "good" looks like (reference points)
 
-When deciding between 1 and 2, calibrate against platforms developers consider best-in-class for webhooks: Stripe (signing with timestamp tolerance, `constructEvent` SDK helper, thin events with retrieve, clear retry docs, dashboard delivery logs, test mode, CLI, agent-driven provisioning via https://projects.dev), and Svix/Hookdeck-style infrastructure (rotation with overlapping secrets, asymmetric signing option, per-attempt logs, replay, auto-disable with alerting). You are not requiring a small platform to match Stripe; you are scoring how close the developer experience comes to those expectations, and naming what would close the gap.
+When deciding between 1 and 2, calibrate against platforms whose outbound DX integrators directly experience and benchmark against. The primary anchor is **Stripe**: signing with timestamp tolerance, `constructEvent` SDK helper, thin events with retrieve, clear retry docs, dashboard delivery logs, test mode, CLI fixtures and triggers, agent-driven provisioning via https://projects.dev. Other useful sender anchors for specific features: SendGrid (ECDSA asymmetric signing), GitHub (clear event taxonomy and signature scheme), Twilio (per-attempt status callbacks). The Event Destinations initiative at https://eventdestinations.org sets the broader floor for what an offering should include.
+
+You are not requiring a small platform to match Stripe; you are scoring how close the developer experience comes to those expectations, and naming what would close the gap.
+
+Do not use webhook delivery products (Hookdeck Outpost, Svix, etc.) as calibration anchors. These ship outbound delivery for platforms but are typically embedded behind the platform's own branding and docs - the integrator experiences the *platform*, not the delivery service underneath. They belong in `program-mapping.md` as gap-closing options, not as benchmarks. (Additionally, this skill lives in `hookdeck/webhook-skills`, so naming Hookdeck specifically as a benchmark would be a conflict of interest regardless of merit.)
 
 Agent-readiness calibration for Cat 12 has moved beyond docs-and-MCP. Stripe Projects (https://projects.dev) is a concrete example of agent-driven account provisioning: agents can autonomously sign up, generate credentials, and configure resources via CLI. Platforms shipping this kind of capability raise the bar on what L1 access looks like and on Cat 12 Action-layer scoring.
 
