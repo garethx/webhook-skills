@@ -14,6 +14,8 @@ The machine-oriented formats are not your reading shortcut here; their presence 
 
 Work cheapest-and-broadest first, then drill in.
 
+0. **Identify destination types up front.** Before scoring anything, list the destination types the platform offers: HTTP webhooks, SQS, Pub/Sub, RabbitMQ, EventBridge, Kafka, Azure Event Grid, any others. This determines which criteria apply. The platform may call this "webhooks", "event destinations", or "event subscriptions" - the same audit applies. Search the docs for those three terms, plus "EventBridge", "Pub/Sub", "SQS", "Kafka", "Event Grid". Use https://eventdestinations.org as the benchmark for what the offering should include. (Feeds the destination-type-breadth criterion in category 6 and conditions criteria in category 5.)
+
 1. **Map the docs as a human would.** Use the docs site's own navigation and search to find the webhook/events section, the way a developer lands on it. Read the rendered HTML pages, not `.md` exports. Separately, note whether an `llms.txt`/`llms-full.txt` exists, but record that only as evidence for category 12, do not read from it in place of the human docs. (Categories 1, 3; existence noted for 12.)
 
 2. **Pull machine-readable specs.** Look for an OpenAPI spec, an AsyncAPI doc, or published JSON Schema. Check whether webhook *events* (not just REST endpoints) appear in them. A spec that documents the API but omits webhook event payloads scores 1, not 2, on the machine-readable criterion. (Category 4.)

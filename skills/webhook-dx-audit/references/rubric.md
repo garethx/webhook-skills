@@ -10,6 +10,8 @@ Use **Not assessed** only when your access genuinely cannot reach the evidence (
 
 **Whose experience you are scoring:** categories 1 through 11 are the human developer's experience, judged from the surfaces a person uses (rendered HTML docs, dashboard, published API reference). Category 12 is the only place AI and agent readiness is scored. Do not reward a platform in categories 1 through 11 for having `.md`/`llms.txt` docs or agent skills; that belongs in 12.
 
+**Scope: webhooks and event destinations.** "Webhooks" remains the most common outbound delivery mechanism, but the broader concept is *event destinations*: HTTP webhooks plus other targets (SQS, Pub/Sub, RabbitMQ, EventBridge, Kafka, Azure Event Grid). The terminology is in flux: Stripe popularized "event destinations", Shopify is moving to "Event Subscriptions", others still call the whole thing "webhooks". Score against the broader concept regardless of what the platform calls it. The benchmark for what an event-destinations offering should provide is the Event Destinations initiative at https://eventdestinations.org (required: at least two destination types including webhooks, automatic retries with backoff, CRUD APIs, failure alerts; recommended: at-least-once delivery, topic subscriptions, auto-disable, dashboard UI, manual retries, payload filtering).
+
 The categories below are ordered roughly along the integration journey. Weights live in `scoring.md`; the heaviest categories are Event catalog & schema, Security & authentication, and Delivery semantics & reliability, because those are where developers lose the most time and trust.
 
 ## Categories
@@ -69,16 +71,20 @@ How a developer learns what events exist and what each payload contains. Heavily
 
 The capability most often weak and most consequential. Heavily weighted.
 
-- **Signature scheme.** Is delivery signed (HMAC-SHA256 baseline, asymmetric a plus) with the scheme documented? 0: unsigned or undocumented. 1: signed but thinly documented. 2: documented, robust scheme.
-- **Replay protection.** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance.
-- **Secret rotation.** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented.
-- **Destination auth options.** Beyond signatures: bearer/custom headers, OAuth2 client credentials, or mTLS for the receiving endpoint. 0: none. 1: one option. 2: multiple, documented.
-- **Source IP / egress.** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range.
+Security must match the destination type. For HTTP webhooks the bar is signing (HMAC or asymmetric), replay protection, secret rotation, and optional egress controls. For non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Azure Event Grid) the platform should use the destination's native auth: IAM roles / cross-account ARNs for AWS, service accounts and Workload Identity for GCP, managed identities for Azure, SASL/mTLS for Kafka brokers. Native destination auth is often stronger than HMAC + bearer because the cloud provider handles key management, rotation, and revocation. Score each criterion against the destination types the platform actually supports: a queue-only platform has no HMAC signatures to score, so the signing criteria become Not assessed for it, and the destination-native auth criterion below covers what *is* in scope.
+
+- **Signature scheme (webhooks).** Is HTTP delivery signed (HMAC-SHA256 baseline, asymmetric a plus) with the scheme documented? 0: unsigned or undocumented. 1: signed but thinly documented. 2: documented, robust scheme. (Not assessed if webhooks are not offered.)
+- **Replay protection (webhooks).** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance. (Not assessed if webhooks are not offered.)
+- **Secret rotation (webhooks).** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented. (Not assessed if webhooks are not offered.)
+- **Destination-native auth (non-HTTP).** For each non-HTTP destination type offered, is the platform's auth model the destination's native one (IAM/cross-account roles for SQS/EventBridge, service accounts for Pub/Sub, managed identities for Event Grid, SASL/mTLS for Kafka), with clear setup docs? 0: relies on shared secrets or undocumented. 1: native auth but thinly documented or limited. 2: native auth, well documented per destination. (Not assessed if only webhooks are offered.)
+- **Destination auth options (webhooks).** Beyond signatures: bearer/custom headers, OAuth2 client credentials, or mTLS for the receiving endpoint. 0: none. 1: one option. 2: multiple, documented. (Not assessed if webhooks are not offered.)
+- **Source IP / egress (webhooks).** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range. (Not assessed if webhooks are not offered; not meaningful for queue/stream destinations.)
 
 ## 6. Delivery semantics & reliability
 
 What happens after "send", and whether the developer can reason about it. Heavily weighted.
 
+- **Destination type breadth.** Does the platform deliver to more than one destination type, including at least one beyond HTTP webhooks (SQS, Pub/Sub, RabbitMQ, EventBridge, Kafka, Azure Event Grid, etc.)? This is the Event Destinations initiative's required capability. 0: webhooks only. 1: webhooks plus one additional type (meets the minimum bar). 2: webhooks plus multiple additional types covering at least one AWS and one non-AWS target. Note in the evidence which destination types are documented and whether each has parity for the rest of this category (retries, replay, observability).
 - **Retry policy.** Is the retry behavior (backoff, max attempts, total window) documented? 0: silent. 1: mentioned, vague. 2: precise and clear.
 - **Delivery guarantee stated.** Is at-least-once (or other) delivery explicitly stated, with dedup guidance tied to idempotency? 0: unstated. 1: implied. 2: explicit, with dedup guidance.
 - **Manual replay / redelivery.** Can a failed or past event be redelivered via UI and/or API? 0: no. 1: one path. 2: UI and API.
@@ -97,11 +103,11 @@ Whether a developer can configure webhooks the way they work, not just one way.
 
 ## 8. SDKs & verification libraries
 
-The libraries a developer reaches for, especially for verification.
+The libraries a developer reaches for, especially for verification. This category is webhook-focused on purpose: webhooks remain the most common destination type, and a hand-rolled HMAC implementation is where most integrators get burned. For non-HTTP destinations the equivalent concern (signed deliveries, message authentication) is handled by the destination's native SDK (AWS SDK, Google Cloud client, Kafka client), so it is not re-scored here, only noted as evidence under category 5's destination-native auth criterion.
 
 - **SDK availability.** Are there official SDKs in the languages the audience uses? 0: none. 1: one or two. 2: broad coverage.
-- **Verification helper.** Does an SDK expose a first-class verify/constructEvent helper (not hand-rolled HMAC)? 0: none. 1: documented manual verification only. 2: SDK helper with examples.
-- **Typed events / payloads.** Are event payloads typed (TypeScript types, generated models) for safe handling? 0: none. 1: partial. 2: typed across SDKs.
+- **Verification helper (webhooks).** Does an SDK expose a first-class verify/constructEvent helper for HTTP webhooks (not hand-rolled HMAC)? 0: none. 1: documented manual verification only. 2: SDK helper with examples. (Not assessed if webhooks are not offered.)
+- **Typed events / payloads.** Are event payloads typed (TypeScript types, generated models) for safe handling across destination types? 0: none. 1: partial. 2: typed across SDKs.
 
 ## 9. Consumer self-serve & subscription management
 
