@@ -32,9 +32,11 @@ For Pass-1-only audits with HITL planned, lead with the Provisional minimum as t
 | Agent / AI readiness | [n]% | [n]% | 4 | |
 | **Overall** | **[NN]%** | **[NN]%** | **100** | **[grade]** |
 
+**HITL headroom: [NN] points** ([Public-scope] - [Provisional minimum]). The number of points HITL Pass 2 could lift the Provisional minimum by, given current access. A small headroom means HITL won't materially change the grade; a large headroom means HITL is load-bearing.
+
 *Both columns are weight-adjusted means of the category percentages, not simple averages of the rows. Public-scope drops both Not Applicable and Not Assessed criteria; Provisional minimum drops Not Applicable but treats Not Assessed as 0 in the numerator with full weight in the denominator. If a category is fully Not Applicable, drop it and renormalize remaining weights from `100 - dropped_weight` back to 100 in both columns. If a category is fully Not Assessed, drop it from Public-scope only. See `scoring.md` for worked examples.*
 
-*Coverage: [X] of [Y] criteria scored publicly; [Z] Not Assessed (HITL would fill); [W] Not Applicable (logical exclusion). The gap between Public-scope and Provisional minimum is the headroom HITL Pass 2 has to lift the score.*
+*Coverage: [X] of [Y] criteria scored publicly; [Z] Not Assessed (HITL would fill); [W] Not Applicable (logical exclusion).*
 
 ## Findings by category
 

@@ -89,6 +89,8 @@ How L1 or L2 was obtained does not matter to the rubric. The auditor may have si
 
 For criteria marked "L1 (or L0 if ...)", score from L0 evidence if available; otherwise mark Not Assessed until access is reached. Never invent evidence to avoid the Not Assessed label.
 
+**Scoring from absence of documentation (works at any access level).** If a criterion can be answered from L0 absence-of-documentation alone — the public docs are completely silent on the capability, with no reference in the webhook intro, API reference, dashboard documentation, or changelog — score 0 (Not Supported) from L0 even if the criterion is tagged L1 or L2 in this table. The access-level requirement is for VERIFICATION of a documented or claimed capability, not for confirming non-existence. Example: Cat 2 test event is tagged L1, but if no public surface references a test-event capability at all, score 0 (Not Supported) from L0 rather than Not Assessed.
+
 A criterion's "Not Assessed" status under this table is deterministic given the run's declared access level. If a criterion is not in this table, it is L0 and must be scored (0/1/2 or N/A per the N/A logic table) — Not Assessed should never apply to it.
 
 If you add a new criterion that requires more than public access, add a row to this table.
@@ -211,7 +213,7 @@ Information layer:
 
 - **Discoverable index (`llms.txt`).** Is there an `llms.txt` at a stable URL that maps the docs and points to `.md` page versions? 0: none. 1: present but thin, or points only to HTML. 2: present, points to `.md`, scoped sensibly.
 - **Markdown doc versions.** Are docs available as `.md` at fetchable URLs, ideally served with `Content-Type: text/markdown` so agent tooling gets lossless passthrough? 0: HTML only. 1: `.md` exists but wrong/missing content-type or incomplete coverage. 2: `.md` at clean URLs with the right content-type.
-- **Push-to-agent doc actions.** Do doc pages offer actions to hand content to an agent (Copy as Markdown, Open in Claude/ChatGPT/Cursor)? 0: none. 1: Copy-as-Markdown only, OR a single Open-in-X destination. 2: multiple push-to-agent destinations (e.g. Copy as Markdown + Open in Claude/ChatGPT/Cursor).
+- **Push-to-agent doc actions.** Do doc pages offer actions to hand content to an agent (Copy as Markdown, Open in Claude/ChatGPT/Cursor)? 0: none. 1: Copy-as-Markdown only, OR a single Open-in-X destination. 2: multiple push-to-agent destinations (e.g. Copy as Markdown + Open in Claude/ChatGPT/Cursor). For docs hosted on modern platforms (Mintlify 2025+, Docusaurus 3+, GitBook, ReadMe), these controls are typically JS-rendered and may not appear in a non-browser fetch; default to Not Assessed and verify in a real browser during HITL rather than scoring 0 from a fetch that returns no buttons.
 
 Guidance layer:
 
