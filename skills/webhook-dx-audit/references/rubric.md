@@ -1,12 +1,22 @@
 # Webhook DX Audit Rubric
 
-Score every criterion 0, 1, or 2:
+Score every criterion 0, 1, or 2, OR mark it Not Applicable / Not Assessed:
 
-- **0 (Missing):** No evidence the capability exists, or it is absent where a developer would reasonably expect it.
+- **0 (Missing / Not Supported):** No evidence the capability exists, or it is absent where a developer would reasonably expect it. Use "Not Supported" in evidence when you want to make clear *why* the score is 0 (the capability should exist but doesn't), e.g. "Not Supported: signing scheme absent from the public docs".
 - **1 (Partial):** Present but incomplete, undocumented, hard to find, or weaker than current practice.
 - **2 (Present):** Clearly available, documented, and matching what a developer integrating in production would expect.
+- **N/A (Not Applicable):** A logical rule excludes the criterion from this platform. Examples: Cat 5 destination-native auth on a webhook-only platform (no non-HTTP destinations to score); Cat 12 CLI-for-agents when no CLI exists. N/A criteria are dropped from both the numerator and the denominator. Use this when the criterion structurally does not apply, not when access is gated.
+- **Not Assessed:** Should be assessed but cannot be reached right now. Examples: dashboard-gated criteria on a Pass-1 audit (no test account), client-rendered surfaces not visible to a non-browser fetch. Not Assessed criteria contribute 0 to the numerator with full weight in the denominator (conservative floor), and are also reported separately so HITL can lift them. See `scoring.md` for the dual-score aggregation.
 
-Use **Not assessed** only when your access genuinely cannot reach the evidence (for example, a dashboard-only feature you have no account for). Not assessed criteria are excluded from weighting, not scored 0. See `scoring.md`.
+The three states are distinct and the math differs:
+
+| Label | Why | Numerator | Denominator |
+|---|---|---|---|
+| Not Supported (= 0) | capability should exist but doesn't | 0 | full weight |
+| Not Applicable | logical rule excludes it | dropped | dropped |
+| Not Assessed | should assess but couldn't | 0 (in Provisional minimum) / dropped (in Public-scope grade) | full weight (Provisional) / dropped (Public-scope) |
+
+Pass-1 audits produce two scores: a **Public-scope grade** (drops Not Assessed; honest score over what was reachable) and a **Provisional minimum** (treats Not Assessed as 0 for the floor a HITL audit can only raise). See `scoring.md`.
 
 **Whose experience you are scoring:** categories 1 through 11 are the human developer's experience, judged from the surfaces a person uses (rendered HTML docs, dashboard, published API reference). Category 12 is the only place AI and agent readiness is scored. Do not reward a platform in categories 1 through 11 for having `.md`/`llms.txt` docs or agent skills; that belongs in 12.
 
@@ -71,16 +81,22 @@ How a developer learns what events exist and what each payload contains. Heavily
 
 The capability most often weak and most consequential. Heavily weighted.
 
-Security must match the destination type. For HTTP webhooks the bar is signing (HMAC or asymmetric), replay protection, secret rotation, and optional egress controls. For non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Azure Event Grid) the platform should use the destination's native auth: IAM roles / cross-account ARNs for AWS, service accounts and Workload Identity for GCP, managed identities for Azure, SASL/mTLS for Kafka brokers. Native destination auth is often stronger than HMAC + bearer because the cloud provider handles key management, rotation, and revocation. Score each criterion against the destination types the platform actually supports: a queue-only platform has no HMAC signatures to score, so the signing criteria become Not assessed for it, and the destination-native auth criterion below covers what *is* in scope.
+Security must match the destination type. For HTTP webhooks the bar is signing (HMAC or asymmetric), replay protection, secret rotation, and optional egress controls. For non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Azure Event Grid) the platform should use the destination's native auth: IAM roles / cross-account ARNs for AWS, service accounts and Workload Identity for GCP, managed identities for Azure, SASL/mTLS for Kafka brokers. Native destination auth is often stronger than HMAC + bearer because the cloud provider handles key management, rotation, and revocation.
 
-**If the platform offers both webhooks and non-HTTP destinations (e.g. Stripe with webhooks + EventBridge + Event Grid), score all six criteria.** The conditional "Not assessed" clauses on each criterion apply only when one of the two surfaces is genuinely missing, not when both are present.
+**Which criteria apply depends on which destination types the platform offers:**
 
-- **Signature scheme (webhooks).** Is HTTP delivery signed (HMAC-SHA256 baseline, asymmetric a plus) with the scheme documented? 0: unsigned or undocumented. 1: signed but thinly documented. 2: documented, robust scheme. (Not assessed if webhooks are not offered.)
-- **Replay protection (webhooks).** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance. (Not assessed if webhooks are not offered.)
-- **Secret rotation (webhooks).** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented. (Not assessed if webhooks are not offered.)
-- **Destination-native auth (non-HTTP).** For each non-HTTP destination type offered, is the platform's auth model the destination's native one (IAM/cross-account roles for SQS/EventBridge, service accounts for Pub/Sub, managed identities for Event Grid, SASL/mTLS for Kafka), with clear setup docs? 0: relies on shared secrets or undocumented. 1: native auth but thinly documented or limited. 2: native auth, well documented per destination. (Not assessed if only webhooks are offered.)
-- **Destination auth options (webhooks).** Beyond the platform's signature on its own request: configurable bearer tokens, custom headers, OAuth2 client credentials, or mTLS that the integrator can require of the receiving endpoint. Score this separately from the signature scheme above; "none" here means the only authentication is the platform-side signature. 0: none beyond the signature. 1: one configurable option (e.g. bearer token only). 2: multiple options, documented. (Not assessed if webhooks are not offered.)
-- **Source IP / egress (webhooks).** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range. (Not assessed if webhooks are not offered; not meaningful for queue/stream destinations.)
+- **Webhook-only platforms** (most platforms today, e.g. GitHub, Resend): score the 5 webhook criteria; mark the Destination-native auth (non-HTTP) criterion **Not Applicable**.
+- **Non-HTTP-only platforms** (rare, queue-only): score the Destination-native auth criterion; mark the 5 webhook criteria **Not Applicable**.
+- **Multi-destination platforms** (e.g. Stripe with webhooks + EventBridge + Event Grid, Shopify with webhooks + EventBridge + Pub/Sub): score **all six** criteria.
+
+The N/A clauses on each criterion below encode these logical rules. They are Not Applicable, not Not Assessed, because the platform's destination shape structurally rules them out, not because of an access gap.
+
+- **Signature scheme (webhooks).** Is HTTP delivery signed (HMAC-SHA256 baseline, asymmetric a plus) with the scheme documented? 0: unsigned or undocumented. 1: signed but thinly documented. 2: documented, robust scheme. (Not Applicable if webhooks are not offered.)
+- **Replay protection (webhooks).** Is a timestamp included in the signed material with guidance on a tolerance window? 0: none. 1: timestamp present, no guidance. 2: signed timestamp plus replay guidance. (Not Applicable if webhooks are not offered.)
+- **Secret rotation (webhooks).** Can a customer rotate the signing secret, ideally with two active secrets during overlap? 0: no/unknown. 1: rotation possible, no overlap. 2: overlapping rotation supported and documented. (Not Applicable if webhooks are not offered.)
+- **Destination-native auth (non-HTTP).** For each non-HTTP destination type offered, is the platform's auth model the destination's native one (IAM/cross-account roles for SQS/EventBridge, service accounts for Pub/Sub, managed identities for Event Grid, SASL/mTLS for Kafka), with clear setup docs? 0: relies on shared secrets or undocumented. 1: native auth but thinly documented or limited. 2: native auth, well documented per destination. (Not Applicable if only webhooks are offered.)
+- **Destination auth options (webhooks).** Beyond the platform's signature on its own request: configurable bearer tokens, custom headers, OAuth2 client credentials, or mTLS that the integrator can require of the receiving endpoint. Score this separately from the signature scheme above; "none" here means the only authentication is the platform-side signature. 0: none beyond the signature. 1: one configurable option (e.g. bearer token only). 2: multiple options, documented. (Not Applicable if webhooks are not offered.)
+- **Source IP / egress (webhooks).** Are static egress IPs or an allowlist published so consumers can firewall the source? 0: none. 2: documented IPs/range. (Not Applicable if webhooks are not offered; not meaningful for queue/stream destinations.)
 
 ## 6. Delivery semantics & reliability
 
@@ -108,7 +124,7 @@ Whether a developer can configure webhooks the way they work, not just one way.
 The libraries a developer reaches for, especially for verification. This category is webhook-focused on purpose: webhooks remain the most common destination type, and a hand-rolled HMAC implementation is where most integrators get burned. For non-HTTP destinations the equivalent concern (signed deliveries, message authentication) is handled by the destination's native SDK (AWS SDK, Google Cloud client, Kafka client), so it is not re-scored here, only noted as evidence under category 5's destination-native auth criterion.
 
 - **SDK availability.** Are there official SDKs in the languages the audience uses? 0: none. 1: one or two. 2: broad coverage.
-- **Verification helper (webhooks).** Does an SDK expose a first-class verify/constructEvent helper for HTTP webhooks (not hand-rolled HMAC)? 0: none. 1: documented manual verification only. 2: SDK helper with examples. (Not assessed if webhooks are not offered.)
+- **Verification helper (webhooks).** Does an SDK expose a first-class verify/constructEvent helper for HTTP webhooks (not hand-rolled HMAC)? 0: none. 1: documented manual verification only. 2: SDK helper with examples. (Not Applicable if webhooks are not offered.)
 - **Typed events / payloads.** Are event payloads typed (TypeScript types, generated models) for safe handling across destination types? 0: none. 1: partial. 2: typed across SDKs.
 
 ## 9. Consumer self-serve & subscription management
@@ -139,7 +155,7 @@ Receiving and debugging on localhost, and the path from dev to prod. The program
 
 ## 12. Agent / AI readiness
 
-The only category where AI/agent concerns are scored. Whether AI coding agents can discover, read, and correctly use the platform's webhooks. Score against the externally observable layers of Hookdeck's agent-ready model: Information, Guidance, and Action. The model's other two layers, Verification (CI on doc examples, drift detection, agent evals) and Measurement (server-side agent-traffic analytics), are internal practices you usually cannot see from outside, so mark them Not assessed unless the platform documents them publicly. Reference: https://hookdeck.com/blog/developer-platform-agent-ready
+The only category where AI/agent concerns are scored. Whether AI coding agents can discover, read, and correctly use the platform's webhooks. Score against the externally observable layers of Hookdeck's agent-ready model: Information, Guidance, and Action. The model's other two layers, Verification (CI on doc examples, drift detection, agent evals) and Measurement (server-side agent-traffic analytics), are internal practices you usually cannot see from outside, so mark them Not Assessed unless the platform documents them publicly (they should be assessed; the gap is access, not applicability). Reference: https://hookdeck.com/blog/developer-platform-agent-ready
 
 Two signals that also serve agents, the formal API spec (OpenAPI/AsyncAPI) and typed SDKs, are scored under categories 4 and 8 respectively to avoid double counting. Do not re-score them here.
 
@@ -155,5 +171,5 @@ Guidance layer:
 
 Action layer:
 
-- **CLI for agents.** If there is a CLI, does it cover core workflows with structured output (`--output json` or equivalent) and actionable error messages that tell an agent what to do next? 0: no CLI. 1: CLI without structured output. 2: structured output plus actionable errors. (Mark Not assessed if a CLI is out of scope for the platform type.)
+- **CLI for agents.** A CLI is recommended for any developer platform; absence is a gap, not a logical exclusion. If there is a CLI, does it cover core workflows with structured output (`--output json` or equivalent) and actionable error messages that tell an agent what to do next? 0: no CLI (Not Supported - this is a recommended capability the platform should ship). 1: CLI exists but no structured output. 2: structured output plus actionable errors.
 - **MCP / scoped programmatic surface.** Is there an MCP server or a clean, scoped programmatic surface an agent can drive (small tool surface, idempotent operations)? 0: raw API only, no agent-shaped surface. 1: an agent SDK or function-calling toolkit exists but no MCP or comparable agent-protocol surface. 2: a hosted or shipped MCP server, or a deliberately agent-friendly scoped tool surface.
