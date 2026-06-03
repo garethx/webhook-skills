@@ -24,11 +24,11 @@ Work cheapest-and-broadest first, then drill in.
 
 2. **Pull machine-readable specs.** Look for one of: an OpenAPI **3.1** spec with a `webhooks` block keyed by event type, an AsyncAPI document, or per-event JSON Schemas. These are the three ways per-event payload contracts get declared formally. A spec that contains a single generic `event` schema with a polymorphic `data` field gives you a typed envelope but not per-event-type handler stubs, so it scores 1, not 2. An OpenAPI 3.0 spec cannot declare webhooks formally (the `webhooks` key is 3.1); check whether the platform has supplemented it with per-event JSON Schemas or AsyncAPI. (Category 4.)
 
-3. **Read the webhook docs properly.** Verification code, handler guidance, retries, idempotency, ordering, event catalog, payload definitions, versioning policy. Note language coverage of code samples. (Categories 3, 4, 5, 6.)
+3. **Read the webhook and event-destination docs properly.** Verification code, handler guidance, retries, idempotency, ordering, event catalog, payload definitions, versioning policy, destination-type breadth, per-destination native auth. Note language coverage of code samples. (Categories 3, 4, 5, 6.)
 
 4. **Walk signup and onboarding.** If you have an account, go from signup to the webhook-config screen and count the steps; try to fire a test event and receive it. If public-only, reconstruct the path from docs and screenshots and say so. (Categories 1, 2.)
 
-5. **Inspect setup surfaces.** Dashboard config screens; API endpoints for webhook CRUD; CLI presence and scope; Terraform/IaC provider and whether it covers webhooks. (Category 7.)
+5. **Inspect setup surfaces.** Dashboard config screens; API endpoints for webhook and destination CRUD; CLI presence and scope; Terraform/IaC provider and whether it covers webhooks and destinations. (Category 7.)
 
 6. **Check SDKs.** Find the official SDK list. Open the repos and look for a verification/constructEvent helper and typed event payloads. The presence of a real `verifyWebhook`-style function is the difference between 1 and 2. (Category 8.)
 

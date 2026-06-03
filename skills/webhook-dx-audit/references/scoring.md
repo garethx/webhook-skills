@@ -41,7 +41,7 @@ For each category and each of the two roll-ups, exclude criteria per the rule ab
 category_pct = (sum of included criterion scores) / (2 * number of included criteria) * 100
 ```
 
-**Example 1, all criteria assessed.** Security has 5 criteria; you score 2, 1, 1, 0, 2. Sum = 6, max = 10, so **both roll-ups score 60%** (no N/A, no Not Assessed).
+**Example 1, all criteria assessed.** Security has 6 criteria; you score 2, 1, 1, 0, 2, 2. Sum = 8, max = 12, so **both roll-ups score 67%** (no N/A, no Not Assessed).
 
 **Example 2, one criterion Not Applicable.** Security has 6 criteria; the destination-native-auth criterion is N/A because the platform is webhook-only; the remaining 5 score 2, 2, 1, 0, 2 = 7. Max = 2 * 5 = 10, so **both roll-ups score 70%**. N/A is dropped from both numerator and denominator in both roll-ups.
 
