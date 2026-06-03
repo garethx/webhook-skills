@@ -129,7 +129,7 @@ Lightweight. Time and clarity from "I have an account" to "I received a verified
 
 ## 3. Implementation guidance
 
-The webhook section as a developer reads it, not the marketing page.
+Webhook implementation guidance: what the platform teaches integrators about verifying, handling, and deduping its HTTP webhook deliveries. Non-HTTP destinations are scored under Cat 5 (destination-native auth) and Cat 6 (delivery semantics).
 
 - **Verification walkthrough with code.** Is there copy-pasteable signature-verification code, ideally in more than one language/framework? 0: prose only or none. 1: one snippet, partial. 2: complete, multi-language.
 - **Processing & handler guidance.** Does it cover responding fast, returning 2xx, processing async, and handling duplicates? 0: silent. 1: mentions some. 2: covers the handler lifecycle.
