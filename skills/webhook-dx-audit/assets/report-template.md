@@ -1,6 +1,6 @@
 # Webhook DX Review: [Platform name]
 
-**Reviewed:** [date] · **Access:** [L0: public only / L1: account access / L2: active usage] · **Audience:** [developer-platform / no-code-saas / mixed] · **Reviewer:** [name]
+**Reviewed:** [date] · **Access:** [L0: public only / L1: account access / L2: active usage] · **Audience:** [developer-platform / no-code-saas / mixed, with 2-3 specific signals cited inline, e.g. "mixed (primary marketing teams per hero copy 'X'; secondary agencies via 'Y' nav section; tertiary developers via mid-page API mention)"] · **Reviewer:** [name]
 **Context:** [standalone review / existing Outpost customer / specific commercial context — optional, omit if not relevant]
 
 The Access level declares the deepest level reached during this audit (see `references/rubric.md` "Access level requirements"). How it was obtained (human signup, agent-driven signup, shared session) does not matter — only what evidence the audit could reach. The Audience declaration conditions which criteria apply via Table 2 of the N/A logic.
