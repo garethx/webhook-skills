@@ -7,7 +7,7 @@ The Access level declares the deepest level reached during this audit (see `refe
 
 ## Summary
 
-[3 to 5 sentences. What the platform's webhook and event-destination DX is like for an integrating developer, the headline grade, and the one or two things that matter most. Developer-to-developer, no marketing language.]
+[3 to 5 sentences. What the platform's webhook and event-destination DX is like for an integrating developer, the headline grade, and the one or two things that matter most. When listing platform features as evidence of what works, include only items that contribute to the webhook and event-destination surface. An OpenAPI spec without a `webhooks` block, an MCP server without webhook tools, or a CLI that does not manage webhook configuration are platform features that do not apply here; they belong in their respective category findings. Developer-to-developer, no marketing language.]
 
 **Overall: [Public-scope NN]/100 ([A-F]) - [one-line reading]**
 **Provisional minimum: [NN]/100 ([A-F])** - the floor if human-in-the-loop (HITL) verification is not run. HITL Pass 2 can only raise the score from here.
