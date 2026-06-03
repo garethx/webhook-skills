@@ -88,8 +88,7 @@ How L1 or L2 was obtained does not matter to the rubric. The auditor may have si
 
 | Criterion | Minimum level |
 |---|---|
-| Cat 1: Signup friction to webhook config | L1 |
-| Cat 1: Free/test access | L1 |
+| Cat 1: In-product discoverability of webhook configuration | L1 |
 | Cat 2: Time to first event (walked) | L1 (or L0 if docs clearly reconstruct the path) |
 | Cat 2: Test event / trigger (verified) | L1 |
 | Cat 7: Dashboard configuration (verified) | L1 (L0 if the docs describe the UI in detail enough to judge) |
@@ -113,11 +112,12 @@ If you add a new criterion that requires more than public access, add a row to t
 
 ## 1. Discovery & signup
 
-Lightweight. How quickly a developer finds the webhook offering and gets to a state where they can configure one.
+Lightweight. Two questions: can a developer find the webhook/event-destinations offering in the docs, and can they find where it would be configured inside the product?
 
-- **Findability of webhook docs.** Can you reach the webhook/event docs from the top-level docs or product nav in one or two clicks? 0: buried or search-only. 2: clearly linked section.
-- **Signup friction to webhook config.** From a new account, how many steps to the screen where a webhook/destination is configured? 0: requires sales contact or opaque gating. 1: possible but slow or unclear. 2: self-serve and obvious.
-- **Free/test access.** Can a developer reach a state where they can fire test webhooks without paying or producing real domain activity? Two underlying questions, scored together: (a) does a free or persistent test tier reach webhook configuration? (b) once configured, are test deliveries free of incremental cost? 0: neither — webhook config is gated behind a paid plan AND test deliveries are not free. 1: paid plan required to reach webhook config BUT test deliveries are free once configured (or vice versa: free config but billed deliveries). 2: free or test tier reaches webhook config AND test deliveries are free of incremental cost.
+- **Findability of webhook docs.** Can you reach the webhook/event docs from the top-level docs or product nav in one or two clicks? 0: buried or search-only. 1: present but only in deep nav (e.g. a sub-sidebar). 2: clearly linked as a top-level section.
+- **In-product discoverability of webhook configuration.** From a signed-in account on any tier, can a user discover that the platform offers webhooks and find where they would be configured? This measures findability of the configuration surface, not access to actually create webhooks — plan-gating (e.g. Pro plan required) does not reduce the score as long as the configuration surface is visible and reachable. 0: webhooks are not discoverable from product nav; users on lower tiers have no way to know the feature exists or where it lives. 1: discoverable but the path is unclear or requires deep navigation. 2: clearly findable in product navigation, with plan-gating indicators if applicable.
+
+Note on what is NOT scored here: pre-purchase evaluation of webhooks (a business-model question, not DX) and the ability to test webhooks without producing real domain activity (covered by Cat 2 Test event / trigger and Cat 11 Test / sandbox parity).
 
 ## 2. Onboarding & first event
 
