@@ -42,7 +42,7 @@ Use this for any request to review, grade, or critique a platform's webhook or e
 
 This is a collaboration. Most of the work is yours (the agent), but some evidence sits behind a login or a UI that only a human can reach. Split the categories accordingly and do not stall waiting on the human for things you can already get.
 
-**You (the agent) do unattended, from public surfaces:** documentation quality, event catalog & schema, security & authentication (as documented), delivery semantics (as documented), SDKs & verification (read the actual repo source, not just the README), API/CLI/IaC setup surfaces (docs, Terraform registry), and agent/AI readiness (`llms.txt`, the `hookdeck/webhook-skills` repo, any MCP). Plus all scoring math and the written report. This is the bulk of the audit.
+**You (the agent) do unattended, from public surfaces:** implementation guidance, event catalog & schema, security & authentication (as documented), delivery semantics (as documented), SDKs & verification (read the actual repo source, not just the README), API/CLI/IaC setup surfaces (docs, Terraform registry), and agent/AI readiness (`llms.txt`, the `hookdeck/webhook-skills` repo, any MCP). Plus all scoring math and the written report. This is the bulk of the audit.
 
 **The human is required for:** account creation (signup almost always needs a person for email confirmation, captcha, or a card), and the in-product surfaces that cannot be judged from docs: dashboard configuration, firing a test event and seeing it land, consumer-facing delivery logs, and self-serve endpoint/subscription management.
 
