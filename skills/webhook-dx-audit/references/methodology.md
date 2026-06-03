@@ -24,7 +24,7 @@ Work cheapest-and-broadest first, then drill in.
 
 2. **Pull machine-readable specs.** Look for one of: an OpenAPI **3.1** spec with a `webhooks` block keyed by event type, an AsyncAPI document, or per-event JSON Schemas. These are the three ways per-event payload contracts get declared formally. A spec that contains a single generic `event` schema with a polymorphic `data` field gives you a typed envelope but not per-event-type handler stubs, so it scores 1, not 2. An OpenAPI 3.0 spec cannot declare webhooks formally (the `webhooks` key is 3.1); check whether the platform has supplemented it with per-event JSON Schemas or AsyncAPI. (Category 4.)
 
-3. **Read the webhook and event-destination docs properly.** Verification code, handler guidance, retries, idempotency, ordering, event catalog, payload definitions, versioning policy, destination-type breadth, per-destination native auth. Note language coverage of code samples. (Categories 3, 4, 5, 6.)
+3. **Read the webhook and event-destination docs properly.** Verification code, handler guidance (including the platform's response timeout window, the ingest-verify-queue pattern for production traffic, and any reference architectures the platform recommends to integrators for async processing), retries, idempotency, ordering, event catalog, payload definitions, versioning policy, destination-type breadth, per-destination native auth. Note language coverage of code samples. (Categories 3, 4, 5, 6.)
 
 4. **Walk signup and onboarding.** If you have an account, go from signup to the webhook-config screen and count the steps; try to fire a test event and receive it. If public-only, reconstruct the path from docs and screenshots and say so. (Categories 1, 2.)
 
@@ -40,7 +40,7 @@ Work cheapest-and-broadest first, then drill in.
 
 ## Tactics
 
-- **Use the docs search and sitemap.** Search the docs for "signature", "verify", "retry", "idempoten", "rotate", "egress IP", "test event", "replay", "version" to jump straight to evidence.
+- **Use the docs search and sitemap.** Search the docs for "signature", "verify", "retry", "idempoten", "rotate", "egress IP", "test event", "replay", "version", "timeout", "respond", "async", "queue", "EventBridge", "Pub/Sub", "Event Gateway", "ingest" to jump straight to evidence.
 - **Read the SDK source, not just the README.** READMEs overclaim; the function signatures do not.
 - **Prefer primary sources.** A changelog entry or API reference field beats a blog post.
 - **Note what you could not reach.** A short "Access limits" note in the report (no test account, region-gated dashboard, etc.) keeps the grade honest and tells the reader why something is Not Assessed.
