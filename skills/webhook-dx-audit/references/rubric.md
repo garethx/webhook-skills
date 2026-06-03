@@ -28,7 +28,7 @@ The categories below are ordered roughly along the integration journey. Weights 
 
 1. Discovery & signup
 2. Onboarding & first event
-3. Documentation quality
+3. Implementation guidance
 4. Event catalog & schema
 5. Security & authentication
 6. Delivery semantics & reliability
@@ -127,7 +127,7 @@ Lightweight. Time and clarity from "I have an account" to "I received a verified
 - **Time to first event.** Could a competent developer plausibly receive a first event in under ~15 minutes from the public surface? 0: unclear or blocked. 2: yes, with an obvious path.
 - **Test event / trigger.** Can the developer fire a test event from the dashboard or API without producing real domain activity? 0: must create real data. 1: limited or hidden. 2: explicit "send test event".
 
-## 3. Documentation quality
+## 3. Implementation guidance
 
 The webhook section as a developer reads it, not the marketing page.
 

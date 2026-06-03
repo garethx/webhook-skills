@@ -10,7 +10,7 @@ Weights sum to 100. They are heavier where developers lose the most time and tru
 |---|----------|--------|
 | 1 | Discovery & signup | 4 |
 | 2 | Onboarding & first event | 6 |
-| 3 | Documentation quality | 9 |
+| 3 | Implementation guidance | 9 |
 | 4 | Event catalog & schema | 13 |
 | 5 | Security & authentication | 15 |
 | 6 | Delivery semantics & reliability | 15 |

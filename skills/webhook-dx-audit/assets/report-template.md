@@ -20,7 +20,7 @@ For Pass-1-only audits with HITL planned, lead with the Provisional minimum as t
 |---|---|---|---|---|
 | Discovery & signup | [n]% | [n]% | 4 | [one line] |
 | Onboarding & first event | [n]% | [n]% | 6 | |
-| Documentation quality | [n]% | [n]% | 9 | |
+| Implementation guidance | [n]% | [n]% | 9 | |
 | Event catalog & schema | [n]% | [n]% | 13 | |
 | Security & authentication | [n]% | [n]% | 15 | |
 | Delivery semantics & reliability | [n]% | [n]% | 15 | |
