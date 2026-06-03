@@ -10,7 +10,7 @@ The Access level declares the deepest level reached during this audit (see `refe
 [3 to 5 sentences. What the platform's webhook DX is like for an integrating developer, the headline grade, and the one or two things that matter most. Developer-to-developer, no marketing language.]
 
 **Overall: [Public-scope NN]/100 ([A-F]) - [one-line reading]**
-**Provisional minimum: [NN]/100 ([A-F])** - the floor if HITL is not run. HITL Pass 2 can only raise the score from here.
+**Provisional minimum: [NN]/100 ([A-F])** - the floor if human-in-the-loop (HITL) verification is not run. HITL Pass 2 can only raise the score from here.
 
 For Pass-1-only audits with HITL planned, lead with the Provisional minimum as the conservative bound. For standalone or automated audits with no HITL planned, lead with the Public-scope grade. Both numbers always appear in the scorecard; only the headline framing differs.
 

@@ -32,7 +32,7 @@ Work cheapest-and-broadest first, then drill in.
 
 6. **Check SDKs.** Find the official SDK list. Open the repos and look for a verification/constructEvent helper and typed event payloads. The presence of a real `verifyWebhook`-style function is the difference between 1 and 2. (Category 8.)
 
-7. **Assess consumer self-serve and observability.** Can the integrating developer manage their own endpoints, filter by event type, register multiple endpoints, and see their own delivery logs with payloads and responses? This is distinct from the platform's internal view. If account-gated and you have no access, mark Not Assessed rather than guessing (these are HITL gaps, not logical exclusions). (Categories 9, 10.)
+7. **Assess consumer self-serve and observability.** Can the integrating developer manage their own endpoints, filter by event type, register multiple endpoints, and see their own delivery logs with payloads and responses? This is distinct from the platform's internal view. If account-gated and you have no access, mark Not Assessed rather than guessing (these are human-in-the-loop (HITL) gaps, not logical exclusions). (Categories 9, 10.)
 
 8. **Local dev and transition to prod.** Documented localhost-receiving path, inspect/replay in dev, test-mode fidelity, workflow/scenario simulation, and a documented local-to-production transition. For workflow simulation, search the docs/CLI for "scenario", "fixture", "lifecycle", "workflow", "trigger sequence" — Paddle calls them named "scenarios" (`subscription_creation`, `subscription_renewal`); Stripe has implicit prerequisite chaining plus CLI fixtures for scripted multi-step flows; Shopify's `webhook trigger` is single-event only. (Category 11.)
 

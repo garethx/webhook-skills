@@ -27,7 +27,7 @@ Weights sum to 100. They are heavier where developers lose the most time and tru
 Each criterion ends up in one of four positions: scored (0/1/2), Not Supported (= 0), Not Applicable, or Not Assessed. See `rubric.md` for definitions. The same audit produces two scores from this data:
 
 - **Public-scope grade.** "How good are the parts we could see?" Drops both Not Applicable and Not Assessed from both numerator and denominator. The honest score over the publicly reachable subset.
-- **Provisional minimum.** "What's the floor if HITL never happens?" Drops Not Applicable from both. Treats Not Assessed as 0 in the numerator with full weight in the denominator. HITL Pass 2 can only raise this number.
+- **Provisional minimum.** "What's the floor if human-in-the-loop (HITL) verification never happens?" Drops Not Applicable from both. Treats Not Assessed as 0 in the numerator with full weight in the denominator. HITL Pass 2 can only raise this number.
 
 When HITL Pass 2 completes (no Not Assessed criteria remain), the two scores converge on a single final grade.
 
