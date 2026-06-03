@@ -7,7 +7,7 @@ The Access level declares the deepest level reached during this audit (see `refe
 
 ## Summary
 
-[3 to 5 sentences. What the platform's webhook DX is like for an integrating developer, the headline grade, and the one or two things that matter most. Developer-to-developer, no marketing language.]
+[3 to 5 sentences. What the platform's webhook and event-destination DX is like for an integrating developer, the headline grade, and the one or two things that matter most. Developer-to-developer, no marketing language.]
 
 **Overall: [Public-scope NN]/100 ([A-F]) - [one-line reading]**
 **Provisional minimum: [NN]/100 ([A-F])** - the floor if human-in-the-loop (HITL) verification is not run. HITL Pass 2 can only raise the score from here.
@@ -57,7 +57,7 @@ For each category, a short paragraph of what you found, then the criterion score
 
 ## Prioritized recommendations
 
-Ranked by impact x ease, highest-leverage first. Each item: the gap, why it matters to integrators, and the concrete change. Where a Hookdeck offering fits, name it as an option (see program-mapping). No obligation framing. For existing Hookdeck customers, distinguish what the platform should change from what the customer's existing Hookdeck offering already provides or could surface.
+Ranked by impact x ease, highest-leverage first. Each item: the gap, why it matters to integrators, and the concrete change. Where a Hookdeck offering fits, name it as an option (see `program-mapping.md`). No obligation framing. For existing Hookdeck customers, distinguish what the platform should change from what the customer's existing Hookdeck offering already provides or could surface.
 
 1. **[Recommendation]** - [gap and why it matters].
    - *Concrete change (platform side):* [what the platform should do].
