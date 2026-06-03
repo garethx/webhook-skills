@@ -121,7 +121,7 @@ Note on what is NOT scored here: pre-purchase evaluation of webhooks (a business
 
 ## 2. Onboarding & first event
 
-Lightweight. Time and clarity from "I have an account" to "I received a verified event".
+Lightweight. Time and clarity from "I have an account" to "I received a first event".
 
 - **Guided path to first webhook.** Is there a quickstart or in-product guidance that walks to a first delivered event? 0: none. 1: docs only, no in-product help. 2: quickstart plus in-product cues.
 - **Time to first event.** Could a competent developer plausibly receive a first event in under ~15 minutes from the public surface? 0: unclear or blocked. 2: yes, with an obvious path.
@@ -151,7 +151,7 @@ How a developer learns what events exist and what each payload contains. Heavily
 
 ## 5. Security & authentication
 
-The capability most often weak and most consequential. Heavily weighted.
+Authentication of outbound deliveries to consumers: HTTP webhooks (signing, replay protection, secret rotation) and non-HTTP destinations (destination-native auth). Heavily weighted.
 
 Security must match the destination type. For HTTP webhooks the bar is signing (HMAC or asymmetric), replay protection, secret rotation, and optional egress controls. For non-HTTP destinations (SQS, Pub/Sub, EventBridge, Kafka, Azure Event Grid) the platform should use the destination's native auth: IAM roles / cross-account ARNs for AWS, service accounts and Workload Identity for GCP, managed identities for Azure, SASL/mTLS for Kafka brokers. Native destination auth is often stronger than HMAC + bearer because the cloud provider handles key management, rotation, and revocation.
 
@@ -178,7 +178,7 @@ What happens after "send", and whether the developer can reason about it. Heavil
 
 ## 7. Setup surfaces (UI / API / CLI / IaC)
 
-Whether a developer can configure webhooks the way they work, not just one way.
+Whether a developer can configure webhooks and event destinations the way they work, not just one way.
 
 - **Dashboard configuration.** Can webhooks/destinations be created and managed in a UI? 0: no. 2: full UI management.
 - **API configuration.** Are there documented API endpoints to create/update/delete webhook config? 0: none. 1: partial/undocumented. 2: complete and documented.
@@ -211,7 +211,7 @@ Whether the developer can see and debug their own deliveries, distinct from the 
 
 ## 11. Local dev, testing & local-to-production transition
 
-Receiving and debugging on localhost, and the path from dev to prod. The program calls this out explicitly.
+Receiving and debugging on localhost, and the path from dev to prod. Criteria focus on HTTP webhooks (localhost tunnels and replay); non-HTTP destinations rely on cloud-provider emulators (LocalStack, GCP Pub/Sub emulator, Azure Service Bus emulator, etc.) as equivalents.
 
 - **Local receiving story.** Is there a documented way to receive events on localhost (tunnel, CLI, or recommended tool)? 0: none. 1: mentions third-party generically. 2: clear, supported path.
 - **Inspect & replay in dev.** Can events be inspected and replayed during development? 0: no. 2: yes.
