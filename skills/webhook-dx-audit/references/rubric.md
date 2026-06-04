@@ -64,7 +64,7 @@ Some criteria are load-bearing for a developer-platform audience (where integrat
 | **no-code-saas** | Cat 7: Infrastructure as code. Cat 11: Workflow / scenario simulation; Local-to-production transition. | Integrators are power users wiring up automations; IaC, scripted workflow simulation, and local-dev-to-prod handoff are not part of their toolkit. |
 | **mixed** | Use judgment per criterion; default to scoring all criteria unless the platform clearly serves one audience exclusively. | Many platforms straddle both audiences. Err toward scoring to surface the gap. |
 
-Pick one audience; do not default away from the rubric without reason. The audience declaration goes in the report's Access frontmatter line and should be cited when a criterion is marked N/A under Table 2.
+Pick one audience; do not default away from the rubric without reason. The audience declaration goes in the audit's `audience.designation` field (with at least three supporting entries in `audience.signals`) and should be cited when a criterion is marked N/A under Table 2.
 
 Reminder: N/A is **not** for "recommended capability absent" - that's Not Supported (score 0). See the three-state taxonomy above. The decision rule: "Does this criterion make sense as a question for this platform?" If the answer is no (no SQS destinations -> "is the SQS auth native?" is incoherent), it's N/A. If the answer is yes but the platform doesn't ship the capability (every dev platform should have a CLI -> "is the CLI agent-friendly?" makes sense and the answer is "there isn't one"), it's 0.
 

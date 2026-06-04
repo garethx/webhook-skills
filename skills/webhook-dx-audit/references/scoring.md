@@ -54,7 +54,7 @@ category_pct = (sum of included criterion scores) / (2 * number of included crit
 - Public-scope: 7 / (2 * 4) = **88%**.
 - Provisional minimum: 7 / (2 * 5) = **70%** (Not Assessed in denominator, N/A still dropped).
 
-If every criterion in a category is Not Applicable, drop the whole category and renormalize for both roll-ups: each remaining category's effective weight is `original_weight / (100 - dropped_weight) * 100`. Example: if you drop the 4-weight Discovery category, the remaining categories sum to 96 in weight; multiply each by `100/96 = 1.0417` so they total 100 again. Note any dropped category in the report's Access limits.
+If every criterion in a category is Not Applicable, drop the whole category and renormalize for both roll-ups: each remaining category's effective weight is `original_weight / (100 - dropped_weight) * 100`. Example: if you drop the 4-weight Discovery category, the remaining categories sum to 96 in weight; multiply each by `100/96 = 1.0417` so they total 100 again. Record any dropped category in the audit's `access_limits` array.
 
 If every criterion in a category is Not Assessed, do not drop the category. The Provisional minimum scores it 0% (full weight); the Public-scope grade drops it (and renormalizes the same way as for fully-N/A categories). This is the only place the two roll-ups treat categories differently.
 
@@ -78,7 +78,7 @@ Round to a whole number. Report both Public-scope and Provisional minimum with t
 | 30-49 | D |
 | 0-29 | F |
 
-The band is a headline, not the point. The recommendations are what the customer acts on. Two platforms can share a band with very different gap profiles, so always pair the grade with the category scorecard and the prioritized list. Do not write qualitative judgments of the grade ("painful", "production-grade", "strong") into the audit report; the grade letter and the findings speak for themselves.
+The band is a headline, not the point. The recommendations are what the customer acts on. Two platforms can share a band with very different gap profiles, so always pair the grade with the category scorecard and the prioritized list. Do not write qualitative judgments of the grade ("painful", "production-grade", "strong") into the audit; the grade letter and the findings speak for themselves.
 
 Note on boundary effects: rounding-sensitive grades (e.g. an overall in the 28-32 zone where F and D meet, or the 83-87 zone where B and A meet) should not be over-interpreted. Reviewers should sanity-check the grade by reading the per-category scores and the recommendations.
 
