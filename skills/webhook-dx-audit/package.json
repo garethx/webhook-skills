@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Schema and validation tooling for the webhook-dx-audit skill.",
   "scripts": {
-    "lint": "node scripts/lint-audit.mjs schema/audit.schema.example.yaml schema/hitl-evidence.schema.example.yaml",
+    "lint": "node scripts/lint-audit.mjs assets/report-template.yaml schema/audit.schema.example.yaml schema/hitl-evidence.schema.example.yaml",
     "lint:file": "node scripts/lint-audit.mjs"
   },
   "devDependencies": {
