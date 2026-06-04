@@ -222,10 +222,15 @@ Then regenerate `customers/ordinal/report.md` from the v2 Ordinal audit YAML. Th
 
 1. **Schema tooling.** JSON Schema authored in YAML is the lightest touch; alternatives are TypeBox, Zod, or a custom validator. Whatever lands needs to run in CI and locally.
 2. **Multi-line Markdown inside YAML.** The `|` block scalar handles it but lints can be fussy about indentation. Pin a YAML library and a lint config early.
-3. **Customer report format.** v2 keeps the downstream customer report as Markdown since it is the customer-facing artifact. If the cloud agent's website ends up rendering customer reports too, this decision should be revisited (the customer report would then become YAML, with the website handling presentation).
-4. **Cloud agent integration.** Out of scope for v2 the plan, but the schema should anticipate the cloud agent's input and output shapes (an `audit_id`, a `submitted_url`, a `submitted_at` timestamp) without forcing them into v2 today. Decide whether to reserve those fields in the schema now.
-5. **Re-audit timing.** Does Phase 5 require fully fresh evidence collection (rerun the public-surface crawls), or can it consume the v1 audit's source URL list as a starting point? Recommendation: take the existing sources as inputs (they were correct in v1); add or update only sources that v2 rule changes touch.
-6. **Archive location.** The plan archives v1 Ordinal artifacts to `customers/ordinal/archive/`. Confirm this is the right shape; alternative is a `_v1` suffix on the original filenames in the same directory.
+3. **Cloud agent integration.** Out of scope for v2 the plan, but the schema should anticipate the cloud agent's input and output shapes (an `audit_id`, a `submitted_url`, a `submitted_at` timestamp) without forcing them into v2 today. Decide whether to reserve those fields in the schema now.
+4. **Re-audit timing.** Does Phase 5 require fully fresh evidence collection (rerun the public-surface crawls), or can it consume the v1 audit's source URL list as a starting point? Recommendation: take the existing sources as inputs (they were correct in v1); add or update only sources that v2 rule changes touch.
+5. **Archive location.** The plan archives v1 Ordinal artifacts to `customers/ordinal/archive/`. Confirm this is the right shape; alternative is a `_v1` suffix on the original filenames in the same directory.
+
+## Resolved decisions
+
+1. **Upstream audit output format.** YAML only. No Markdown audit, no renderer, no dual-output mode.
+2. **Customer report format.** Markdown stays. The cloud agent does not render customer reports; the customer report is the customer-facing artifact, sent or shared as a file. The downstream `outpost-customer-audit-report` skill continues to emit Markdown.
+3. **Downstream cascade timing.** Lockstep with upstream v2 cutover. No transitional renderer or backwards-compatibility shim.
 
 ## After v2
 
