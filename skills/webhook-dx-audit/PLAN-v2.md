@@ -76,7 +76,7 @@ Schema must cover:
 - Summary: grade (overall integer, band A through F), summary text (multi-line string)
 - Scorecard: per-category percentage, weight, notes; per-criterion score (0/1/2/N/A), evidence (multi-line string), source references (URLs or in-product capture references), status (Not Supported / Not Applicable / Not Assessed with reasons), cross-references to recommendations
 - Findings: category id, intro (multi-line), criteria entries, aggregation line (list of recommendation ids)
-- Recommendations: id, title, body (multi-line; Markdown content fine inside the string), categories addressed (list of category ids), added_by_report flag, further_reading (list of links)
+- Recommendations: id, title, body (multi-line; Markdown content fine inside the string), categories addressed (list of category ids), further_reading (list of links). Note: an `added_by_report` flag belongs in the downstream report skill's own schema, not here; upstream stays free of downstream concepts.
 - HITL evidence captures: structured records of what HITL provided (delivery payload headers as a map, body as a string, in-product observations as evidence strings, signing mode declarations)
 - Access limits: structured notes about what could not be assessed and why
 - Sources: list of { url, label, section } records
@@ -311,7 +311,6 @@ audit:
 
   recommendations:
     - number: 1
-      added_by_report: false
       title: Document the existing webhook signature for integrators
       body: |
         This is the single highest-impact gap. Without documented signature
