@@ -53,6 +53,25 @@ Work cheapest-and-broadest first, then drill in.
 
   Reactions and qualitative synthesis belong in the audit's `summary` field and in the prioritized `recommendations`, not in the per-criterion or per-category text. The grade letter and the recommendations carry the qualitative weight; the body of the audit is observation.
 
+## Writing recommendations
+
+Recommendations are the operator's call to action. Each one carries a `why` field separate from `body` because the schema requires it, and because the difference is load-bearing: `body` is what to change; `why` is why the operator should care. A recommendation without a clear why reads as an order, not an argument, and tends to be ignored.
+
+- **State the integrator-side benefit, not the rule.** The why field is about what changes for the platform's integrators when the recommendation lands. "Documenting the signing scheme lets integrators verify deliveries without reverse-engineering" is a benefit; "follow Standard Webhooks best practice" is a rule.
+- **Cite the user-facing pain the gap creates.** "Production integrators discover the timeout window through dropped events under burst" is more useful than "improve handler guidance"; "integrators currently treat the custom-headers field as a passthrough because the docs do not frame it as auth" is more useful than "document destination auth options". The pain is specific; the rule is generic.
+- **Do not put the benefit in `body`.** `body` describes the change. The "why this matters" framing belongs in `why`. Keep them separate so downstream renderers can use each independently.
+- **When recommending a category-6 destination-type-breadth change, separate the capability from the API/UI naming.** The gap is that the platform does not deliver to non-HTTP destination types (SQS, Pub/Sub, EventBridge, Kafka, Event Grid). Phrase the recommendation around adding the new destination types and the integrator benefit (native delivery into the integrator's existing cloud event surface, removing the HTTP receiver as a single point of failure). Do not phrase it as "rename `POST /webhooks` to `POST /event-destinations`"; renaming an HTTP endpoint does not change what is delivered, and the framing confuses an API design decision with the underlying capability. Stripe's evolution to event destinations is instructive: their existing webhook product stayed in place, EventBridge and Event Grid were added as new destination types alongside webhooks, and integrators picked the destination that fit their stack.
+- **Recommendations addressing a HITL-observed gap should anchor on what the delivery actually showed.** When a Pass 2 capture surfaces the concrete signing header, dedup ID, or custom-header values, name them in `body` ("document the `webhook-signature` header you're already sending"). The why points at the integrator pain the absence of that documentation creates.
+
+## Distinguishing reviewer artifacts from operator-side practice
+
+When HITL Pass 2 captures a delivery payload, the auditor often interacts with the platform (creates a webhook, fires a test event, sets headers via the platform's custom-headers feature so the delivery lands somewhere reachable for inspection). Anything the reviewer configured to make the capture work is a **reviewer artifact**, not evidence of how the operator's integrators experience the platform.
+
+- The `audit.hitl_evidence.delivery_payload_capture.custom_headers_feature_in_use` field is `true` when the platform exposes the custom-headers feature AND the captured delivery shows it being used. If the reviewer set those headers themselves to enable the capture, the boolean is still factually correct (the feature was exercised), but the audit's `findings` and `recommendations` must NOT cite that as evidence of operator-side practice.
+- Findings and recommendations that lean on "this feature is in use in production" or "the operator already documents X" need a separate, independent observation from operator-controlled docs, API surface, or in-product copy. The reviewer's own configuration does not count.
+- When a HITL capture is borderline (e.g. the reviewer added a header to route the delivery via an inspection proxy), call it out in `audit.hitl_evidence.other_observations` with the criterion id, so the reviewer artifact is documented and downstream readers cannot mistake it for operator behavior.
+- The rule applies symmetrically: if the reviewer signed up for a test account and the only "active usage" is the reviewer's own test webhook, the integrator-experience criteria still score against what an outside developer would actually find in the docs and product, not against what the reviewer was able to set up for themselves.
+
 ## Hookdeck tooling you can use during the review
 
 These help you produce evidence quickly, and several are the same tools you may later recommend (see `program-mapping.md`):

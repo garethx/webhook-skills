@@ -594,6 +594,11 @@ audit:
   recommendations:
     - id: 1
       title: Publish a vendor-maintained Terraform provider for webhook endpoints
+      why: |
+        Ops teams managing webhook configuration alongside their other cloud
+        resources cannot declaratively pin or diff their endpoints today; they
+        either skip IaC for webhooks or rely on community providers whose
+        resource coverage drifts behind the API.
       body: |
         Cat 7 IaC is the only baseline gap. A first-party IaC resource for
         webhook endpoints closes the configuration surface for ops teams.
@@ -602,6 +607,12 @@ audit:
 
     - id: 2
       title: Frame receiver-side auth options explicitly in the webhook docs
+      why: |
+        Integrators scanning the docs for "how do I authenticate inbound
+        webhook deliveries on my receiver" find only the signature scheme;
+        the custom-headers passthrough is documented as a generic knob, so
+        teams that need bearer/mTLS reach for hand-rolled solutions instead
+        of the option already in product.
       body: |
         The signature scheme is the primary auth model; documenting bearer/mTLS
         options on the receiver side as first-class auth (not just custom

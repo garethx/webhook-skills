@@ -699,14 +699,21 @@ audit:
   # ----------------------------------------------------------------------------
   # Recommendations - ranked by impact x ease
   #
-  # IDs are positive integers unique within the audit. `body` is a multi-line
-  # block scalar; Markdown is fine. `categories_addressed` must include at
-  # least one CategoryId.
+  # IDs are positive integers unique within the audit. `why` and `body` are
+  # multi-line block scalars; Markdown is fine. `categories_addressed` must
+  # include at least one CategoryId.
+  #
+  # `why` is load-bearing: it names the integrator-side benefit of adopting
+  # the recommendation - the reason the operator should care. Cite the
+  # user-facing pain the gap creates. `body` is what to change. See
+  # methodology.md "Writing recommendations".
   # ----------------------------------------------------------------------------
 
   recommendations:
     - id: 1
       title: TBD
+      why: |
+        TBD
       body: |
         TBD
       # At least one CategoryId from schema/audit.schema.yaml's enum. Replace
