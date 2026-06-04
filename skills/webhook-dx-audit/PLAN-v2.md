@@ -91,19 +91,19 @@ Validation tooling: a `npm` / `uvx` / `pipx` invocation that lints an audit agai
 
 Goal: walk every reference file (`rubric.md`, `methodology.md`, `scoring.md`, `program-mapping.md`) and confirm each accumulated v1 commit lands consistently.
 
-Specific items to verify (each was a separate v1 commit but should now read as a coherent whole):
+Specific items to verify (each was a separate v1 commit; commit references inline so the rationale is one `git show` away):
 
-- Cat 3 rename from "Documentation quality" to "Implementation guidance" plus the tightened Processing & handler guidance criterion (ingest-verify-queue, timeout window, reference architectures)
-- Cat 12 restructure: API access for agents (foundational) + CLI or MCP for the webhook surface (combined, requires webhook scope)
-- Cat 2, 5, 7, 11 intro line cleanups
-- Audience verification with cited signals (required from Pass 1 if homepage reachable)
-- HITL payload capture requirement (full delivery headers + body)
-- Summary list scoping rule (only items contributing to the webhook surface)
-- Editorial qualifier rules (no company-stage commentary, no unanchored qualifiers)
-- Cat 5 scoring example correction (6 criteria, not 5)
-- HITL acronym expansion on first use
-- Methodology steps 3 and 5 broadened to webhook AND event destinations
-- Program-mapping new row for reliable-ingestion architectures
+- Cat 3 rename from "Documentation quality" to "Implementation guidance" (`933b724`) plus the Cat 3 intro scoped to webhooks (`37761ff`) plus the tightened Processing & handler guidance criterion with ingest-verify-queue, timeout window, and reference architectures (`9d85bd4`, phrasing `86e5be1`)
+- Cat 12 restructure: API access for agents (foundational) + CLI or MCP for the webhook surface, combined and requiring webhook scope (`99dffeb`)
+- Cat 2, 5, 7, 11 intro line cleanups (`937b3dc`)
+- Audience verification with cited signals, required from Pass 1 when the homepage is reachable (`bdbb76b`)
+- HITL payload capture requirement, full delivery headers + body (`b034703`)
+- Summary list scoping rule, only items contributing to the webhook surface (`aaec2bb`)
+- Cat 5 scoring example correction, 6 criteria not 5 (`08b4fa9`)
+- HITL acronym expansion on first use (`04d9459`)
+- Methodology steps 3 and 5 broadened to webhook AND event destinations (`08b4fa9`)
+- Program-mapping new row for reliable-ingestion architectures (`9d85bd4`)
+- Editorial qualifier rules (no company-stage commentary, no unanchored qualifiers). These were landed downstream in `hookdeck/hookdeck-skills-internal` (`skills/outpost-customer-audit-report/references/methodology.md` Section 3); upstream has the broader "Stay factual; no editorial" rule in `methodology.md` Tactics. Confirm both are consistent; consider lifting the more specific downstream rules upstream if they apply to audit-side prose too.
 
 For each, read the current file and confirm the rule reads cleanly in isolation (a fresh reader gets the right framing without prior context). Tighten any sentence that depends on a chain of previous commits to make sense.
 
@@ -218,13 +218,175 @@ Then regenerate `customers/ordinal/report.md` from the v2 Ordinal audit YAML. Th
 
 **Acceptance:** the downstream skill consumes the v2 Ordinal audit YAML cleanly; the regenerated customer report differs from the v1 report only in ways traceable to v2 rule changes; nothing material was lost in the migration; HITL evidence preserved end to end shows up in the report wherever it was load-bearing in v1.
 
+## Schema sketch (illustrative, not authoritative)
+
+Shape for a fresh agent to start from in Phase 0. Treat as a starting point; refine through Phase 0 validation and revisit as the schema doc lands.
+
+```yaml
+audit:
+  platform: Ordinal
+  prepared: 2026-06-04
+  access:
+    level: L2
+    notes: active usage with two webhooks fired and delivered
+  audience:
+    designation: mixed   # developer-platform | no-code-saas | mixed
+    signals:
+      - tier: primary
+        segment: marketing teams and content operators
+        evidence_quote: "Build a content engine that drives revenue"
+        source_section: hero copy on https://www.tryordinal.com/
+      - tier: secondary
+        segment: agencies
+        evidence_quote: "Ordinal for Agencies"
+        source_section: main nav
+      - tier: tertiary
+        segment: developers
+        evidence_quote: "MCP and API support"
+        source_section: mid-page Plan Content section
+  reviewer:
+    skill: webhook-dx-audit
+    skill_version: "0.2.0"
+    human_reviewers:
+      - name: Phil Leggetter
+        passes: [pass-2]
+  passes:
+    pass_1:
+      mode: unattended
+      completed: 2026-06-02
+    pass_2:
+      mode: hitl
+      completed: 2026-06-02
+      closed_criteria: [in-product-discoverability, dashboard-config, delivery-logs, ...]
+
+  grade:
+    overall_pct: 30
+    band: D
+    coverage:
+      criteria_total: 48
+      scored: 47
+      not_applicable: 1
+      not_assessed: 0
+
+  summary: |
+    Your webhook surface ships the configuration shell of a webhook system:
+    full CRUD via the dashboard and the REST API, an event catalog with 21
+    typed events under a consistent envelope, and per-event payload pages.
+    The production-readiness layer is almost entirely missing from the
+    public surface...
+
+  scorecard:
+    - id: implementation-guidance
+      name: Implementation guidance
+      score_pct: 0
+      weight: 9
+      note: >
+        No verification walkthrough (signing undocumented); no handler
+        guidance (no timeout window, no ingest-verify-queue pattern, no
+        architecture references); no idempotency guidance; no
+        best-practices coverage.
+    # ... per-category entries
+
+  findings:
+    - category_id: implementation-guidance
+      intro: |
+        Your webhook docs cover the catalog and per-event payloads well
+        (see Event catalog & schema). They say nothing about verification,
+        the handler lifecycle, idempotency, or best practices...
+      criteria:
+        - id: idempotency-guidance
+          name: Idempotency guidance
+          score: 0
+          status: not_supported
+          evidence: |
+            Your webhook docs don't identify a deduplication ID (the
+            unique value an integrator stores to recognize repeat
+            deliveries, often called a "dedupe ID") or explain the
+            idempotent handler pattern...
+          cross_refs:
+            recommendations: [2]
+            categories: []
+        # ... per-criterion entries
+      recommendations_addressing: [1, 2, 11]
+
+  recommendations:
+    - number: 1
+      added_by_report: false
+      title: Document the existing webhook signature for integrators
+      body: |
+        This is the single highest-impact gap. Without documented signature
+        verification, integrators have no way to verify that an inbound
+        POST is genuine...
+      categories: [security-authentication, implementation-guidance, sdks-verification-libraries]
+      further_reading:
+        - title: Hookdeck on SHA256 webhook signature verification
+          url: https://hookdeck.com/webhooks/guides/how-to-implement-sha256-webhook-signature-verification
+
+  access_limits: []   # structured records when something could not be assessed
+
+  sources:
+    - url: https://www.tryordinal.com/
+      label: Homepage and product framing
+      section: original_review
+```
+
+Companion file shape for HITL preservation (`customers/<name>/hitl-evidence.yaml`):
+
+```yaml
+hitl_evidence:
+  platform: Ordinal
+  collected_during: pass-2
+  collected_on: 2026-06-02
+
+  active_usage:
+    access_level: L2
+    webhooks_fired: 2
+    external_destination_reached: true
+    in_product_delivery_view: false
+    in_product_test_trigger: false
+    dashboard_crud_verified: true
+    nav_path_to_webhook_config: "Integrations then Webhooks"
+    sign_in_flow: "Google SSO"
+
+  delivery_payload_capture:
+    signing_mode: standard_webhooks
+    headers:
+      content-type: application/json
+      user-agent: "Outpost/1.0.4"
+      webhook-id: "post-content-edited:504dea9d-..."
+      webhook-signature: "v1,0jZ7xcLn1bzurihFk/IncgwZTTGrV1eA8+lHDKgOSPo="
+      webhook-timestamp: "1780423503"
+      webhook-topic: "post.content.edited"
+      x-api-key: "password-flarby"   # custom header set via `headers` field on webhook creation
+      x-hookdeck-original-ip: "152.55.180.108"
+    custom_headers_feature_in_use: true
+
+  audience_verification:
+    homepage_url: https://www.tryordinal.com/
+    designation: mixed
+    signals:
+      # same shape as the main audit's audience.signals
+
+  scoring_decisions:
+    - category: local-dev-and-local-to-prod
+      criterion: workflow-scenario-simulation
+      score: 0   # not N/A under mixed audience
+      reason: webhook integrators are developers, so the criterion applies
+    - category: local-dev-and-local-to-prod
+      criterion: local-to-production-transition
+      score: 0
+      reason: same as above
+```
+
+The shape is illustrative. Field names, nesting, and structure get finalized in Phase 0 against the schema linter.
+
 ## Open questions for review (decide before execution)
 
-1. **Schema tooling.** JSON Schema authored in YAML is the lightest touch; alternatives are TypeBox, Zod, or a custom validator. Whatever lands needs to run in CI and locally.
-2. **Multi-line Markdown inside YAML.** The `|` block scalar handles it but lints can be fussy about indentation. Pin a YAML library and a lint config early.
-3. **Cloud agent integration.** Out of scope for v2 the plan, but the schema should anticipate the cloud agent's input and output shapes (an `audit_id`, a `submitted_url`, a `submitted_at` timestamp) without forcing them into v2 today. Decide whether to reserve those fields in the schema now.
-4. **Re-audit timing.** Does Phase 5 require fully fresh evidence collection (rerun the public-surface crawls), or can it consume the v1 audit's source URL list as a starting point? Recommendation: take the existing sources as inputs (they were correct in v1); add or update only sources that v2 rule changes touch.
-5. **Archive location.** The plan archives v1 Ordinal artifacts to `customers/ordinal/archive/`. Confirm this is the right shape; alternative is a `_v1` suffix on the original filenames in the same directory.
+1. **Schema tooling.** JSON Schema authored in YAML is the lightest touch; alternatives are TypeBox, Zod, or a custom validator. Whatever lands needs to run in CI and locally. **Recommendation:** JSON Schema in YAML (Draft 2020-12) plus `ajv` (Node) or `jsonschema` (Python) for CI. Avoid TS-only validators since the cloud agent runtime may not be TS.
+2. **Multi-line Markdown inside YAML.** The `|` block scalar handles it but lints can be fussy about indentation. Pin a YAML library and a lint config early. **Recommendation:** `js-yaml` or PyYAML; lint with `yamllint` defaults plus a project-specific rule allowing the `|` block scalar at arbitrary indentation depths.
+3. **Cloud agent integration.** Out of scope for v2 the plan, but the schema should anticipate the cloud agent's input and output shapes (an `audit_id`, a `submitted_url`, a `submitted_at` timestamp) without forcing them into v2 today. **Recommendation:** reserve `audit_id`, `submitted_url`, `submitted_at`, `submitter_id` as optional top-level fields in the schema now; the cloud agent populates them later. Marking them optional means standalone runs do not need to fill them.
+4. **Re-audit timing.** Does Phase 5 require fully fresh evidence collection (rerun the public-surface crawls), or can it consume the v1 audit's source URL list as a starting point? **Recommendation:** take the existing sources as inputs (they were correct in v1); add or update only sources that v2 rule changes touch.
+5. **Archive location.** The plan archives v1 Ordinal artifacts to `customers/ordinal/archive/`. Confirm this is the right shape; alternative is a `_v1` suffix on the original filenames in the same directory. **Recommendation:** `customers/ordinal/archive/audit-v1.md` and `customers/ordinal/archive/report-v1.md`. The subdirectory keeps the customer's current directory clean (just the v2 YAML audit and Markdown report) and signals to anyone browsing that the v1 artifacts are historical.
 
 ## Resolved decisions
 
