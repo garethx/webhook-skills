@@ -43,6 +43,9 @@ audit:
   grade:
     overall_pct: 88
     band: A
+    projected:
+      pct: 95
+      band: A
     coverage:
       criteria_total: 54
       scored: 54
@@ -97,6 +100,7 @@ audit:
     - id: security-and-authentication
       name: Security & authentication
       score_pct: 83
+      projected_pct: 100
       weight: 15
       note: |
         HMAC-SHA256 with timestamp tolerance documented; secret rotation
@@ -114,6 +118,7 @@ audit:
     - id: setup-surfaces
       name: Setup surfaces (UI/API/CLI/IaC)
       score_pct: 75
+      projected_pct: 100
       weight: 9
       note: |
         Dashboard, API, and CLI all cover webhook configuration. No
@@ -604,6 +609,10 @@ audit:
         webhook endpoints closes the configuration surface for ops teams.
       categories_addressed:
         - setup-surfaces
+      target_scores:
+        - criterion_id: infrastructure-as-code
+          target_score: 2
+      effort: m
 
     - id: 2
       title: Frame receiver-side auth options explicitly in the webhook docs
@@ -619,6 +628,11 @@ audit:
         headers) closes the Cat 5 destination-auth-options gap.
       categories_addressed:
         - security-and-authentication
+      target_scores:
+        - criterion_id: destination-auth-options
+          target_score: 2
+          note: assumes both bearer and mTLS are documented as auth, not just one
+      effort: docs
 
   access_limits: []
 

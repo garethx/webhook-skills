@@ -307,6 +307,15 @@ $defs:
         description: |
           Public-scope minus Provisional minimum. The maximum points HITL Pass 2
           could lift the Provisional minimum by. 0 when the two have converged.
+      projected:
+        $ref: '#/$defs/GradeRollup'
+        description: |
+          Optional projected roll-up assuming every recommendation lands as
+          specified. Computed from each recommendation's `target_scores`
+          (max across multiple recommendations targeting the same criterion),
+          rolled up via the weighting in scoring.md. Present when at least
+          one recommendation carries `target_scores`. Lets downstream
+          renderers display the audit as "current vs potential".
       coverage:
         $ref: '#/$defs/Coverage'
 
@@ -381,6 +390,17 @@ $defs:
         description: |
           Dual-score Provisional-minimum category percentage. Present when
           grade.provisional_minimum is present.
+      projected_pct:
+        type: integer
+        minimum: 0
+        maximum: 100
+        description: |
+          Projected category percentage assuming every recommendation that
+          targets criteria in this category lands as specified. Present when
+          grade.projected is present. Computed by taking the max
+          target_score across recommendations per criterion (current score
+          for criteria not targeted by any recommendation) and rolling up
+          via the standard category weighting.
       weight:
         type: integer
         minimum: 0
@@ -534,6 +554,43 @@ $defs:
         minItems: 1
         items:
           $ref: '#/$defs/CategoryId'
+      target_scores:
+        type: array
+        items:
+          $ref: '#/$defs/TargetScore'
+        description: |
+          Per-criterion target scores: which criteria this recommendation
+          would lift to which score if implemented as specified. Used by
+          downstream renderers to compute a projected scorecard (current
+          vs potential) and to make the recommendation's impact explicit
+          and auditable. When multiple recommendations target the same
+          criterion, the projected score is the max across them. Omit the
+          field when the recommendation does not move any criterion's
+          score (rare; usually a sign the recommendation should be split
+          or its categories_addressed re-examined).
+      depends_on:
+        type: array
+        items:
+          type: integer
+          minimum: 1
+        description: |
+          Other recommendation IDs that should land before this one for it
+          to deliver its full value. Hard dependencies only (e.g. Rec 2's
+          verification step references Rec 1 documenting the signing
+          scheme). Soft sequencing preferences belong in the body. Empty
+          array (or omit) when the recommendation stands alone.
+      effort:
+        $ref: '#/$defs/EffortLevel'
+        description: |
+          Coarse implementation effort. Lets downstream renderers display
+          a one-line indicator under each recommendation and lets readers
+          sort or filter by lift. Calibrated as: `docs` is a single page
+          or section with little or no engineering work; `s` is a small
+          product change (a button, a new endpoint, a config knob) on
+          the order of days; `m` is a new feature surface (a CLI, a UI
+          surface, a new integration) on the order of weeks; `l` is an
+          architectural change on the order of months (a new destination
+          type with platform plumbing, a schema migration, an SDK suite).
       further_reading:
         type: array
         items:
@@ -550,6 +607,37 @@ $defs:
       url:
         type: string
         format: uri
+
+  TargetScore:
+    type: object
+    additionalProperties: false
+    required: [criterion_id, target_score]
+    properties:
+      criterion_id:
+        $ref: '#/$defs/CriterionId'
+      target_score:
+        type: integer
+        enum: [0, 1, 2]
+        description: |
+          The score this criterion is expected to reach if the
+          recommendation is implemented as specified in `body`. Be honest:
+          if the recommendation only documents the existing custom-headers
+          feature as an auth option, the target on destination-auth-options
+          is 1 (one option, documented as auth), not 2 (multiple options).
+      note:
+        type: string
+        description: |
+          Optional one-line caveat (e.g. "assumes the operator also wires
+          up egress IPs separately", "to reach 2 requires SDK helpers too").
+
+  EffortLevel:
+    type: string
+    enum: [docs, s, m, l]
+    description: |
+      docs: one page or section, paste-ready or near-it, no engineering
+      cycles. s: small product change on the order of days. m: new
+      feature surface on the order of weeks. l: architectural change on
+      the order of months.
 
   # ----------------------------------------------------------------------------
   # HITL evidence (embedded in audit; same shape used in standalone companion file)

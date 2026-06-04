@@ -707,6 +707,18 @@ audit:
   # the recommendation - the reason the operator should care. Cite the
   # user-facing pain the gap creates. `body` is what to change. See
   # methodology.md "Writing recommendations".
+  #
+  # `target_scores` lists per-criterion target scores: which criteria this
+  # recommendation would lift to which 0/1/2 score if implemented. Used to
+  # compute the projected scorecard (current vs potential). Be honest with
+  # the target: documenting an existing single auth option reaches 1, not
+  # 2 (the 2-anchor requires multiple documented options).
+  #
+  # `depends_on` lists other recommendation IDs that must land before this
+  # one delivers full value (hard dependencies only).
+  #
+  # `effort` is a coarse implementation indicator: docs | s | m | l. See
+  # the EffortLevel enum in schema/audit.schema.yaml for calibration.
   # ----------------------------------------------------------------------------
 
   recommendations:
@@ -721,6 +733,16 @@ audit:
       # actually addresses.
       categories_addressed:
         - discovery-and-signup
+      # OPTIONAL: per-criterion target scores. Lets downstream renderers
+      # compute current vs potential. Omit when the recommendation does not
+      # move a specific criterion's score.
+      # target_scores:
+      #   - criterion_id: findability-of-webhook-docs
+      #     target_score: 2
+      # OPTIONAL: hard dependencies on other recommendation IDs.
+      # depends_on: []
+      # OPTIONAL: coarse implementation effort. docs | s | m | l.
+      # effort: docs
       # OPTIONAL further reading
       # further_reading:
       #   - title: TBD
