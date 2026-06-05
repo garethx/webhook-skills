@@ -108,7 +108,7 @@ npx skills add hookdeck/webhook-skills --skill stripe-webhooks --skill shopify-w
 
 ### Install with `/plugin` (Claude Code)
 
-Claude Code distributes this repo as a [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). Add the marketplace once, then install either a single provider skill or the bundle of all 38 skills.
+Claude Code distributes this repo as a [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces). Add the marketplace once, then install either a single provider skill or the bundle of all 40 skills.
 
 ```text
 # Add this marketplace
@@ -117,7 +117,7 @@ Claude Code distributes this repo as a [plugin marketplace](https://code.claude.
 # Install one provider skill (each is ~200 KB)
 /plugin install stripe-webhooks@webhook-skills
 
-# Or install all 38 webhook skills as one bundle (~3 MB)
+# Or install all 40 webhook skills as one bundle (~3 MB)
 /plugin install webhook-skills@webhook-skills
 ```
 
