@@ -570,6 +570,13 @@ audit:
           status_reason: TBD
           evidence: |
             TBD
+        - id: content-based-filtering
+          name: Content-based filtering
+          score: 0
+          status: not_supported
+          status_reason: TBD
+          evidence: |
+            TBD
         - id: multiple-endpoints
           name: Multiple endpoints
           score: 0

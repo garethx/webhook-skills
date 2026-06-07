@@ -139,7 +139,7 @@ audit:
       weight: 6
       note: |
         Full self-serve via dashboard and API; per-event-type subscriptions;
-        multiple endpoints supported.
+        content-based payload filtering; multiple endpoints supported.
 
     - id: consumer-facing-observability
       name: Consumer-facing observability
@@ -465,8 +465,9 @@ audit:
 
     - category_id: consumer-self-serve-and-subscriptions
       intro: |
-        Endpoint management is fully self-serve with per-event-type filtering
-        and multi-endpoint support.
+        Endpoint management is fully self-serve with per-event-type
+        subscription, content-based payload filtering, and multi-endpoint
+        support.
       criteria:
         - id: self-serve-endpoint-management
           name: Self-serve endpoint management
@@ -481,6 +482,14 @@ audit:
           evidence: |
             `enabled_events` array per endpoint allows per-event-type
             subscription.
+        - id: content-based-filtering
+          name: Content-based filtering
+          score: 2
+          status: scored
+          evidence: |
+            Per-destination filter expressions match on payload fields (e.g.
+            `data.object.amount > 1000`), documented with examples; deliveries
+            that don't match are skipped.
         - id: multiple-endpoints
           name: Multiple endpoints
           score: 2

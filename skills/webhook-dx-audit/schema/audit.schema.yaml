@@ -938,6 +938,7 @@ $defs:
       # Cat 9: Consumer self-serve & subscriptions
       - self-serve-endpoint-management
       - subscription-granularity
+      - content-based-filtering
       - multiple-endpoints
 
       # Cat 10: Consumer-facing observability
