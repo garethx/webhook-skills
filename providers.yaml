@@ -670,6 +670,29 @@ providers:
         - app_mention
         - message
 
+  - name: statsig
+    displayName: Statsig
+    docs:
+      webhooks: https://docs.statsig.com/integrations/event_webhook
+      verification: https://docs.statsig.com/integrations/event_webhook
+      events: https://docs.statsig.com/integrations/event_webhook
+    notes: >
+      Feature flagging and experimentation platform. The Event Webhook streams events to
+      your endpoint. Uses HMAC-SHA256; the signature is sent in the X-Statsig-Signature
+      header formatted as `v0=<hex>`, computed over the basestring `v0:<timestamp>:<raw_body>`
+      where the timestamp comes from the X-Statsig-Request-Timestamp header (epoch
+      milliseconds). Always verify against the raw request body — do not JSON.parse first.
+      Events are delivered in batches: the request body is {"data": [ ...events... ]}, so
+      iterate over data. Every event carries an eventName; Statsig-generated events use the
+      statsig:: prefix while custom events use the name passed to logEvent. Common events:
+      statsig::gate_exposure, statsig::config_exposure, statsig::experiment_exposure,
+      statsig::config_change, and custom events.
+    testScenario:
+      events:
+        - statsig::gate_exposure
+        - statsig::experiment_exposure
+        - statsig::config_change
+
   - name: stripe
     displayName: Stripe
     docs:
