@@ -117,7 +117,7 @@ PICQER_WEBHOOK_SECRET=your_hook_secret   # The secret you set when creating the 
 
 ## Setting Up a Hook
 
-Picqer has no dashboard UI for webhooks — create hooks via the API using HTTP
+Manage hooks in the dashboard (Settings > Webhooks) or via the API using HTTP
 Basic auth (your API key as the username, any/empty password):
 
 ```bash

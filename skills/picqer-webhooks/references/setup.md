@@ -1,6 +1,6 @@
 # Setting Up Picqer Webhooks
 
-Picqer has **no dashboard UI for webhooks**. Hooks are created and managed
+Manage hooks in the dashboard (**Settings > Webhooks**) or create and manage them
 entirely through the Picqer API.
 
 ## Prerequisites

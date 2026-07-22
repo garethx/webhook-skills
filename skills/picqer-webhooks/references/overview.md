@@ -8,9 +8,9 @@ in a warehouse — an order is created, a picklist is closed, stock changes, and
 so on — instead of you polling the API.
 
 Each hook is registered for a **single event** and delivers an HTTP `POST`
-request to your endpoint whenever that event fires. Unlike many providers,
-Picqer has **no dashboard UI for webhooks** — hooks are created and managed
-entirely through the API (`POST /api/v1/hooks`).
+request to your endpoint whenever that event fires. Hooks can be managed in
+the dashboard (**Settings > Webhooks**) or created and managed entirely
+through the API (`POST /api/v1/hooks`).
 
 ## Common Event Types
 
