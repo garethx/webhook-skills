@@ -26,6 +26,11 @@ The verifier extracts the timestamp from the `t=` field, recomputes the HMAC ove
 There is **no timestamp tolerance window** — the timestamp is only used as part
 of the signed content (it must be a number ≥ `1609459200000`, i.e. 2021-01-01).
 
+> **Note:** the millisecond unit and the `1609459200000` floor are confirmed
+> from the official [`@sanity/webhook`](https://github.com/sanity-io/webhook-toolkit)
+> source, not from Sanity's own docs (which don't specify the wire format) —
+> if you add your own replay-window check, treat `t=` as milliseconds.
+
 ## Implementation
 
 ### SDK Verification (Node.js — Express & Next.js)
