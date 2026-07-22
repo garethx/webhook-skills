@@ -217,6 +217,27 @@
       ]
     },
     {
+      "name": "customerio-webhooks",
+      "description": "Receive and verify Customer.io Reporting Webhooks. Use when setting up Customer.io webhook handlers, debugging X-CIO-Signature verification, or handling messaging events like email delivered, email opened, email clicked, email bounced, sms sent, push delivered, or customer unsubscribed.",
+      "source": "./skills/customerio-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/customerio-webhooks",
+      "keywords": [
+        "webhooks",
+        "customerio"
+      ]
+    },
+    {
       "name": "deepgram-webhooks",
       "description": "Receive and verify Deepgram transcription callbacks (Basic Auth / dg-token).",
       "source": "./skills/deepgram-webhooks",
