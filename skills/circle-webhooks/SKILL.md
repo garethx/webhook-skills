@@ -1,10 +1,10 @@
 ---
 name: circle-webhooks
 description: >
-  Receive and verify Circle (Circle Payments Network / Circle Mint) webhooks.
+  Receive and verify Circle Payments Network (CPN) v2 webhooks.
   Use when setting up Circle webhook handlers, debugging ECDSA signature
   verification (X-Circle-Signature, X-Circle-Key-Id), or handling notifications
-  like payments, paymentIntents, transfers, and payouts.
+  like cpn.payment.*, cpn.transaction.*, and cpn.rfi.*.
 license: MIT
 metadata:
   author: hookdeck
@@ -19,7 +19,7 @@ metadata:
 - How do I receive Circle webhooks?
 - How do I verify Circle webhook signatures (ECDSA / `X-Circle-Signature`)?
 - How do I fetch and cache the Circle notification public key by `X-Circle-Key-Id`?
-- How do I handle `payments`, `paymentIntents`, `transfers`, or `payouts` notifications?
+- How do I handle `cpn.payment.*`, `cpn.transaction.*`, or `cpn.rfi.*` notifications?
 - Why is my Circle webhook signature verification failing?
 
 ## How Circle Webhooks Differ From Most Providers
@@ -43,10 +43,11 @@ Two more Circle specifics:
 - **HEAD validation.** On subscription create/update Circle validates your
   endpoint with a `HEAD` request (no subscribe-URL handshake). Return `200` to
   `HEAD` as well as `POST`.
-- **Product scope.** This skill covers CPN / Circle Mint notifications, which use
-  a `notificationType` body field (`payments`, `paymentIntents`, `transfers`,
-  `payouts`, …). This is **not** the W3S / Programmable Wallets product, whose
-  webhooks use `transactions.inbound` / `transactions.outbound`.
+- **Product scope.** This skill covers **Circle Payments Network (CPN) v2**
+  notifications, which use a `notificationType` body field carrying `cpn.*`
+  event strings (`cpn.payment.completed`, `cpn.transaction.broadcasted`,
+  `cpn.rfi.approved`, …). Circle Mint / Core API (v1) is a **separate** product
+  with a different notification scheme — this skill does not cover it.
 
 ## Verification (core)
 
@@ -93,19 +94,26 @@ async function verifyCircleWebhook(headers, rawBody) {
 
 ## Common Event Types
 
-Circle identifies each event by the `notificationType` field in the body (not a
-header). The lifecycle status lives inside the nested object (e.g.
-`payment.status`) or in a `paymentIntent.timeline` array (newest first).
+CPN identifies each event by the `notificationType` field in the body (not a
+header) — a `cpn.*` string. The changed resource is carried in the
+`notification` object, whose shape matches the corresponding API response (the
+lifecycle status is `notification.status`). Configure which types you receive
+via a subscription's `notificationTypes` (wildcards like `cpn.payment.*` and
+`*` are supported).
 
 | `notificationType` | Description |
 |--------------------|-------------|
-| `paymentIntents` | Payin intent lifecycle / deposit-address assignment |
-| `payments` | A settled stablecoin payin, or a payout refund |
-| `transfers` | Onchain transfer state transitions (either direction) |
-| `payouts` | Fiat redemption (burn) or stablecoin payout state |
+| `cpn.payment.completed` | A CPN payment reached the completed state |
+| `cpn.payment.failed` | A CPN payment failed |
+| `cpn.payment.delayed` | A CPN payment is delayed |
+| `cpn.transaction.broadcasted` | An onchain transaction was broadcast |
+| `cpn.transaction.completed` | An onchain transaction completed |
+| `cpn.transaction.failed` | An onchain transaction failed |
+| `cpn.rfi.approved` | A request-for-information (RFI) was approved |
+| `cpn.rfi.rejected` | A request-for-information (RFI) was rejected |
 
-Others you may receive: `deposits`, `settlements`, `wire`, `addressBookRecipients`,
-`externalEntities`, `creditTransfers`, `creditFees`, `creditRepayments`. See
+Wildcards: `cpn.payment.*`, `cpn.transaction.*`, `cpn.rfi.*` (the RFI family also
+includes an information-needed variant), or `*` for every type. See
 [references/overview.md](references/overview.md) for status values and payloads.
 
 ## Environment Variables

@@ -3,9 +3,9 @@
 ## What Are Circle Webhooks?
 
 Circle sends webhook notifications to inform your application about the progress
-of payments, transfers, and payouts on the **Circle Payments Network (CPN)** and
-Circle Mint. When something happens — a deposit address is assigned, a stablecoin
-payin settles, an onchain transfer changes state — Circle POSTs a JSON
+of payments and onchain transactions on the **Circle Payments Network (CPN)**.
+When something happens — a payment completes, an onchain transaction is
+broadcast, a request-for-information (RFI) is approved — Circle POSTs a JSON
 notification to the endpoint(s) you have subscribed.
 
 These are **v2** notifications: each request is signed with an asymmetric
@@ -13,73 +13,79 @@ These are **v2** notifications: each request is signed with an asymmetric
 signature with a public key you fetch from Circle's API. See
 [verification.md](verification.md).
 
-> **Product note:** This skill covers CPN / Circle Mint notifications, whose
-> events use a `notificationType` field (below). This is a **different** product
-> from Circle's W3S / Programmable Wallets, whose webhooks use `transactions.inbound`
-> / `transactions.outbound` event types. Don't mix the two.
+> **Product note:** This skill covers **Circle Payments Network (CPN) v2**
+> notifications, whose events use a `notificationType` field carrying `cpn.*`
+> strings (below). Circle Mint / Core API (v1) is a **separate** product with a
+> different notification scheme, and Circle's W3S / Programmable Wallets is
+> different again — don't mix them.
 
 ## Event / Notification Types
 
-Circle identifies each event by a `notificationType` field in the payload body
-(not a header). The most common CPN / Circle Mint notification types:
+CPN identifies each event by a `notificationType` field in the payload body
+(not a header), a `cpn.*` string. You choose which to receive with a
+subscription's `notificationTypes` (which accepts wildcards). The types:
 
 | `notificationType` | Triggered When | Common Use Cases |
 |--------------------|----------------|------------------|
-| `paymentIntents` | A payin intent is created, a deposit address is assigned, or the intent reaches a terminal state | Show a deposit address, track intent lifecycle |
-| `payments` | An inbound stablecoin payin settles, or a payout refund occurs | Reconcile settled deposits, credit accounts |
-| `transfers` | An onchain transfer changes state (either direction) | Track onchain settlement |
-| `payouts` | A fiat redemption (burn) or stablecoin payout changes state | Reconcile outbound payments |
+| `cpn.payment.completed` | A CPN payment reached the completed state | Reconcile completed payments, credit accounts |
+| `cpn.payment.failed` | A CPN payment failed | Notify the customer, retry or unwind |
+| `cpn.payment.delayed` | A CPN payment is delayed | Surface pending state to the user |
+| `cpn.transaction.broadcasted` | An onchain transaction was broadcast | Track the pending onchain transaction |
+| `cpn.transaction.completed` | An onchain transaction completed | Mark onchain settlement |
+| `cpn.transaction.failed` | An onchain transaction failed | Handle the failed transaction |
+| `cpn.rfi.approved` | A request-for-information (RFI) was approved | Resume the held payment |
+| `cpn.rfi.rejected` | A request-for-information (RFI) was rejected | Handle the rejected RFI |
 
-Other notification types you may receive depending on the products you use:
-`deposits`, `settlements`, `wire`, `addressBookRecipients`, `externalEntities`,
-`creditTransfers`, `creditFees`, `creditRepayments`,
-`approvalWorkflowTransferApproved`, `approvalWorkflowTransferRejected`.
+Wildcards let a subscription match a whole family — `cpn.payment.*`,
+`cpn.transaction.*`, `cpn.rfi.*` (the RFI family also includes an
+information-needed variant) — or `*` to receive every type.
 
 ### Status Values
 
-The lifecycle status lives inside the object (e.g. `payment.status`,
-`transfer.status`) or in a `timeline` array for payment intents (newest entry
-first).
+The lifecycle status lives inside the `notification` object as
+`notification.status`. Typical values by family:
 
-| Type | Typical status values |
-|------|-----------------------|
-| `paymentIntents` | `created`, `pending`, `active`, `complete`, `expired`, `failed`, `refunded` |
-| `payments` | `pending`, `confirmed`, `paid`, `failed`, `action_required` |
-| `transfers` | `pending`, `running`, `complete`, `failed` |
-| `payouts` | `pending`, `complete`, `failed` |
+| Family | Typical status values |
+|--------|-----------------------|
+| `cpn.payment.*` | `pending`, `delayed`, `completed`, `failed` |
+| `cpn.transaction.*` | `broadcasted`, `completed`, `failed` |
+| `cpn.rfi.*` | `needed`, `approved`, `rejected` |
 
 ## Event Payload Structure
 
-Every notification includes a `notificationType`, a `version`, and a nested
-object named after the resource:
+Every notification includes a `notificationId` (a UUID, your idempotency /
+dedupe key), a `notificationType`, the `notification` object (the resource that
+changed — its shape matches the corresponding API response), a `timestamp`, and
+`version: 2`:
 
 ```json
 {
-  "notificationType": "payments",
-  "version": 1,
-  "payment": {
+  "notificationId": "2a7f0c8e-6b1d-4f9a-8c3e-1e2d3c4b5a60",
+  "notificationType": "cpn.payment.completed",
+  "notification": {
     "id": "66c56b6a-fc79-338b-8b94-aacc4f0f18de",
-    "status": "paid",
-    "paymentIntentId": "e2e90ba3-9d1f-490d-9460-24ac6eb55a1b",
+    "status": "completed",
     "transactionHash": "0x7351585460bd657f320b9afa02a52c26d89272d0d10cc29913eb8b28e64fd906"
-  }
+  },
+  "timestamp": "2026-04-12T20:13:39.000000Z",
+  "version": 2
 }
 ```
 
-A `paymentIntents` notification carries a `paymentIntent` object with a
-`timeline` array (newest status first):
+A `cpn.transaction.broadcasted` notification carries the transaction resource in
+the same `notification` envelope:
 
 ```json
 {
-  "notificationType": "paymentIntents",
-  "version": 1,
-  "paymentIntent": {
+  "notificationId": "3b8a1d9f-7c2e-4a0b-9d4f-2f3e4d5c6b71",
+  "notificationType": "cpn.transaction.broadcasted",
+  "notification": {
     "id": "e2e90ba3-9d1f-490d-9460-24ac6eb55a1b",
-    "timeline": [
-      { "status": "active", "time": "2026-04-12T20:13:39.000000Z" },
-      { "status": "created", "time": "2026-04-12T20:13:38.188286Z" }
-    ]
-  }
+    "status": "broadcasted",
+    "transactionHash": "0x7351585460bd657f320b9afa02a52c26d89272d0d10cc29913eb8b28e64fd906"
+  },
+  "timestamp": "2026-04-12T20:13:39.000000Z",
+  "version": 2
 }
 ```
 
@@ -95,4 +101,3 @@ A `paymentIntents` notification carries a `paymentIntent` object with a
 ## Full Event Reference
 
 - CPN webhooks: https://developers.circle.com/cpn/guides/webhooks/setup-webhook-notifications
-- Circle Mint webhook notifications: https://developers.circle.com/circle-mint/references/webhook-notifications

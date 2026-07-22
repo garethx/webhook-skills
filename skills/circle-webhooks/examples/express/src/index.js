@@ -85,44 +85,50 @@ app.post(
       return res.status(400).send('Invalid JSON');
     }
 
+    // Dedupe on event.notificationId (a UUID) — Circle retries non-200
+    // deliveries, so the same notificationId can arrive more than once.
+    const resource = event.notification || {};
+
     switch (event.notificationType) {
-      case 'paymentIntents': {
-        const intent = event.paymentIntent || {};
-        console.log('Payment intent update:', intent.id, latestStatus(intent.timeline));
-        // TODO: track deposit-address assignment / intent lifecycle
+      case 'cpn.payment.completed': {
+        console.log('Payment completed:', resource.id, resource.status);
+        // TODO: reconcile the completed CPN payment
         break;
       }
-      case 'payments': {
-        const payment = event.payment || {};
-        console.log('Payment update:', payment.id, payment.status);
-        // TODO: reconcile settled payins / payout refunds
+      case 'cpn.payment.failed': {
+        console.log('Payment failed:', resource.id, resource.status);
+        // TODO: handle the failed payment (notify / retry)
         break;
       }
-      case 'transfers': {
-        const transfer = event.transfer || {};
-        console.log('Transfer update:', transfer.id, transfer.status);
-        // TODO: track onchain transfer state transitions
+      case 'cpn.transaction.completed': {
+        console.log('Transaction completed:', resource.id, resource.status);
+        // TODO: mark the onchain transaction settled
         break;
       }
-      case 'payouts': {
-        const payout = event.payout || {};
-        console.log('Payout update:', payout.id, payout.status);
-        // TODO: reconcile fiat redemption / stablecoin payout
+      case 'cpn.transaction.broadcasted': {
+        console.log('Transaction broadcasted:', resource.id, resource.status);
+        // TODO: track the broadcasted onchain transaction
+        break;
+      }
+      case 'cpn.rfi.approved': {
+        console.log('RFI approved:', resource.id, resource.status);
+        // TODO: resume the payment now the request-for-information cleared
+        break;
+      }
+      case 'cpn.rfi.rejected': {
+        console.log('RFI rejected:', resource.id, resource.status);
+        // TODO: handle the rejected request-for-information
         break;
       }
       default:
+        // Other cpn.* types: cpn.payment.delayed, cpn.transaction.failed,
+        // cpn.rfi.* (e.g. information-needed), etc.
         console.log(`Unhandled notification type: ${event.notificationType}`);
     }
 
     res.status(200).json({ received: true });
   }
 );
-
-// Return the most recent status from a Circle timeline (newest entry first).
-function latestStatus(timeline) {
-  if (!Array.isArray(timeline) || timeline.length === 0) return undefined;
-  return timeline[0].status;
-}
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

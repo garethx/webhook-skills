@@ -42,14 +42,14 @@ def sign_circle_request(raw_body: bytes, *, key_id: str = TEST_KEY_ID) -> dict[s
 def test_missing_headers_returns_400(client):
     response = client.post(
         "/webhooks/circle",
-        content=b'{"notificationType":"payments"}',
+        content=b'{"notificationType":"cpn.payment.completed"}',
         headers={"content-type": "application/json"},
     )
     assert response.status_code == 400
 
 
 def test_invalid_signature_returns_400(client):
-    payload = b'{"notificationType":"payments","payment":{"id":"pay_1","status":"paid"}}'
+    payload = b'{"notificationType":"cpn.payment.completed","notification":{"id":"pay_1","status":"completed"}}'
     headers = sign_circle_request(payload)
     headers["x-circle-signature"] = base64.b64encode(b"garbage").decode()
     response = client.post("/webhooks/circle", content=payload, headers=headers)
@@ -57,15 +57,15 @@ def test_invalid_signature_returns_400(client):
 
 
 def test_tampered_body_returns_400(client):
-    original = b'{"notificationType":"payments","payment":{"id":"pay_2","status":"paid","amount":"10.00"}}'
+    original = b'{"notificationType":"cpn.payment.completed","notification":{"id":"pay_2","status":"completed","amount":"10.00"}}'
     headers = sign_circle_request(original)
-    tampered = b'{"notificationType":"payments","payment":{"id":"pay_2","status":"paid","amount":"999.00"}}'
+    tampered = b'{"notificationType":"cpn.payment.completed","notification":{"id":"pay_2","status":"completed","amount":"999.00"}}'
     response = client.post("/webhooks/circle", content=tampered, headers=headers)
     assert response.status_code == 400
 
 
 def test_unknown_key_id_returns_400(client):
-    payload = b'{"notificationType":"payments","payment":{"id":"pay_3","status":"paid"}}'
+    payload = b'{"notificationType":"cpn.payment.completed","notification":{"id":"pay_3","status":"completed"}}'
     # Sign correctly but reference a key id that is not cached and cannot be
     # fetched (no CIRCLE_API_KEY set) — verification must fail closed.
     headers = sign_circle_request(payload, key_id="unknown-key-id")
@@ -74,7 +74,7 @@ def test_unknown_key_id_returns_400(client):
 
 
 def test_valid_signature_returns_200(client):
-    payload = b'{"notificationType":"payments","version":1,"payment":{"id":"pay_5","status":"paid"}}'
+    payload = b'{"notificationId":"2a7f0c8e-6b1d-4f9a-8c3e-1e2d3c4b5a60","notificationType":"cpn.payment.completed","version":2,"notification":{"id":"pay_5","status":"completed"}}'
     headers = sign_circle_request(payload)
     response = client.post("/webhooks/circle", content=payload, headers=headers)
     assert response.status_code == 200
@@ -89,11 +89,14 @@ def test_head_validation_returns_200(client):
 @pytest.mark.parametrize(
     "payload",
     [
-        b'{"notificationType":"paymentIntents","paymentIntent":{"id":"pi_1","timeline":[{"status":"active"},{"status":"created"}]}}',
-        b'{"notificationType":"payments","payment":{"id":"pay_x","status":"paid"}}',
-        b'{"notificationType":"transfers","transfer":{"id":"tr_1","status":"complete"}}',
-        b'{"notificationType":"payouts","payout":{"id":"po_1","status":"complete"}}',
-        b'{"notificationType":"unknownType","foo":"bar"}',
+        b'{"notificationType":"cpn.payment.completed","notification":{"id":"pay_x","status":"completed"}}',
+        b'{"notificationType":"cpn.payment.failed","notification":{"id":"pay_y","status":"failed"}}',
+        b'{"notificationType":"cpn.transaction.completed","notification":{"id":"tx_1","status":"completed"}}',
+        b'{"notificationType":"cpn.transaction.broadcasted","notification":{"id":"tx_2","status":"broadcasted"}}',
+        b'{"notificationType":"cpn.rfi.approved","notification":{"id":"rfi_1","status":"approved"}}',
+        b'{"notificationType":"cpn.rfi.rejected","notification":{"id":"rfi_2","status":"rejected"}}',
+        b'{"notificationType":"cpn.payment.delayed","notification":{"id":"pay_z","status":"delayed"}}',
+        b'{"notificationType":"unknownType","notification":{"foo":"bar"}}',
     ],
 )
 def test_handles_each_notification_type(client, payload):

@@ -38,7 +38,7 @@ function makeRequest(body: string, headers: Record<string, string>): Request {
 describe('Circle webhook route', () => {
   it('returns 400 when Circle headers are missing', async () => {
     const { POST } = await routeModulePromise;
-    const req = makeRequest('{"notificationType":"payments"}', {
+    const req = makeRequest('{"notificationType":"cpn.payment.completed"}', {
       'content-type': 'application/json',
     });
     const res = await POST(req as any);
@@ -50,8 +50,8 @@ describe('Circle webhook route', () => {
     publicKeyCache.set(TEST_KEY_ID, publicKey);
 
     const payload = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_1', status: 'paid' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_1', status: 'completed' },
     });
     const headers = signCircleRequest(payload);
     headers['x-circle-signature'] = Buffer.from('garbage').toString('base64');
@@ -65,13 +65,13 @@ describe('Circle webhook route', () => {
     publicKeyCache.set(TEST_KEY_ID, publicKey);
 
     const original = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_2', status: 'paid', amount: '10.00' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_2', status: 'completed', amount: '10.00' },
     });
     const headers = signCircleRequest(original);
     const tampered = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_2', status: 'paid', amount: '999.00' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_2', status: 'completed', amount: '999.00' },
     });
 
     const res = await POST(makeRequest(tampered, headers) as any);
@@ -81,8 +81,8 @@ describe('Circle webhook route', () => {
   it('returns 400 when signed with an unknown key id', async () => {
     const { POST } = await routeModulePromise;
     const payload = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_3', status: 'paid' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_3', status: 'completed' },
     });
     const headers = signCircleRequest(payload, { keyId: 'unknown-key-id' });
 
@@ -95,9 +95,10 @@ describe('Circle webhook route', () => {
     publicKeyCache.set(TEST_KEY_ID, publicKey);
 
     const payload = JSON.stringify({
-      notificationType: 'payments',
-      version: 1,
-      payment: { id: 'pay_5', status: 'paid' },
+      notificationId: '2a7f0c8e-6b1d-4f9a-8c3e-1e2d3c4b5a60',
+      notificationType: 'cpn.payment.completed',
+      version: 2,
+      notification: { id: 'pay_5', status: 'completed' },
     });
     const headers = signCircleRequest(payload);
 
@@ -114,16 +115,19 @@ describe('Circle webhook route', () => {
   });
 
   it.each([
-    ['paymentIntents', { paymentIntent: { id: 'pi_1', timeline: [{ status: 'active' }, { status: 'created' }] } }],
-    ['payments', { payment: { id: 'pay_x', status: 'paid' } }],
-    ['transfers', { transfer: { id: 'tr_1', status: 'complete' } }],
-    ['payouts', { payout: { id: 'po_1', status: 'complete' } }],
-    ['unknownType', { foo: 'bar' }],
+    ['cpn.payment.completed', { notification: { id: 'pay_x', status: 'completed' } }],
+    ['cpn.payment.failed', { notification: { id: 'pay_y', status: 'failed' } }],
+    ['cpn.transaction.completed', { notification: { id: 'tx_1', status: 'completed' } }],
+    ['cpn.transaction.broadcasted', { notification: { id: 'tx_2', status: 'broadcasted' } }],
+    ['cpn.rfi.approved', { notification: { id: 'rfi_1', status: 'approved' } }],
+    ['cpn.rfi.rejected', { notification: { id: 'rfi_2', status: 'rejected' } }],
+    ['cpn.payment.delayed', { notification: { id: 'pay_z', status: 'delayed' } }],
+    ['unknownType', { notification: { foo: 'bar' } }],
   ])('handles notificationType %s', async (notificationType, extra) => {
     const { POST, publicKeyCache } = await routeModulePromise;
     publicKeyCache.set(TEST_KEY_ID, publicKey);
 
-    const payload = JSON.stringify({ notificationType, version: 1, ...(extra as object) });
+    const payload = JSON.stringify({ notificationType, version: 2, ...(extra as object) });
     const headers = signCircleRequest(payload);
 
     const res = await POST(makeRequest(payload, headers) as any);

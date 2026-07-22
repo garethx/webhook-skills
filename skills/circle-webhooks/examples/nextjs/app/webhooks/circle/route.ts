@@ -79,11 +79,9 @@ export async function POST(request: NextRequest) {
   }
 
   let event: {
+    notificationId?: string;
     notificationType?: string;
-    payment?: { id?: string; status?: string };
-    paymentIntent?: { id?: string; timeline?: Array<{ status?: string }> };
-    transfer?: { id?: string; status?: string };
-    payout?: { id?: string; status?: string };
+    notification?: { id?: string; status?: string };
   };
   try {
     event = JSON.parse(rawBody.toString('utf8'));
@@ -91,28 +89,38 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
+  // Dedupe on event.notificationId (a UUID) — Circle retries non-200
+  // deliveries, so the same notificationId can arrive more than once.
+  const resource = event.notification ?? {};
+
   switch (event.notificationType) {
-    case 'paymentIntents': {
-      const intent = event.paymentIntent ?? {};
-      console.log('Payment intent update:', intent.id, intent.timeline?.[0]?.status);
+    case 'cpn.payment.completed': {
+      console.log('Payment completed:', resource.id, resource.status);
       break;
     }
-    case 'payments': {
-      const payment = event.payment ?? {};
-      console.log('Payment update:', payment.id, payment.status);
+    case 'cpn.payment.failed': {
+      console.log('Payment failed:', resource.id, resource.status);
       break;
     }
-    case 'transfers': {
-      const transfer = event.transfer ?? {};
-      console.log('Transfer update:', transfer.id, transfer.status);
+    case 'cpn.transaction.completed': {
+      console.log('Transaction completed:', resource.id, resource.status);
       break;
     }
-    case 'payouts': {
-      const payout = event.payout ?? {};
-      console.log('Payout update:', payout.id, payout.status);
+    case 'cpn.transaction.broadcasted': {
+      console.log('Transaction broadcasted:', resource.id, resource.status);
+      break;
+    }
+    case 'cpn.rfi.approved': {
+      console.log('RFI approved:', resource.id, resource.status);
+      break;
+    }
+    case 'cpn.rfi.rejected': {
+      console.log('RFI rejected:', resource.id, resource.status);
       break;
     }
     default:
+      // Other cpn.* types: cpn.payment.delayed, cpn.transaction.failed,
+      // cpn.rfi.* (e.g. information-needed), etc.
       console.log(`Unhandled notification type: ${event.notificationType}`);
   }
 

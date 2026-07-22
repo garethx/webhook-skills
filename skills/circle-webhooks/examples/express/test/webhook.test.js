@@ -35,14 +35,14 @@ describe('POST /webhooks/circle', () => {
     const res = await request(app)
       .post('/webhooks/circle')
       .set('Content-Type', 'application/json')
-      .send('{"notificationType":"payments"}');
+      .send('{"notificationType":"cpn.payment.completed"}');
     expect(res.status).toBe(400);
   });
 
   it('returns 400 for an invalid signature', async () => {
     const payload = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_1', status: 'paid' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_1', status: 'completed' },
     });
     const headers = signCircleRequest(payload);
     headers['x-circle-signature'] = Buffer.from('not-the-real-signature').toString('base64');
@@ -58,13 +58,13 @@ describe('POST /webhooks/circle', () => {
 
   it('returns 400 if the body is tampered after signing', async () => {
     const original = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_2', status: 'paid', amount: '10.00' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_2', status: 'completed', amount: '10.00' },
     });
     const headers = signCircleRequest(original);
     const tampered = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_2', status: 'paid', amount: '999.00' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_2', status: 'completed', amount: '999.00' },
     });
 
     const res = await request(app)
@@ -77,8 +77,8 @@ describe('POST /webhooks/circle', () => {
 
   it('returns 400 when signed with an unknown key id', async () => {
     const payload = JSON.stringify({
-      notificationType: 'payments',
-      payment: { id: 'pay_3', status: 'paid' },
+      notificationType: 'cpn.payment.completed',
+      notification: { id: 'pay_3', status: 'completed' },
     });
     // Sign correctly but reference a key id that is not in the cache and
     // cannot be fetched (no CIRCLE_API_KEY set) — verification must fail closed.
@@ -94,9 +94,10 @@ describe('POST /webhooks/circle', () => {
 
   it('returns 200 for a valid signature', async () => {
     const payload = JSON.stringify({
-      notificationType: 'payments',
-      version: 1,
-      payment: { id: 'pay_5', status: 'paid' },
+      notificationId: '2a7f0c8e-6b1d-4f9a-8c3e-1e2d3c4b5a60',
+      notificationType: 'cpn.payment.completed',
+      version: 2,
+      notification: { id: 'pay_5', status: 'completed' },
     });
     const headers = signCircleRequest(payload);
 
@@ -115,13 +116,16 @@ describe('POST /webhooks/circle', () => {
   });
 
   it.each([
-    ['paymentIntents', { paymentIntent: { id: 'pi_1', timeline: [{ status: 'active' }, { status: 'created' }] } }],
-    ['payments', { payment: { id: 'pay_x', status: 'paid' } }],
-    ['transfers', { transfer: { id: 'tr_1', status: 'complete' } }],
-    ['payouts', { payout: { id: 'po_1', status: 'complete' } }],
-    ['unknownType', { foo: 'bar' }],
+    ['cpn.payment.completed', { notification: { id: 'pay_x', status: 'completed' } }],
+    ['cpn.payment.failed', { notification: { id: 'pay_y', status: 'failed' } }],
+    ['cpn.transaction.completed', { notification: { id: 'tx_1', status: 'completed' } }],
+    ['cpn.transaction.broadcasted', { notification: { id: 'tx_2', status: 'broadcasted' } }],
+    ['cpn.rfi.approved', { notification: { id: 'rfi_1', status: 'approved' } }],
+    ['cpn.rfi.rejected', { notification: { id: 'rfi_2', status: 'rejected' } }],
+    ['cpn.payment.delayed', { notification: { id: 'pay_z', status: 'delayed' } }],
+    ['unknownType', { notification: { foo: 'bar' } }],
   ])('handles notificationType %s', async (notificationType, extra) => {
-    const payload = JSON.stringify({ notificationType, version: 1, ...extra });
+    const payload = JSON.stringify({ notificationType, version: 2, ...extra });
     const headers = signCircleRequest(payload);
 
     const res = await request(app)

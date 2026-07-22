@@ -93,21 +93,25 @@ async def circle_webhook(request: Request):
 
     notification_type = event.get("notificationType")
 
-    if notification_type == "paymentIntents":
-        intent = event.get("paymentIntent") or {}
-        timeline = intent.get("timeline") or []
-        status = timeline[0].get("status") if timeline else None
-        print(f"Payment intent update: {intent.get('id')} {status}")
-    elif notification_type == "payments":
-        payment = event.get("payment") or {}
-        print(f"Payment update: {payment.get('id')} {payment.get('status')}")
-    elif notification_type == "transfers":
-        transfer = event.get("transfer") or {}
-        print(f"Transfer update: {transfer.get('id')} {transfer.get('status')}")
-    elif notification_type == "payouts":
-        payout = event.get("payout") or {}
-        print(f"Payout update: {payout.get('id')} {payout.get('status')}")
+    # Dedupe on event["notificationId"] (a UUID) — Circle retries non-200
+    # deliveries, so the same notificationId can arrive more than once.
+    resource = event.get("notification") or {}
+
+    if notification_type == "cpn.payment.completed":
+        print(f"Payment completed: {resource.get('id')} {resource.get('status')}")
+    elif notification_type == "cpn.payment.failed":
+        print(f"Payment failed: {resource.get('id')} {resource.get('status')}")
+    elif notification_type == "cpn.transaction.completed":
+        print(f"Transaction completed: {resource.get('id')} {resource.get('status')}")
+    elif notification_type == "cpn.transaction.broadcasted":
+        print(f"Transaction broadcasted: {resource.get('id')} {resource.get('status')}")
+    elif notification_type == "cpn.rfi.approved":
+        print(f"RFI approved: {resource.get('id')} {resource.get('status')}")
+    elif notification_type == "cpn.rfi.rejected":
+        print(f"RFI rejected: {resource.get('id')} {resource.get('status')}")
     else:
+        # Other cpn.* types: cpn.payment.delayed, cpn.transaction.failed,
+        # cpn.rfi.* (e.g. information-needed), etc.
         print(f"Unhandled notification type: {notification_type}")
 
     return {"received": True}

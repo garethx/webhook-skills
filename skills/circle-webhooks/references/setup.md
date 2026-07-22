@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- A Circle account (Circle Mint or Circle Payments Network access)
+- A Circle account with Circle Payments Network (CPN) access
 - A Circle **API key** (Developer > API Keys in the console at app.circle.com).
   The API key is used to **fetch the notification public key** for signature
   verification — it is not sent in the webhook itself.
@@ -42,14 +42,15 @@ curl -X POST https://api.circle.com/v2/cpn/notifications/subscriptions \
 - `endpoint` — your HTTPS receiver URL
 - `name` — a label for the subscription
 - `enabled` — `true` to activate
-- `notificationTypes` — array of types to receive; `["*"]` subscribes to all.
-  You can scope it to specific types, e.g. `["payments", "paymentIntents"]`.
+- `notificationTypes` — array of `cpn.*` types to receive; `["*"]` subscribes to
+  all. You can scope it to specific types or families, e.g.
+  `["cpn.payment.completed", "cpn.payment.failed"]` or `["cpn.payment.*"]`.
 
 When you submit this, Circle sends the HEAD validation request to `endpoint`.
 
 Use the sandbox base URL `https://api-sandbox.circle.com` while testing.
 
-### Option B — Console (Circle Mint customers)
+### Option B — Console
 
 In the Circle console at **app.circle.com**, go to **Developer > Subscriptions**
 and add a subscription with your endpoint URL and the notification types you want.
