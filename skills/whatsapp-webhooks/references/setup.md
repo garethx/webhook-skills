@@ -45,7 +45,7 @@ WhatsApp webhooks use **two different values** — don't mix them up:
 Subscribe your app to the WABA's `whatsapp_business_account` object programmatically:
 
 ```bash
-curl -X POST "https://graph.facebook.com/v21.0/<WABA_ID>/subscribed_apps" \
+curl -X POST "https://graph.facebook.com/v24.0/<WABA_ID>/subscribed_apps" \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 

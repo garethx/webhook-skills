@@ -44,7 +44,7 @@ Meta computes `HMAC-SHA256(raw_request_body, app_secret)` and sends the lowercas
 digest in the header, prefixed with `sha256=`:
 
 ```
-X-Hub-Signature-256: sha256=7d38cdd689735b008b3c702edd92eea23791c5f6
+X-Hub-Signature-256: sha256=d072b5b5b53a1a04f4a4c3c62b9a679d8e6e1a52c1c9f2a3e8b4f0d61a7c9e35
 ```
 
 To verify, recompute the HMAC over the **raw body bytes** with your app secret and
@@ -96,7 +96,7 @@ def verify_whatsapp_signature(raw_body: bytes, signature_header: str, app_secret
 ## Common Gotchas
 
 - **Use the raw body, not parsed JSON.** Meta escapes non-ASCII characters (e.g. `é`
-  becomes `é`). If you `JSON.parse` then re-`stringify`, the bytes differ and the
+  becomes `\u00e9`). If you `JSON.parse` then re-`stringify`, the bytes differ and the
   signature will never match. Read the raw body first (Express `express.raw`, Next.js
   `await request.text()`, FastAPI `await request.body()`), verify, *then* parse.
 - **Wrong secret.** The signature key is the **app secret**, not the verify token and
