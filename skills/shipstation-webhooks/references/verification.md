@@ -60,7 +60,7 @@ def verify_token(provided: str | None, expected: str | None) -> bool:
 
 ### 2. Authenticated resource fetch (with SSRF guard)
 
-> **Note:** `resource_url` hosts are numbered (`ssapi1.shipstation.com`, `ssapi2.shipstation.com`,
+> **Note:** `resource_url` hosts are reportedly numbered (`ssapi1.shipstation.com`, `ssapi2.shipstation.com`,
 > …), so the SSRF guard must match a **pattern**, not a fixed hostname — a strict `=== 'ssapi.shipstation.com'`
 > check rejects real deliveries.
 

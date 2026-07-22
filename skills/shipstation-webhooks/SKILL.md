@@ -60,7 +60,7 @@ function verifyToken(provided, expected) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-// resource_url hosts are numbered (ssapi1/ssapi2.shipstation.com) — match a pattern, not one host
+// resource_url hosts are reportedly numbered (ssapi1/ssapi2.shipstation.com) — match a pattern, not one host
 const SHIPSTATION_HOST_RE = /^ssapi\d*\.shipstation\.com$/;
 
 // 2. Fetch the thin payload's resource_url with Basic auth (API key : API secret)

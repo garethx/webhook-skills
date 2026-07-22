@@ -2,7 +2,7 @@
 // https://github.com/hookdeck/webhook-skills
 import crypto from 'crypto';
 
-// Real V1 resource_url hosts are numbered (ssapi1/ssapi2.shipstation.com),
+// V1 resource_url hosts are reportedly numbered (ssapi1/ssapi2.shipstation.com),
 // so match a pattern rather than a single fixed hostname.
 export const SHIPSTATION_HOST_RE = /^ssapi\d*\.shipstation\.com$/;
 
