@@ -1076,6 +1076,28 @@
       ]
     },
     {
+      "name": "tiktok-shop-webhooks",
+      "description": "Receive and verify TikTok Shop webhooks. Use when setting up TikTok Shop webhook handlers, debugging Authorization-header signature verification, or handling events like ORDER_STATUS_CHANGE, PACKAGE_UPDATE, RECIPIENT_ADDRESS_UPDATE, PRODUCT_STATUS_CHANGE, or SELLER_DEAUTHORIZATION.",
+      "source": "./skills/tiktok-shop-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/tiktok-shop-webhooks",
+      "keywords": [
+        "webhooks",
+        "tiktok",
+        "shop"
+      ]
+    },
+    {
       "name": "twilio-webhooks",
       "description": "Verify Twilio webhook signatures (HMAC-SHA1, X-Twilio-Signature) for form-encoded and JSON variants, handle SMS, voice, and status callback events.",
       "source": "./skills/twilio-webhooks",
