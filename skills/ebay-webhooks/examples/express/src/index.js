@@ -147,6 +147,10 @@ app.post('/webhooks/ebay', express.raw({ type: '*/*' }), async (req, res) => {
       console.log('Account deletion for user:', data.userId, data.username);
       // TODO: delete or anonymize this user's data
       break;
+    case 'AUTHORIZATION_REVOCATION':
+      console.log('Authorization revoked for user:', data.userId, data.username);
+      // TODO: stop API calls for this user and purge stored OAuth tokens
+      break;
     case 'ITEM_AVAILABILITY':
       console.log('Item availability changed:', data.itemId);
       break;

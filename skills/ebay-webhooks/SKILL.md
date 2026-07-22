@@ -94,6 +94,7 @@ async function verifyEbaySignature(rawBody, signatureHeader, getPublicKey) {
 | Topic | Triggered When |
 |-------|----------------|
 | `MARKETPLACE_ACCOUNT_DELETION` | An eBay user closed their account / requested personal-data deletion. **All developers must subscribe or opt out.** |
+| `AUTHORIZATION_REVOCATION` | A user revoked your app's authorization — stop making API calls on their behalf and clean up stored tokens. |
 | `ITEM_AVAILABILITY` | Availability of a subscribed item changed |
 | `ITEM_PRICE_REVISION` | Price of a subscribed item was revised |
 | `PRIORITY_LISTING_REVISION` | A priority listing was revised |

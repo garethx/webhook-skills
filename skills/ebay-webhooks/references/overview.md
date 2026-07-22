@@ -28,6 +28,7 @@ They do **not** follow the Standard Webhooks specification (`webhook-id`,
 | Topic | Triggered When | Common Use Cases |
 |-------|----------------|------------------|
 | `MARKETPLACE_ACCOUNT_DELETION` | An eBay user closed their account or requested personal-data deletion | Delete/anonymize the user's data to comply with eBay policy and privacy law |
+| `AUTHORIZATION_REVOCATION` | A user revoked your app's authorization | Stop API calls for that user and purge stored OAuth tokens |
 | `ITEM_AVAILABILITY` | Availability of a subscribed item changed | Keep an external catalog in sync |
 | `ITEM_PRICE_REVISION` | The price of a subscribed item was revised | Reprice / re-sync listings |
 | `PRIORITY_LISTING_REVISION` | A priority listing was revised | Track listing changes |

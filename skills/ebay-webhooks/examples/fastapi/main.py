@@ -160,6 +160,9 @@ async def ebay_webhook(request: Request):
     if topic == "MARKETPLACE_ACCOUNT_DELETION":
         print(f"Account deletion for user: {data.get('userId')} {data.get('username')}")
         # TODO: delete or anonymize this user's data
+    elif topic == "AUTHORIZATION_REVOCATION":
+        print(f"Authorization revoked for user: {data.get('userId')} {data.get('username')}")
+        # TODO: stop API calls for this user and purge stored OAuth tokens
     elif topic == "ITEM_AVAILABILITY":
         print(f"Item availability changed: {data.get('itemId')}")
     elif topic == "ITEM_PRICE_REVISION":
