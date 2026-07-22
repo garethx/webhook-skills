@@ -1100,6 +1100,27 @@
       ]
     },
     {
+      "name": "uber-webhooks",
+      "description": "Receive and verify Uber Eats webhooks. Use when setting up Uber webhook handlers, debugging X-Uber-Signature verification, or handling order events like orders.notification, orders.cancel, store.provisioned, or store.status.changed.",
+      "source": "./skills/uber-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/uber-webhooks",
+      "keywords": [
+        "webhooks",
+        "uber"
+      ]
+    },
+    {
       "name": "vercel-webhooks",
       "description": "Verify Vercel webhook signatures (HMAC-SHA1, x-vercel-signature), handle deployment and project events.",
       "source": "./skills/vercel-webhooks",
