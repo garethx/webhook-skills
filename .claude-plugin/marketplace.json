@@ -1147,6 +1147,27 @@
       ]
     },
     {
+      "name": "wix-webhooks",
+      "description": "Receive and verify Wix webhooks. Use when setting up Wix webhook handlers for self-hosted/self-managed apps, debugging JWT signature verification with your app's public key, or handling events like wix.ecom.v1.order_created, wix.ecom.v1.order_approved, wix.ecom.v1.order_updated, and wix.ecom.v1.order_canceled.",
+      "source": "./skills/wix-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/wix-webhooks",
+      "keywords": [
+        "webhooks",
+        "wix"
+      ]
+    },
+    {
       "name": "woocommerce-webhooks",
       "description": "Verify WooCommerce webhook signatures (HMAC-SHA256, base64), handle order, product, and customer events.",
       "source": "./skills/woocommerce-webhooks",
