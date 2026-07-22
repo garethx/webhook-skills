@@ -41,6 +41,7 @@ Skills for receiving and verifying webhooks from specific providers. Each includ
 | [Deepgram](https://developers.deepgram.com/reference) | [`deepgram-webhooks`](skills/deepgram-webhooks/) | Receive and verify Deepgram transcription callbacks |
 | [Discord](https://docs.discord.com/developers/events/webhook-events) | [`discord-webhooks`](skills/discord-webhooks/) | Verify Discord webhook event signatures (Ed25519), handle application and entitlement events |
 | [ElevenLabs](https://elevenlabs.io/docs/overview/administration/webhooks) | [`elevenlabs-webhooks`](skills/elevenlabs-webhooks/) | Verify ElevenLabs webhook signatures, handle call transcription events |
+| [Fireblocks](https://developers.fireblocks.com/reference/webhooks-v2) | [`fireblocks-webhooks`](skills/fireblocks-webhooks/) | Verify Fireblocks webhook v2 signatures (detached JWS RS512 via JWKS), handle transaction lifecycle events |
 | [FusionAuth](https://fusionauth.io/docs/extend/events-and-webhooks/) | [`fusionauth-webhooks`](skills/fusionauth-webhooks/) | Verify FusionAuth JWT webhook signatures, handle user, login, and registration events |
 | [GitHub](https://docs.github.com/en/webhooks) | [`github-webhooks`](skills/github-webhooks/) | Verify GitHub webhook signatures, handle push, pull_request, and issue events |
 | [GitLab](https://docs.gitlab.com/ee/user/project/integrations/webhooks.html) | [`gitlab-webhooks`](skills/gitlab-webhooks/) | Verify GitLab webhook tokens, handle push, merge_request, issue, and pipeline events |
