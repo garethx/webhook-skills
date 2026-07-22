@@ -35,7 +35,8 @@ Webhooks spec. Instead, Graph uses a three-part validation model.
 
 ## The Three-Part Validation Model
 
-1. **Endpoint validation handshake** — On subscription create (and renewal),
+1. **Endpoint validation handshake** — On subscription create (and when the
+   `notificationUrl` changes),
    Graph sends `POST <notificationUrl>?validationToken={token}` with an empty
    body. You must **echo the URL-decoded token back as `text/plain` with HTTP
    200 within 10 seconds**, or the subscription is not created.
@@ -150,7 +151,8 @@ MICROSOFT_TENANT_ID=your-tenant-id
 MICROSOFT_CLIENT_ID=your-app-client-id
 MICROSOFT_CLIENT_SECRET=your-app-client-secret
 NOTIFICATION_URL=https://your-app.example.com/webhooks/microsoft-graph
-GRAPH_RESOURCE=me/messages
+GRAPH_USER_ID=<target-user-guid>            # app-only auth can't use /me
+GRAPH_RESOURCE=users/<target-user-guid>/messages
 GRAPH_CHANGE_TYPES=created,updated
 ```
 

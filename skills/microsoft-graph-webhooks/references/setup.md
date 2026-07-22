@@ -106,7 +106,6 @@ Content-Type: application/json
 | `user`, `group`, other directory resources | 41,760 minutes (~29 days) |
 | Security `alert` | 43,200 minutes (~30 days) |
 
-Any `expirationDateTime` under ~45 minutes from now is bumped up to 45 minutes.
 
 ## 6. Rich Notifications (Optional)
 

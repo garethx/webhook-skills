@@ -56,7 +56,9 @@ async function createSubscription() {
     changeType: process.env.GRAPH_CHANGE_TYPES || 'created,updated',
     notificationUrl: process.env.NOTIFICATION_URL,
     lifecycleNotificationUrl: process.env.NOTIFICATION_URL,
-    resource: process.env.GRAPH_RESOURCE || 'me/messages',
+    // App-only (client credentials) auth cannot use /me — target a specific
+    // user. For delegated auth you could use 'me/messages' instead.
+    resource: process.env.GRAPH_RESOURCE || `users/${process.env.GRAPH_USER_ID}/messages`,
     expirationDateTime: expiryFromNow(60), // renew before this passes
     clientState: process.env.MICROSOFT_GRAPH_CLIENT_STATE,
     latestSupportedTlsVersion: 'v1_2',

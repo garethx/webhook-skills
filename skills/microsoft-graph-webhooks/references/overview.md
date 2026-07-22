@@ -95,7 +95,7 @@ Key fields:
 - Return a **2xx (recommended `202 Accepted`) within 3 seconds**. Do heavy work
   asynchronously.
 - Graph retries undelivered notifications with exponential backoff for up to
-  **4 hours** (the timeout is extended to 10 seconds for retried notifications).
+  **4 hours**.
 - Consistently slow or failing endpoints can be throttled or have notifications
   dropped, so always acknowledge fast and process off the request path.
 
