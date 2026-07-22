@@ -56,6 +56,28 @@
       ]
     },
     {
+      "name": "aws-sns-webhooks",
+      "description": "Receive and verify AWS SNS (Amazon Simple Notification Service) webhooks over HTTP/HTTPS. Use when setting up an SNS HTTP subscription endpoint, confirming a subscription (SubscriptionConfirmation / SubscribeURL), verifying SNS message signatures (SigningCertURL, SignatureVersion 1 SHA1 / 2 SHA256), or handling Notification and UnsubscribeConfirmation messages.",
+      "source": "./skills/aws-sns-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/aws-sns-webhooks",
+      "keywords": [
+        "webhooks",
+        "aws",
+        "sns"
+      ]
+    },
+    {
       "name": "bitbucket-webhooks",
       "description": "Verify Bitbucket webhook signatures (X-Hub-Signature, HMAC-SHA256), handle repo push and pull request events.",
       "source": "./skills/bitbucket-webhooks",
