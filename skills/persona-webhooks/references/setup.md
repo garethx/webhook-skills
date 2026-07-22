@@ -42,7 +42,7 @@ working while you roll the new secret out. See
 
 ## IP Allowlisting (Optional)
 
-Persona publishes fixed egress IP ranges (across US / Germany / India regions) and
+Persona publishes fixed egress IP ranges (check the dashboard/docs for current ranges and regions) and
 supports **IP allowlisting**. If your infrastructure restricts inbound traffic, allow
 Persona's documented IP ranges so deliveries are not blocked. Check the current
 ranges in Persona's webhook documentation, as they can change.

@@ -16,8 +16,8 @@ Persona.
 - **Success codes:** Persona treats `200`, `201`, `202`, and `204` as success.
   Any other status (or a timeout) is retried.
 - **Retries:** The first response has a **5 second** timeout. On failure Persona
-  retries up to **7 more times** with exponential backoff (roughly 3s, 64s, 729s,
-  4096s, 15625s, 46656s, 117649s between attempts).
+  retries up to **7 more times** with exponential backoff (the exact intervals
+  are not officially documented; observed spans range from seconds to ~1.5 days).
 - **Ordering is NOT guaranteed.** Events can arrive out of sequence. Order by
   `data.attributes.created-at` if sequence matters.
 - **Duplicates are possible.** Process idempotently, keyed on `data.id`.
