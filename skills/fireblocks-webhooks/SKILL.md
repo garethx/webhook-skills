@@ -65,7 +65,7 @@ Event names are **dotted lowercase** (v2). The event type is in the `eventType` 
 | `transaction.network_records.processing_completed` | Network-level (on-chain) processing completed |
 | `transaction.alert.stuck_confirming` | An EVM transaction is stuck `CONFIRMING` due to low fees |
 
-Other categories (`vault_account.*`, `whitelist.*`, `tokenization.*`, `network_connection.*`) follow the same envelope. See [references/overview.md](references/overview.md) and the [event catalog](https://developers.fireblocks.com/reference/webhooks-structures-eventtypes).
+Other categories (`vault_account.*`, `whitelist.*`, `tokenization.*`, `network_connection.*`) follow the same envelope. See [references/overview.md](references/overview.md) and the [transaction event types](https://developers.fireblocks.com/reference/webhooks-structures-eventtypes-transaction).
 
 ## Environment Variables
 
