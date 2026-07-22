@@ -1076,6 +1076,27 @@
       ]
     },
     {
+      "name": "tally-webhooks",
+      "description": "Receive and verify Tally webhooks. Use when setting up Tally form webhook handlers, debugging Tally-Signature verification, or handling FORM_RESPONSE submission events and reading answers from data.fields.",
+      "source": "./skills/tally-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/tally-webhooks",
+      "keywords": [
+        "webhooks",
+        "tally"
+      ]
+    },
+    {
       "name": "twilio-webhooks",
       "description": "Verify Twilio webhook signatures (HMAC-SHA1, X-Twilio-Signature) for form-encoded and JSON variants, handle SMS, voice, and status callback events.",
       "source": "./skills/twilio-webhooks",
