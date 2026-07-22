@@ -33,6 +33,27 @@
       ]
     },
     {
+      "name": "alchemy-webhooks",
+      "description": "Receive and verify Alchemy Notify webhooks. Use when setting up Alchemy webhook handlers, debugging X-Alchemy-Signature verification, or handling onchain events like ADDRESS_ACTIVITY, MINED_TRANSACTION, DROPPED_TRANSACTION, NFT_ACTIVITY, NFT_METADATA_UPDATE, or GRAPHQL (Custom Webhook).",
+      "source": "./skills/alchemy-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/alchemy-webhooks",
+      "keywords": [
+        "webhooks",
+        "alchemy"
+      ]
+    },
+    {
       "name": "auth0-webhooks",
       "description": "Authenticate Auth0 Custom Log Stream deliveries (Authorization token), handle batched login and signup log events.",
       "source": "./skills/auth0-webhooks",
