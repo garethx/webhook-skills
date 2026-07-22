@@ -634,6 +634,27 @@
       ]
     },
     {
+      "name": "neon-webhooks",
+      "description": "Receive and verify Neon Auth webhooks. Use when setting up Neon webhook handlers, debugging Ed25519 / detached JWS signature verification, or handling Neon Auth events like user.created, user.before_create, send.otp, send.magic_link, or phone_number.verified.",
+      "source": "./skills/neon-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/neon-webhooks",
+      "keywords": [
+        "webhooks",
+        "neon"
+      ]
+    },
+    {
       "name": "notion-webhooks",
       "description": "Verify Notion webhook signatures (HMAC-SHA256 with verification_token handshake), handle page and comment events.",
       "source": "./skills/notion-webhooks",
