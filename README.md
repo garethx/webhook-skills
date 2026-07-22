@@ -40,6 +40,7 @@ Skills for receiving and verifying webhooks from specific providers. Each includ
 | [Cursor](https://docs.cursor.com/account/cloud-agent-webhooks) | [`cursor-webhooks`](skills/cursor-webhooks/) | Verify Cursor Cloud Agent webhook signatures, handle agent status events |
 | [Deepgram](https://developers.deepgram.com/reference) | [`deepgram-webhooks`](skills/deepgram-webhooks/) | Receive and verify Deepgram transcription callbacks |
 | [Discord](https://docs.discord.com/developers/events/webhook-events) | [`discord-webhooks`](skills/discord-webhooks/) | Verify Discord webhook event signatures (Ed25519), handle application and entitlement events |
+| [DocuSign](https://developers.docusign.com/platform/webhooks/connect/) | [`docusign-webhooks`](skills/docusign-webhooks/) | Verify DocuSign Connect signatures (`X-DocuSign-Signature-N`, HMAC-SHA256 base64), handle envelope and recipient events |
 | [ElevenLabs](https://elevenlabs.io/docs/overview/administration/webhooks) | [`elevenlabs-webhooks`](skills/elevenlabs-webhooks/) | Verify ElevenLabs webhook signatures, handle call transcription events |
 | [FusionAuth](https://fusionauth.io/docs/extend/events-and-webhooks/) | [`fusionauth-webhooks`](skills/fusionauth-webhooks/) | Verify FusionAuth JWT webhook signatures, handle user, login, and registration events |
 | [GitHub](https://docs.github.com/en/webhooks) | [`github-webhooks`](skills/github-webhooks/) | Verify GitHub webhook signatures, handle push, pull_request, and issue events |

@@ -263,6 +263,27 @@
       ]
     },
     {
+      "name": "docusign-webhooks",
+      "description": "Receive and verify DocuSign Connect webhooks. Use when setting up DocuSign webhook handlers, debugging HMAC signature verification of the X-DocuSign-Signature-1 header, or handling eSignature events like envelope-sent, envelope-completed, and recipient-completed.",
+      "source": "./skills/docusign-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/docusign-webhooks",
+      "keywords": [
+        "webhooks",
+        "docusign"
+      ]
+    },
+    {
       "name": "elevenlabs-webhooks",
       "description": "Verify ElevenLabs webhook signatures (Standard Webhooks/Svix), handle call transcription events.",
       "source": "./skills/elevenlabs-webhooks",
