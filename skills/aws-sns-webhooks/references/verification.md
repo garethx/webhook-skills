@@ -90,8 +90,8 @@ validator.validate(message, (err, msg) => {
 });
 ```
 
-`sns-validator` 0.3.x supports **both** SignatureVersion 1 and 2. (Older
-releases predated SigV2 — 0.3.4+ added SHA256 support.)
+`sns-validator` **0.3.5+** (Aug 2022) supports both SignatureVersion 1 and 2.
+(0.3.4 and earlier reject SignatureVersion 2 — pin `^0.3.5`.)
 
 ### Manual Verification — Python (fallback)
 
