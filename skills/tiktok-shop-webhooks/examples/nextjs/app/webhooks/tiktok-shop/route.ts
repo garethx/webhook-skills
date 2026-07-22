@@ -6,15 +6,15 @@ import crypto from 'crypto';
 const APP_KEY = process.env.TIKTOK_SHOP_APP_KEY ?? '';
 const APP_SECRET = process.env.TIKTOK_SHOP_APP_SECRET ?? '';
 
-// TikTok delivers a numeric `type`, which it does not formally version.
-// Resolve it to a stable event NAME and branch on that. Confirm the mapping
-// against your Partner Center event subscriptions.
-const TYPE_TO_EVENT: Record<number, string> = {
-  1: 'ORDER_STATUS_CHANGE',
-  2: 'RECIPIENT_ADDRESS_UPDATE',
-  3: 'PACKAGE_UPDATE',
-  4: 'PRODUCT_STATUS_CHANGE',
-  5: 'SELLER_DEAUTHORIZATION',
+// TikTok Shop does NOT publish a complete numeric `type` -> topic mapping
+// ("Do not branch only on the numeric type; use the subscribed event_type
+// context" — official webhooks overview). Only `type: 1` appears in the
+// official sample payload, for ORDER_STATUS_CHANGE. Fill this map from YOUR
+// OWN Partner Center subscriptions — or better, register a distinct callback
+// URL per event_type (the Update Shop Webhook API takes one address per
+// topic) so the route itself identifies the event.
+const SUBSCRIBED_TYPE_TO_EVENT: Record<number, string> = {
+  1: 'ORDER_STATUS_CHANGE', // per the official sample payload
 };
 
 /**
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Delivery is at-least-once: dedupe on tts_notification_id before processing.
-  const eventName = TYPE_TO_EVENT[payload.type] ?? `UNKNOWN_TYPE_${payload.type}`;
+  const eventName = SUBSCRIBED_TYPE_TO_EVENT[payload.type] ?? `UNKNOWN_TYPE_${payload.type}`;
   const data = payload.data ?? {};
 
   switch (eventName) {

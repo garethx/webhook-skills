@@ -63,22 +63,30 @@ Return **HTTP 200 with an empty body** within 3 seconds on success; return
 
 ## Common Event Types
 
-Subscribe to event types per shop in Partner Center (or via the Events API). The
-delivered payload carries a **numeric `type`** — but TikTok does not formally
-version those codes, so **branch on the resolved event name**, not raw numbers.
-The commonly-observed mapping for the core events (confirm against your Partner
-Center subscriptions):
+Subscribe to event types per shop in Partner Center (or via the Events API).
+Subscriptions are configured by **`event_type` string** (one callback URL per
+topic). The delivered payload carries a **numeric `type`** — TikTok Shop's
+docs state they do **not** publish a complete numeric mapping and warn: *"Do
+not branch only on the numeric type; use the subscribed event_type context and
+the topic-specific payload schema."* Only `type: 1` (ORDER_STATUS_CHANGE)
+appears in the official sample payload. The most robust pattern is a distinct
+callback path per subscribed topic, so the route identifies the event.
 
-| `type` | Event name | Triggered when |
-|--------|------------|----------------|
-| `1` | `ORDER_STATUS_CHANGE` | An order moves to a new status (placed → paid → shipped …) |
-| `2` | `RECIPIENT_ADDRESS_UPDATE` | The buyer's shipping address changes |
-| `3` | `PACKAGE_UPDATE` | A package is combined, split, or otherwise updated |
-| `4` | `PRODUCT_STATUS_CHANGE` | Product audit/listing status changes |
-| `5` | `SELLER_DEAUTHORIZATION` | A seller revokes your app's authorization |
+Core `event_type` values (from the official topic reference):
 
-Additional subscribable events include `RETURN_STATUS_CHANGE`,
-`CANCELLATION_STATUS_CHANGE`, `PRODUCT_INFORMATION_CHANGE`, and
+| `event_type` | Triggered when |
+|--------------|----------------|
+| `ORDER_STATUS_CHANGE` | An order is created or its status changes |
+| `RECIPIENT_ADDRESS_UPDATE` | The recipient address of an order is updated |
+| `PACKAGE_UPDATE` | A package is combined, split, or changed |
+| `PRODUCT_STATUS_CHANGE` | Product audit results are updated |
+| `SELLER_DEAUTHORIZATION` | A seller revokes or loses authorization for the app |
+| `UPCOMING_AUTHORIZATION_EXPIRATION` | Sent 30 days before authorization expires, then daily |
+
+Additional subscribable topics: `CANCELLATION_STATUS_CHANGE`,
+`RETURN_STATUS_CHANGE`, `REVERSE_STATUS_UPDATE`, `NEW_CONVERSATION`,
+`NEW_MESSAGE`, `NEW_MESSAGE_LISTENER`, `PRODUCT_INFORMATION_CHANGE`,
+`PRODUCT_CREATION`, `PRODUCT_CATEGORY_CHANGE`, `PRODUCT_AUDIT_STATUS_CHANGE`,
 `INVOICE_STATUS_CHANGE`. See [references/overview.md](references/overview.md).
 
 ## Payload Structure

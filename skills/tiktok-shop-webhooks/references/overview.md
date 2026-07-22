@@ -26,33 +26,40 @@ webhook URL, so your handler branches on the event to decide what to do.
 
 ## The `type` Field Is Numeric — Branch on the Event Name
 
-Each payload includes a numeric `type` field. TikTok does **not** formally
-version these numeric codes, so treat them as unreliable and branch on the
-resolved event **name** instead. The commonly-observed mapping for the core
-events (confirm against your Partner Center subscriptions):
+Each payload includes a numeric `type` field. Per the official docs, the full
+`event_type` enum is published but **a complete numeric `type` mapping is
+not**: *"Do not branch only on the numeric type; use the subscribed event_type
+context and the topic-specific payload schema."* Only `type: 1`
+(ORDER_STATUS_CHANGE) appears in the official sample payload. Since each
+subscription pairs one `event_type` with one callback URL, registering a
+distinct path per topic is the most reliable way to know which event arrived.
 
-| `type` | Event name | Triggered When | Common Use Cases |
-|--------|------------|----------------|------------------|
-| `1` | `ORDER_STATUS_CHANGE` | An order moves to a new status | Fulfilment, order sync, notifications |
-| `2` | `RECIPIENT_ADDRESS_UPDATE` | The buyer's shipping address changes | Update shipping labels, warehouse sync |
-| `3` | `PACKAGE_UPDATE` | A package is combined, split, or updated | Re-fetch package, update tracking |
-| `4` | `PRODUCT_STATUS_CHANGE` | Product audit/listing status changes | Sync catalog availability |
-| `5` | `SELLER_DEAUTHORIZATION` | A seller revokes your app's authorization | Disable sync, purge stored tokens |
+Full topic catalog (from the official webhook topic quick reference):
 
-## Additional Subscribable Events
+| `event_type` | Triggered When |
+|--------------|----------------|
+| `ORDER_STATUS_CHANGE` | An order is created or its status changes |
+| `RECIPIENT_ADDRESS_UPDATE` | The recipient address of an order is updated |
+| `PACKAGE_UPDATE` | A package is combined, split, or changed (e.g. address updates) |
+| `PRODUCT_STATUS_CHANGE` | Product audit results are updated |
+| `SELLER_DEAUTHORIZATION` | A seller revokes or loses authorization for the app |
+| `UPCOMING_AUTHORIZATION_EXPIRATION` | Sent 30 days before authorization expiry, then daily at 00:00 |
+| `CANCELLATION_STATUS_CHANGE` | An order cancellation status changes |
+| `RETURN_STATUS_CHANGE` | An order return status changes |
+| `REVERSE_STATUS_UPDATE` | A buyer raises a cancellation/refund/return needing seller action |
+| `NEW_CONVERSATION` | A customer-service agent joins or leaves a conversation |
+| `NEW_MESSAGE` | A new message is sent in a customer-service conversation |
+| `NEW_MESSAGE_LISTENER` | A creator sends a message to the seller |
+| `PRODUCT_INFORMATION_CHANGE` | Product title, description, images, or attributes go live |
+| `PRODUCT_CREATION` | A new product is created |
+| `PRODUCT_CATEGORY_CHANGE` | A product category is changed |
+| `PRODUCT_AUDIT_STATUS_CHANGE` | The product audit status changes |
+| `INVOICE_STATUS_CHANGE` | Invoice upload status changes (Upload Invoice endpoint) |
 
-Beyond the core set above, TikTok Shop also offers (names as used in the Events
-API / subscription config):
-
-| Event name | Triggered When |
-|------------|----------------|
-| `RETURN_STATUS_CHANGE` | A return/refund request changes status |
-| `CANCELLATION_STATUS_CHANGE` | An order cancellation changes status |
-| `PRODUCT_INFORMATION_CHANGE` | Product title, description, images, or attributes change |
-| `INVOICE_STATUS_CHANGE` | Invoice upload/processing status changes |
-
-The example handlers in this skill dispatch on the five core events above and log
-anything else for reconciliation. Add cases as you subscribe to more events.
+The example handlers dispatch on the topics the developer has mapped from
+their own subscriptions and log anything else for reconciliation. Apps that
+need long-lived shop access should subscribe to both
+`UPCOMING_AUTHORIZATION_EXPIRATION` and `SELLER_DEAUTHORIZATION`.
 
 ## Event Payload Structure
 

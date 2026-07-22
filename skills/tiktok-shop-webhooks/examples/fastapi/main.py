@@ -15,15 +15,15 @@ app = FastAPI()
 APP_KEY = os.environ.get("TIKTOK_SHOP_APP_KEY", "")
 APP_SECRET = os.environ.get("TIKTOK_SHOP_APP_SECRET", "")
 
-# TikTok delivers a numeric `type`, which it does not formally version.
-# Resolve it to a stable event NAME and branch on that. Confirm the mapping
-# against your Partner Center event subscriptions.
-TYPE_TO_EVENT = {
-    1: "ORDER_STATUS_CHANGE",
-    2: "RECIPIENT_ADDRESS_UPDATE",
-    3: "PACKAGE_UPDATE",
-    4: "PRODUCT_STATUS_CHANGE",
-    5: "SELLER_DEAUTHORIZATION",
+# TikTok Shop does NOT publish a complete numeric `type` -> topic mapping
+# ("Do not branch only on the numeric type; use the subscribed event_type
+# context" -- official webhooks overview). Only `type: 1` appears in the
+# official sample payload, for ORDER_STATUS_CHANGE. Fill this map from YOUR
+# OWN Partner Center subscriptions -- or better, register a distinct callback
+# URL per event_type (the Update Shop Webhook API takes one address per
+# topic) so the route itself identifies the event.
+SUBSCRIBED_TYPE_TO_EVENT = {
+    1: "ORDER_STATUS_CHANGE",  # per the official sample payload
 }
 
 
@@ -62,7 +62,7 @@ async def tiktok_shop_webhook(request: Request):
         return Response(status_code=400, content="Invalid JSON")
 
     # Delivery is at-least-once: dedupe on tts_notification_id before processing.
-    event_name = TYPE_TO_EVENT.get(payload.get("type"), f"UNKNOWN_TYPE_{payload.get('type')}")
+    event_name = SUBSCRIBED_TYPE_TO_EVENT.get(payload.get("type"), f"UNKNOWN_TYPE_{payload.get('type')}")
     data = payload.get("data") or {}
 
     if event_name == "ORDER_STATUS_CHANGE":
