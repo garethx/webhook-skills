@@ -1100,6 +1100,27 @@
       ]
     },
     {
+      "name": "typeform-webhooks",
+      "description": "Receive and verify Typeform webhooks. Use when setting up Typeform webhook handlers, debugging Typeform-Signature verification, or handling form events like form_response and form_response_partial submissions.",
+      "source": "./skills/typeform-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/typeform-webhooks",
+      "keywords": [
+        "webhooks",
+        "typeform"
+      ]
+    },
+    {
       "name": "vercel-webhooks",
       "description": "Verify Vercel webhook signatures (HMAC-SHA1, x-vercel-signature), handle deployment and project events.",
       "source": "./skills/vercel-webhooks",
