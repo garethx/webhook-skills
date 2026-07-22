@@ -30,6 +30,7 @@ Skills for receiving and verifying webhooks from specific providers. Each includ
 | Provider | Skill | What It Does |
 |----------|-------|--------------|
 | [Adyen](https://docs.adyen.com/development-resources/webhooks/) | [`adyen-webhooks`](skills/adyen-webhooks/) | Verify Adyen webhook HMAC signatures (`additionalData.hmacSignature`), handle AUTHORISATION, CAPTURE, and REFUND notifications |
+| [Attentive](https://docs.attentive.com/docs/create-and-manage-webhooks) | [`attentive-webhooks`](skills/attentive-webhooks/) | Verify Attentive webhook signatures (`x-attentive-hmac-sha256`, HMAC-SHA256 hex), handle SMS and email subscriber events |
 | [Auth0](https://auth0.com/docs/customize/log-streams/custom-log-streams) | [`auth0-webhooks`](skills/auth0-webhooks/) | Authenticate Auth0 Custom Log Stream deliveries (Authorization token), handle batched login and signup log events |
 | [Bitbucket](https://support.atlassian.com/bitbucket-cloud/docs/manage-webhooks/) | [`bitbucket-webhooks`](skills/bitbucket-webhooks/) | Verify Bitbucket webhook signatures (`X-Hub-Signature`, HMAC-SHA256), handle repo push and pull request events |
 | [Calendly](https://developer.calendly.com/api-docs/ZG9jOjQ2NDA2NA-webhook-signatures) | [`calendly-webhooks`](skills/calendly-webhooks/) | Verify Calendly webhook signatures (`Calendly-Webhook-Signature`, HMAC-SHA256 with timestamp), handle invitee.created and invitee.canceled events |
