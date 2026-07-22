@@ -98,8 +98,10 @@ function parseLogs(rawBody) {
   `x-vercel-verify` header instead.
 - **Timing-safe compare.** Use `crypto.timingSafeEqual` / `hmac.compare_digest`.
   Guard `timingSafeEqual` against length mismatches (it throws) by catching.
-- **gzip.** If you enabled compression on the drain, decompress to the raw bytes
-  and verify against those bytes.
+- **gzip.** Vercel doesn't document whether the signature covers the compressed
+  or decompressed bytes when compression is enabled. If you turn it on, test a
+  real delivery against both (start with the decompressed bytes) — or leave
+  compression off to avoid the ambiguity.
 
 ## Debugging Verification Failures
 
