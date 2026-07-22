@@ -66,7 +66,7 @@ If the handshake fails, Asana returns an error and does **not** create the webho
 
 ## Filters (required for high-level resources)
 
-For most resources filters are optional. For **workspace**, **team membership**,
+For most resources filters are optional. For **workspace**, **team**,
 **portfolio**, and **goal** resources, filters are **required**. Pass them in the
 create request:
 
