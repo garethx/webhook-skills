@@ -194,6 +194,27 @@
       ]
     },
     {
+      "name": "commercelayer-webhooks",
+      "description": "Receive and verify Commerce Layer webhooks. Use when setting up Commerce Layer webhook handlers, debugging X-CommerceLayer-Signature verification, or handling commerce events like orders.place, orders.approve, orders.pay, or shipments.ship.",
+      "source": "./skills/commercelayer-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/commercelayer-webhooks",
+      "keywords": [
+        "webhooks",
+        "commercelayer"
+      ]
+    },
+    {
       "name": "cursor-webhooks",
       "description": "Verify Cursor Cloud Agent webhook signatures (HMAC-SHA256), handle agent status events.",
       "source": "./skills/cursor-webhooks",
