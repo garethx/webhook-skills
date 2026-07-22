@@ -77,7 +77,7 @@ The event name lives at `action.type` in the payload — there is **no event hea
 ## Delivery, Retries, and Auto-Disable
 
 - Trello retries a failed delivery **3 times** with backoff (**30s, 60s, 120s**).
-- A single successful (`200`) response resets the failure counter.
+- A successful (`200`) response appears to reset the failure counter (inferred from the `consecutiveFailures` field; not explicitly documented).
 - A webhook is **auto-disabled** after roughly **30 consecutive days** of failures
   (more than ~1000 consecutive failures).
 - Respond `200` quickly and do heavy work asynchronously.
