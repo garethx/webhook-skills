@@ -982,6 +982,27 @@
       ]
     },
     {
+      "name": "shipstation-webhooks",
+      "description": "Receive and verify ShipStation webhooks. Use when setting up ShipStation webhook handlers, securing endpoints that have no signature (secret token in the URL), fetching the thin resource_url payload with Basic auth, or handling ORDER_NOTIFY, ITEM_ORDER_NOTIFY, SHIP_NOTIFY, ITEM_SHIP_NOTIFY, FULFILLMENT_SHIPPED, and FULFILLMENT_REJECTED events.",
+      "source": "./skills/shipstation-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/shipstation-webhooks",
+      "keywords": [
+        "webhooks",
+        "shipstation"
+      ]
+    },
+    {
       "name": "shopify-webhooks",
       "description": "Verify Shopify HMAC signatures (SHA256, base64), handle order, product, and customer events.",
       "source": "./skills/shopify-webhooks",
