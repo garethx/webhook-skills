@@ -263,6 +263,27 @@
       ]
     },
     {
+      "name": "ebay-webhooks",
+      "description": "Receive and verify eBay Notification API webhooks (Platform Notifications / Event Notifications). Use when setting up an eBay webhook endpoint, passing the endpoint challenge validation, debugging the x-ebay-signature ECDSA verification, fetching the public key with getPublicKey, or handling events like MARKETPLACE_ACCOUNT_DELETION.",
+      "source": "./skills/ebay-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/ebay-webhooks",
+      "keywords": [
+        "webhooks",
+        "ebay"
+      ]
+    },
+    {
       "name": "elevenlabs-webhooks",
       "description": "Verify ElevenLabs webhook signatures (Standard Webhooks/Svix), handle call transcription events.",
       "source": "./skills/elevenlabs-webhooks",
