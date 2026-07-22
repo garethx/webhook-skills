@@ -85,7 +85,10 @@ Example answer:
 - `410 Gone` / `404 Not Found` → the webhook is disabled immediately.
 - `429`, `408`, `503`, `423` → retried every 2–3 minutes for up to 10 hours.
 - Other failures → retried ~5 times with growing intervals (5 min, 10 min, 20 min, 1h, 2h, 3h, 4h).
-- A webhook is auto-disabled at a 100% failure rate over 24 hours.
+- Delivery requests time out after **30 seconds**.
+- A webhook is auto-disabled at a 100% failure rate either over 24 hours with
+  more than 300 delivery attempts, or within 5 minutes with 100 delivery
+  attempts.
 
 Return a `2xx` quickly (acknowledge, then process asynchronously) to avoid retries.
 

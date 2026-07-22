@@ -44,7 +44,7 @@ curl -X PUT "https://api.typeform.com/forms/{form_id}/webhooks/{tag}" \
 
 To manage webhooks programmatically from Node, the official
 [`@typeform/api-client`](https://www.npmjs.com/package/@typeform/api-client)
-(v2.10.4) exposes `client.webhooks.create/get/update/delete`. Note: this SDK is for
+exposes `client.webhooks.create/get/update/delete`. Note: this SDK is for
 **managing** webhooks — it does **not** verify signatures. Verify manually (see
 [verification.md](verification.md)).
 
