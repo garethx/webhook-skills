@@ -1194,6 +1194,27 @@
       ]
     },
     {
+      "name": "zendesk-webhooks",
+      "description": "Receive and verify Zendesk webhooks. Use when setting up Zendesk webhook handlers, debugging signature verification (X-Zendesk-Webhook-Signature), or handling event subscriptions like zen:event-type:ticket.created, zen:event-type:ticket.comment_added, or trigger/automation webhooks.",
+      "source": "./skills/zendesk-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/zendesk-webhooks",
+      "keywords": [
+        "webhooks",
+        "zendesk"
+      ]
+    },
+    {
       "name": "zoom-webhooks",
       "description": "Verify Zoom webhook signatures (x-zm-signature), complete the endpoint.url_validation handshake, and handle meeting and recording events.",
       "source": "./skills/zoom-webhooks",
