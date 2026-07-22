@@ -657,6 +657,27 @@
       ]
     },
     {
+      "name": "nylas-webhooks",
+      "description": "Receive and verify Nylas webhooks. Use when setting up Nylas webhook handlers, debugging x-nylas-signature verification, completing the challenge handshake, or handling email and calendar events like message.created, message.opened, event.created, event.updated, or grant.expired.",
+      "source": "./skills/nylas-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/nylas-webhooks",
+      "keywords": [
+        "webhooks",
+        "nylas"
+      ]
+    },
+    {
       "name": "okta-webhooks",
       "description": "Complete the Okta Event Hook verification challenge, authenticate deliveries, and handle user lifecycle and session events.",
       "source": "./skills/okta-webhooks",
