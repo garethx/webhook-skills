@@ -24,8 +24,9 @@ webhook system this skill implements.
 ### 2. Register Your Endpoint & Events
 
 1. Add your endpoint URL to the app's webhook configuration.
-2. Subscribe to the events you care about (e.g. `inbound`, `outbound`, `move`, `assign`,
-   `tag`, `comment`, `message_bounce_error`).
+2. Subscribe to the events you care about (e.g. `inbound_received`, `outbound_sent`,
+   `conversation_moved`, `assignee_changed`, `tag_added`, `new_comment_added`,
+   `message_delivery_failed`).
 
 ### 3. The Subscription Validation Challenge
 

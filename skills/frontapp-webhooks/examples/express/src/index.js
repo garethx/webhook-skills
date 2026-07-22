@@ -63,43 +63,43 @@ app.post(
     const eventType = event.type;
 
     switch (eventType) {
-      case 'inbound':
+      case 'inbound_received':
         console.log('Inbound message received:', event.payload?.id);
         // TODO: triage, sync to CRM, alert, etc.
         break;
 
-      case 'outbound':
+      case 'outbound_sent':
         console.log('Outbound message sent:', event.payload?.id);
         // TODO: log reply, track SLA, etc.
         break;
 
-      case 'move':
+      case 'conversation_moved':
         console.log('Conversation moved:', event.payload?.conversation?.id);
         // TODO: routing analytics, notifications, etc.
         break;
 
-      case 'assign':
-        console.log('Conversation assigned:', event.payload?.conversation?.id);
+      case 'assignee_changed':
+        console.log('Assignee changed:', event.payload?.conversation?.id);
         // TODO: workload tracking, escalation, etc.
         break;
 
-      case 'archive':
+      case 'conversation_archived':
         console.log('Conversation archived:', event.payload?.conversation?.id);
         // TODO: close-out workflow, metrics, etc.
         break;
 
-      case 'tag':
-        console.log('Conversation tagged:', event.payload?.conversation?.id);
+      case 'tag_added':
+        console.log('Tag added:', event.payload?.conversation?.id);
         // TODO: categorization, automation, etc.
         break;
 
-      case 'comment':
+      case 'new_comment_added':
         console.log('Comment added:', event.payload?.conversation?.id);
         // TODO: internal collaboration hooks, etc.
         break;
 
-      case 'message_bounce_error':
-        console.log('Message bounced:', event.payload?.id);
+      case 'message_delivery_failed':
+        console.log('Message delivery failed:', event.payload?.id);
         // TODO: bounce handling, list hygiene, etc.
         break;
 

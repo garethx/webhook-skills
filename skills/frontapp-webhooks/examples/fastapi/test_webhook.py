@@ -52,7 +52,7 @@ class TestFrontWebhook:
 
     def test_invalid_signature_returns_400(self):
         """Should return 400 when the signature is invalid."""
-        payload = json.dumps({"type": "inbound", "payload": {"id": "evt_test"}})
+        payload = json.dumps({"type": "inbound_received", "payload": {"id": "evt_test"}})
         response = client.post(
             "/webhooks/frontapp",
             content=payload,
@@ -67,9 +67,9 @@ class TestFrontWebhook:
     def test_tampered_payload_returns_400(self):
         """Should return 400 when the payload was tampered with after signing."""
         timestamp = str(int(time.time()))
-        original = json.dumps({"type": "inbound", "payload": {"id": "evt_original"}})
+        original = json.dumps({"type": "inbound_received", "payload": {"id": "evt_original"}})
         signature = generate_front_signature(original, WEBHOOK_SECRET, timestamp)
-        tampered = json.dumps({"type": "inbound", "payload": {"id": "evt_tampered"}})
+        tampered = json.dumps({"type": "inbound_received", "payload": {"id": "evt_tampered"}})
 
         response = client.post(
             "/webhooks/frontapp",
@@ -87,7 +87,7 @@ class TestFrontWebhook:
         timestamp = str(int(time.time()))
         payload = json.dumps(
             {
-                "type": "inbound",
+                "type": "inbound_received",
                 "payload": {"id": "evt_valid", "conversation": {"id": "cnv_valid"}},
             }
         )
@@ -108,14 +108,14 @@ class TestFrontWebhook:
     def test_handles_different_event_types(self):
         """Should handle various Front event types."""
         event_types = [
-            "inbound",
-            "outbound",
-            "move",
-            "assign",
-            "archive",
-            "tag",
-            "comment",
-            "message_bounce_error",
+            "inbound_received",
+            "outbound_sent",
+            "conversation_moved",
+            "assignee_changed",
+            "conversation_archived",
+            "tag_added",
+            "new_comment_added",
+            "message_delivery_failed",
             "unknown_event",
         ]
 

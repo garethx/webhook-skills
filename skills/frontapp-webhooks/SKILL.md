@@ -4,7 +4,8 @@ description: >
   Receive and verify Front (Frontapp) application webhooks. Use when setting up
   Front webhook handlers, debugging X-Front-Signature verification, handling the
   X-Front-Challenge subscription validation, or processing Front events like
-  inbound, outbound, move, assign, tag, and comment.
+  inbound_received, outbound_sent, conversation_moved, assignee_changed, tag_added,
+  and new_comment_added.
 license: MIT
 metadata:
   author: hookdeck
@@ -19,7 +20,7 @@ metadata:
 - Setting up Front (Frontapp) application webhook handlers
 - Debugging Front `X-Front-Signature` verification failures
 - Responding to the Front `X-Front-Challenge` subscription validation request
-- Understanding Front event types (`inbound`, `outbound`, `move`, `assign`, `tag`, `comment`) and payloads
+- Understanding Front event types (`inbound_received`, `outbound_sent`, `conversation_moved`, `assignee_changed`, `tag_added`, `new_comment_added`) and payloads
 
 ## Verification (core)
 
@@ -59,14 +60,22 @@ Front webhook payloads carry the event name in the top-level `type` field.
 
 | Event `type` | Triggered When |
 |--------------|----------------|
-| `inbound` | Inbound message received |
-| `outbound` | Outbound message sent |
-| `move` | Conversation moved to another inbox |
-| `assign` | Conversation assigned to a teammate |
-| `archive` | Conversation archived |
-| `tag` | Tag added to a conversation |
-| `comment` | Teammate comments on a conversation |
-| `message_bounce_error` | Outbound message bounced / delivery failed |
+| `inbound_received` | Inbound message received |
+| `outbound_sent` | Outbound message sent |
+| `conversation_moved` | Conversation moved to another inbox |
+| `message_delivery_failed` | Outbound message bounced / delivery failed |
+| `conversation_archived` | Conversation archived |
+| `conversation_reopened` | Conversation reopened |
+| `conversation_deleted` | Conversation deleted |
+| `conversation_restored` | Conversation restored |
+| `conversation_snoozed` | Conversation snoozed |
+| `conversation_snooze_expired` | Snooze expired |
+| `new_comment_added` | Comment added to a conversation |
+| `assignee_changed` | Assignee changed |
+| `tag_added` | Tag added to a conversation |
+| `tag_removed` | Tag removed from a conversation |
+| `link_added` | Link added to a conversation |
+| `link_removed` | Link removed from a conversation |
 
 > **For the full event reference**, see [Front Events](https://dev.frontapp.com/reference/events).
 

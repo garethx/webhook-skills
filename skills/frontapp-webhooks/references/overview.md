@@ -24,18 +24,22 @@ The event name is delivered in the top-level `type` field of the payload.
 
 | Event `type` | Triggered When | Common Use Cases |
 |--------------|----------------|------------------|
-| `inbound` | Inbound message received | Auto-triage, CRM sync, alerting |
-| `outbound` | Outbound message sent | Logging replies, SLA tracking |
-| `move` | Conversation moved to another inbox | Routing analytics, notifications |
-| `assign` | Conversation assigned to a teammate | Workload tracking, escalation |
-| `unassign` | Conversation unassigned | Workload tracking |
-| `archive` | Conversation archived | Close-out workflows, metrics |
-| `reopen` | Conversation reopened | Reopen alerts |
-| `tag` | Tag added to a conversation | Categorization, automation |
-| `untag` | Tag removed from a conversation | Categorization |
-| `comment` | Teammate comments on a conversation | Internal collaboration hooks |
-| `mention` | Teammate mentioned in a comment | Notifications |
-| `message_bounce_error` | Outbound message bounced / delivery failed | Bounce handling, list hygiene |
+| `inbound_received` | Inbound message received | Auto-triage, CRM sync, alerting |
+| `outbound_sent` | Outbound message sent | Logging replies, SLA tracking |
+| `conversation_moved` | Conversation moved to another inbox | Routing analytics, notifications |
+| `message_delivery_failed` | Outbound message bounced / delivery failed | Bounce handling, list hygiene |
+| `conversation_archived` | Conversation archived | Close-out workflows, metrics |
+| `conversation_reopened` | Conversation reopened | Reopen alerts |
+| `conversation_deleted` | Conversation deleted | Audit, cleanup |
+| `conversation_restored` | Conversation restored | Audit, recovery |
+| `conversation_snoozed` | Conversation snoozed | Follow-up scheduling |
+| `conversation_snooze_expired` | Snooze expired | Follow-up reminders |
+| `new_comment_added` | Comment added to a conversation | Internal collaboration hooks |
+| `assignee_changed` | Assignee changed | Workload tracking, escalation |
+| `tag_added` | Tag added to a conversation | Categorization, automation |
+| `tag_removed` | Tag removed from a conversation | Categorization |
+| `link_added` | Link added to a conversation | Cross-linking, integrations |
+| `link_removed` | Link removed from a conversation | Cross-linking, integrations |
 
 Front webhooks **exclude** "mass action" events such as moving all inbox content to
 another team, mass status updates, or importing historical messages.
@@ -46,10 +50,11 @@ Application webhook payloads share a common envelope:
 
 ```json
 {
-  "type": "inbound",
+  "type": "inbound_received",
+  "authorization": { "id": "cmp_abc" },
   "payload": {
     "id": "evt_55c8c149",
-    "type": "inbound",
+    "type": "inbound_received",
     "emitted_at": 1615496636.24,
     "_links": { "self": "https://api2.frontapp.com/events/evt_55c8c149" },
     "conversation": {
@@ -66,7 +71,7 @@ Application webhook payloads share a common envelope:
 
 Key fields:
 
-- **`type`** — the event name your handler switches on (`inbound`, `move`, `assign`, …).
+- **`type`** — the event name your handler switches on (`inbound_received`, `conversation_moved`, `assignee_changed`, …).
 - **`payload.id`** — unique event id; use it for idempotency / deduplication.
 - **`payload.emitted_at`** — when the event fired (epoch seconds).
 - **`payload.conversation`** — the conversation the event relates to.

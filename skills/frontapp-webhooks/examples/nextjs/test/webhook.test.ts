@@ -50,7 +50,7 @@ describe('Front Webhook Route', () => {
 
   it('should return 400 for invalid signature', async () => {
     const { POST } = await import('../app/webhooks/frontapp/route');
-    const payload = JSON.stringify({ type: 'inbound', payload: { id: 'evt_test' } });
+    const payload = JSON.stringify({ type: 'inbound_received', payload: { id: 'evt_test' } });
     const req = makeRequest(payload, {
       'Content-Type': 'application/json',
       'X-Front-Request-Timestamp': '1615496636',
@@ -64,9 +64,9 @@ describe('Front Webhook Route', () => {
   it('should return 400 for tampered payload', async () => {
     const { POST } = await import('../app/webhooks/frontapp/route');
     const timestamp = String(Math.floor(Date.now() / 1000));
-    const originalPayload = JSON.stringify({ type: 'inbound', payload: { id: 'evt_original' } });
+    const originalPayload = JSON.stringify({ type: 'inbound_received', payload: { id: 'evt_original' } });
     const signature = generateFrontSignature(originalPayload, webhookSecret, timestamp);
-    const tamperedPayload = JSON.stringify({ type: 'inbound', payload: { id: 'evt_tampered' } });
+    const tamperedPayload = JSON.stringify({ type: 'inbound_received', payload: { id: 'evt_tampered' } });
 
     const req = makeRequest(tamperedPayload, {
       'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ describe('Front Webhook Route', () => {
     const { POST } = await import('../app/webhooks/frontapp/route');
     const timestamp = String(Math.floor(Date.now() / 1000));
     const payload = JSON.stringify({
-      type: 'inbound',
+      type: 'inbound_received',
       payload: { id: 'evt_valid', conversation: { id: 'cnv_valid' } },
     });
     const signature = generateFrontSignature(payload, webhookSecret, timestamp);
@@ -101,14 +101,14 @@ describe('Front Webhook Route', () => {
   it('should handle different event types', async () => {
     const { POST } = await import('../app/webhooks/frontapp/route');
     const eventTypes = [
-      'inbound',
-      'outbound',
-      'move',
-      'assign',
-      'archive',
-      'tag',
-      'comment',
-      'message_bounce_error',
+      'inbound_received',
+      'outbound_sent',
+      'conversation_moved',
+      'assignee_changed',
+      'conversation_archived',
+      'tag_added',
+      'new_comment_added',
+      'message_delivery_failed',
       'unknown_event',
     ];
 
