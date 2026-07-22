@@ -114,7 +114,8 @@ npx hookdeck-cli listen 3000 commercelayer --path /webhooks/commercelayer
 - Failed deliveries are retried **up to 10 times**.
 - After **5** unsuccessful attempts, the organization owner/admins are notified.
 - After **30 consecutive failures** the webhook's circuit breaker trips
-  (`circuit_state` → `closed`, `circuit_failure_count`) and it must be **reset manually**.
+  (`circuit_state` → `open`, tracked via `circuit_failure_count`) and it must be
+  **reset manually**. (`closed` is the healthy default state.)
 
 Verify fast, then do slow work asynchronously so you always answer within 5 seconds.
 
