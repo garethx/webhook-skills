@@ -56,6 +56,27 @@
       ]
     },
     {
+      "name": "bigcommerce-webhooks",
+      "description": "Receive and verify BigCommerce webhooks. Use when setting up BigCommerce webhook handlers, debugging Standard Webhooks signature verification, or handling store events like store/order/created, store/order/statusUpdated, store/product/updated, or store/cart/abandoned.",
+      "source": "./skills/bigcommerce-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/bigcommerce-webhooks",
+      "keywords": [
+        "webhooks",
+        "bigcommerce"
+      ]
+    },
+    {
       "name": "bitbucket-webhooks",
       "description": "Verify Bitbucket webhook signatures (X-Hub-Signature, HMAC-SHA256), handle repo push and pull request events.",
       "source": "./skills/bitbucket-webhooks",
