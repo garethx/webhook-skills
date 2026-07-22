@@ -23,7 +23,7 @@ the `Revolut-Api-Version` header (a date, e.g. `2024-09-01`).
 ## Create a Webhook
 
 ```bash
-curl -X POST https://sandbox-merchant.revolut.com/api/1.0/webhooks \
+curl -X POST https://sandbox-merchant.revolut.com/api/webhooks \
   -H "Authorization: Bearer $REVOLUT_SECRET_KEY" \
   -H "Revolut-Api-Version: 2024-09-01" \
   -H "Content-Type: application/json" \
@@ -58,9 +58,9 @@ with `wsk_`:
 ## Get / Rotate the Signing Secret
 
 - **Retrieve** an existing webhook (including its signing secret):
-  `GET /api/1.0/webhooks/{webhook_id}`
+  `GET /api/webhooks/{webhook_id}`
 - **Rotate** the signing secret:
-  `POST /api/1.0/webhooks/{webhook_id}/rotate-signing-secret`
+  `POST /api/webhooks/{webhook_id}/rotate-signing-secret`
 
 During rotation, Revolut may sign a delivery with both the old and new secrets,
 so the `Revolut-Signature` header can contain **multiple comma-separated
@@ -70,9 +70,9 @@ example handlers in this skill do this.
 ## Limits and Notes
 
 - Up to **10 webhook URLs** per merchant account.
-- The legacy `POST /api/1.0/webhooks` shape without the Merchant API version
-  header is **deprecated** — use the current Merchant API webhooks endpoints with
-  the `Revolut-Api-Version` header.
+- The current endpoints live at `/api/webhooks` (verified against the live
+  Merchant API reference) and require the `Revolut-Api-Version` header. The
+  legacy `POST /api/1.0/webhooks` path is deprecated.
 - The Revolut **Business API** has a separate webhook system that uses the same
   `v1` signature scheme.
 
