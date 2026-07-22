@@ -21,8 +21,8 @@ Before Nylas activates a webhook — whether you create it in the **Dashboard** 
    - **No chunked transfer encoding.**
 3. If the echo is correct, Nylas activates the webhook and returns the **`webhook_secret`**.
 
-If verification fails, Nylas does **not** retry the handshake — fix the endpoint and
-recreate/re-verify the webhook.
+If verification fails, fix the endpoint and recreate/re-verify the webhook
+(don't count on Nylas retrying the handshake).
 
 ```javascript
 // Minimal challenge handler (Express)
@@ -65,7 +65,7 @@ challenge handshake when you make this call, or creation fails.
 - The **`webhook_secret` is returned only on creation** and when you **rotate** it — it is
   unique per destination and is **not** shown again in listings.
 - Rotate with the SDK (`nylas.webhooks.rotateSecret(webhookId)`) or
-  `PUT /v3/webhooks/{id}/rotate-secret`. Update `NYLAS_WEBHOOK_SECRET` immediately after.
+  `PUT /v3/webhooks/rotate-secret/{id}`. Update `NYLAS_WEBHOOK_SECRET` immediately after.
 
 ## IP Allowlisting (optional)
 
