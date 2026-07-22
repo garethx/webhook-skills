@@ -1100,6 +1100,29 @@
       ]
     },
     {
+      "name": "vercel-log-drains-webhooks",
+      "description": "Receive and verify Vercel Log Drains deliveries. Use when setting up a Vercel log drain HTTP endpoint, debugging x-vercel-signature verification, handling the x-vercel-verify endpoint handshake, or processing batched log entries from sources like lambda, edge, build, static, external, firewall, and redirect.",
+      "source": "./skills/vercel-log-drains-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/vercel-log-drains-webhooks",
+      "keywords": [
+        "webhooks",
+        "vercel",
+        "log",
+        "drains"
+      ]
+    },
+    {
       "name": "vercel-webhooks",
       "description": "Verify Vercel webhook signatures (HMAC-SHA1, x-vercel-signature), handle deployment and project events.",
       "source": "./skills/vercel-webhooks",
