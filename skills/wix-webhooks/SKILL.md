@@ -83,8 +83,7 @@ Event type strings follow `wix.<product>.<version>.<entity>_<action>`. Configure
 | `wix.ecom.v1.order_approved` | An order is approved (e.g. payment authorized) |
 | `wix.ecom.v1.order_updated` | An order is updated |
 | `wix.ecom.v1.order_canceled` | An order is canceled |
-| `AppInstalled` | Your app is installed on a site |
-| `AppRemoved` | Your app is removed from a site |
+| App instance events | Lifecycle events such as your app being installed or removed from a site (App Instance Installed / Removed) — confirm the exact event identifier in the Wix app dashboard's Webhooks catalog, as the wire encoding differs from the eCommerce FQDN form above. |
 
 See [references/overview.md](references/overview.md) for more events and payload structure. For the full list, browse events alongside their API methods in the [Wix API Reference](https://dev.wix.com/docs/api-reference).
 
