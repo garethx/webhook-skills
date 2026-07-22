@@ -2,9 +2,18 @@
 
 ## How It Works
 
-BigCommerce signs webhook callbacks using the
-[Standard Webhooks](https://www.standardwebhooks.com/) specification. Every
-delivery includes three headers:
+BigCommerce documents webhook signature verification per the
+[Standard Webhooks](https://www.standardwebhooks.com/) specification and
+advises using Standard Webhooks libraries to verify.
+
+> **What the docs leave open:** BigCommerce's documentation does not currently
+> name the delivery headers explicitly, state whether signature verification is
+> GA or beta, or clarify whether signatures are sent for all hooks or only
+> hooks created by apps. The header names below are what the Standard Webhooks
+> spec defines — log the headers on a real delivery to confirm before relying
+> on them, and keep [custom headers](setup.md) as a fallback.
+
+Per the Standard Webhooks spec, a signed delivery carries three headers:
 
 | Header | Description |
 |--------|-------------|

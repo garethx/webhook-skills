@@ -20,6 +20,11 @@ Webhooks spec). Find it in the Developer Portal under your app's **API
 credentials** (alongside the client id). Keep it secret and load it from an
 environment variable — never commit it.
 
+> **Note:** BigCommerce's docs don't clarify whether signatures are sent for
+> hooks created with plain store API accounts or only for app-created hooks.
+> If your deliveries arrive unsigned, use the custom-headers option below as
+> the verification mechanism.
+
 ## Create a Webhook (REST API v3)
 
 ```bash
@@ -77,7 +82,6 @@ curl -X DELETE https://api.bigcommerce.com/stores/{store_hash}/v3/hooks/{hook_id
 ## Activation and Testing
 
 - New hooks can take **up to a minute** to activate before deliveries begin.
-- Hooks auto-deactivate after ~90 days without any delivery attempts.
 - For local testing, tunnel your server with the Hookdeck CLI (no account
   required) and point a hook's `destination` at the tunnel URL:
 

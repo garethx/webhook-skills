@@ -67,7 +67,7 @@ Dispatch on the `scope` field.
 - Failed deliveries **retry over ~48 hours** (starting ~60s apart, backing off up
   to daily). After that the hook is deactivated and the app owner emailed.
 - If a domain's success ratio drops below **90% in a 2-minute sliding window**
-  (after at least 100 deliveries), it is **blocklisted for 3 minutes** per client id.
+  it is **blocklisted for 3 minutes**.
 - Hooks require an **HTTPS endpoint on port 443** — no custom ports, no
   self-signed certificates.
 

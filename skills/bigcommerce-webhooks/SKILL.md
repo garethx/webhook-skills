@@ -47,10 +47,16 @@ ratio drops below 90% in a 2-minute window it is blocklisted for 3 minutes.
 
 ## Verification (core)
 
-BigCommerce signs callbacks with the **Standard Webhooks** spec. The three
-headers are `webhook-id`, `webhook-timestamp`, and `webhook-signature`
-(`v1,<base64>`). The signature is HMAC-SHA256 over
-`{webhook-id}.{webhook-timestamp}.{rawBody}`.
+BigCommerce documents callback signing per the **Standard Webhooks** spec and
+recommends verifying with Standard Webhooks libraries. The spec's headers are
+`webhook-id`, `webhook-timestamp`, and `webhook-signature` (`v1,<base64>`),
+with the signature computed as HMAC-SHA256 over
+`{webhook-id}.{webhook-timestamp}.{rawBody}` — note BigCommerce's own docs
+don't currently name the headers explicitly, state whether the feature is GA,
+or clarify whether signatures apply to all hooks or only app-created hooks.
+Log incoming headers on your first delivery to confirm. If signatures aren't
+present on your hooks, fall back to **custom headers** set at hook creation
+(see `references/setup.md`).
 
 The signing key is your app's **client secret, base64-encoded** — the
 `standardwebhooks` library base64-decodes whatever you pass, so encoding the
