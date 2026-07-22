@@ -80,6 +80,7 @@ Skills for receiving and verifying webhooks from specific providers. Each includ
 | [Webflow](https://developers.webflow.com/data/docs/working-with-webhooks) | [`webflow-webhooks`](skills/webflow-webhooks/) | Verify Webflow webhook signatures (HMAC-SHA256), handle form submission, ecommerce, and CMS events |
 | [WooCommerce](https://developer.woocommerce.com/docs/webhooks/) | [`woocommerce-webhooks`](skills/woocommerce-webhooks/) | Verify WooCommerce webhook signatures, handle order, product, and customer events |
 | [WorkOS](https://workos.com/docs/events/data-syncing/webhooks) | [`workos-webhooks`](skills/workos-webhooks/) | Verify WorkOS webhook signatures (`WorkOS-Signature`, HMAC-SHA256 with timestamp), handle Directory Sync and auth events |
+| [Xero](https://developer.xero.com/documentation/guides/webhooks/overview/) | [`xero-webhooks`](skills/xero-webhooks/) | Verify Xero webhook signatures (`x-xero-signature`, HMAC-SHA256 base64), pass Intent to Receive (ITR) with 200/401, handle CONTACT, INVOICE, CREDITNOTE, and SUBSCRIPTION events |
 | [Zoom](https://developers.zoom.us/docs/api/webhooks/) | [`zoom-webhooks`](skills/zoom-webhooks/) | Verify Zoom webhook signatures (`x-zm-signature`), complete the URL validation handshake, handle meeting and recording events |
 
 ### Webhook Handler Pattern Skills
