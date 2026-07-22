@@ -10,9 +10,9 @@
 Signature verification uses the **API Client Secret**, which is **different from the API access token**
 you use to authenticate API requests.
 
-1. In the Recharge merchant portal, go to **Tools and apps**.
-2. Click **API tokens**.
-3. Open your API token.
+1. In the Recharge Dashboard, go to **Integrations**.
+2. Click **API Tokens**.
+3. Click your API token to open the **Edit API Token** page.
 4. Copy the **API Client Secret**.
 
 Store it as an environment variable:

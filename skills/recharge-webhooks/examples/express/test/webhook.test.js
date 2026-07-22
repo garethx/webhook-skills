@@ -4,13 +4,31 @@ const crypto = require('crypto');
 // Set test environment variables before importing app
 process.env.RECHARGE_API_CLIENT_SECRET = 'test_client_secret';
 
-const { app, verifyRechargeWebhook } = require('../src/index');
+const {
+  app,
+  verifyRechargeWebhookTimestamped,
+  verifyRechargeWebhookLegacy,
+} = require('../src/index');
 
 /**
- * Generate a valid Recharge signature for testing.
- * Recharge uses a plain SHA-256 of (clientSecret + rawBody), hex-encoded - NOT HMAC.
+ * Generate a valid timestamp-bound signature header for testing.
+ * HMAC-SHA-256 over "<timestamp>.<payload>", keyed by the client secret,
+ * delivered as `t=<epoch>,v1=<hex>`.
  */
-function generateRechargeSignature(payload, secret) {
+function generateTimestampedSignature(payload, secret, timestamp) {
+  const digest = crypto
+    .createHmac('sha256', secret)
+    .update(`${timestamp}.`)
+    .update(payload)
+    .digest('hex');
+  return `t=${timestamp},v1=${digest}`;
+}
+
+/**
+ * Generate a valid legacy Recharge signature for testing.
+ * The legacy scheme is a plain SHA-256 of (clientSecret + rawBody), hex-encoded - NOT HMAC.
+ */
+function generateLegacySignature(payload, secret) {
   return crypto
     .createHash('sha256')
     .update(secret)
@@ -20,50 +38,118 @@ function generateRechargeSignature(payload, secret) {
 
 describe('Recharge Webhook Endpoint', () => {
   const clientSecret = process.env.RECHARGE_API_CLIENT_SECRET;
+  const now = () => Math.floor(Date.now() / 1000);
 
-  describe('verifyRechargeWebhook', () => {
+  describe('verifyRechargeWebhookTimestamped', () => {
     it('should return true for a valid signature', () => {
       const payload = Buffer.from('{"charge":{"id":123}}');
-      const signature = generateRechargeSignature(payload, clientSecret);
+      const header = generateTimestampedSignature(payload, clientSecret, now());
 
-      expect(verifyRechargeWebhook(payload, signature, clientSecret)).toBe(true);
+      expect(verifyRechargeWebhookTimestamped(payload, header, clientSecret)).toBe(true);
     });
 
     it('should return false for an invalid signature', () => {
       const payload = Buffer.from('{"charge":{"id":123}}');
+      const header = `t=${now()},v1=${'0'.repeat(64)}`;
 
-      expect(verifyRechargeWebhook(payload, 'invalid_signature', clientSecret)).toBe(false);
+      expect(verifyRechargeWebhookTimestamped(payload, header, clientSecret)).toBe(false);
     });
 
     it('should return false for a missing signature', () => {
       const payload = Buffer.from('{"charge":{"id":123}}');
 
-      expect(verifyRechargeWebhook(payload, undefined, clientSecret)).toBe(false);
+      expect(verifyRechargeWebhookTimestamped(payload, undefined, clientSecret)).toBe(false);
+    });
+
+    it('should return false for a malformed header', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+
+      expect(verifyRechargeWebhookTimestamped(payload, 'not-a-signature', clientSecret)).toBe(false);
+    });
+
+    it('should return false for an expired timestamp (older than 48 hours)', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+      const expired = now() - 172801; // just past the 48-hour window
+      const header = generateTimestampedSignature(payload, clientSecret, expired);
+
+      expect(verifyRechargeWebhookTimestamped(payload, header, clientSecret)).toBe(false);
+    });
+
+    it('should return true just inside the 48-hour window', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+      const recent = now() - 172000; // inside the window
+      const header = generateTimestampedSignature(payload, clientSecret, recent);
+
+      expect(verifyRechargeWebhookTimestamped(payload, header, clientSecret)).toBe(true);
     });
 
     it('should return false for a tampered body', () => {
       const original = Buffer.from('{"charge":{"id":123,"total_price":"10.00"}}');
-      const signature = generateRechargeSignature(original, clientSecret);
+      const header = generateTimestampedSignature(original, clientSecret, now());
       const tampered = Buffer.from('{"charge":{"id":123,"total_price":"999.00"}}');
 
-      expect(verifyRechargeWebhook(tampered, signature, clientSecret)).toBe(false);
+      expect(verifyRechargeWebhookTimestamped(tampered, header, clientSecret)).toBe(false);
+    });
+
+    it('should return false for a tampered timestamp', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+      const header = generateTimestampedSignature(payload, clientSecret, now());
+      const tampered = header.replace(/^t=\d+/, `t=${now() - 60}`);
+
+      expect(verifyRechargeWebhookTimestamped(payload, tampered, clientSecret)).toBe(false);
     });
 
     it('should return false for the wrong secret', () => {
       const payload = Buffer.from('{"charge":{"id":123}}');
-      const signature = generateRechargeSignature(payload, clientSecret);
+      const header = generateTimestampedSignature(payload, clientSecret, now());
 
-      expect(verifyRechargeWebhook(payload, signature, 'wrong_secret')).toBe(false);
+      expect(verifyRechargeWebhookTimestamped(payload, header, 'wrong_secret')).toBe(false);
+    });
+  });
+
+  describe('verifyRechargeWebhookLegacy', () => {
+    it('should return true for a valid signature', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+      const signature = generateLegacySignature(payload, clientSecret);
+
+      expect(verifyRechargeWebhookLegacy(payload, signature, clientSecret)).toBe(true);
     });
 
-    it('should NOT match an HMAC signature (Recharge is a plain hash)', () => {
+    it('should return false for an invalid signature', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+
+      expect(verifyRechargeWebhookLegacy(payload, 'invalid_signature', clientSecret)).toBe(false);
+    });
+
+    it('should return false for a missing signature', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+
+      expect(verifyRechargeWebhookLegacy(payload, undefined, clientSecret)).toBe(false);
+    });
+
+    it('should return false for a tampered body', () => {
+      const original = Buffer.from('{"charge":{"id":123,"total_price":"10.00"}}');
+      const signature = generateLegacySignature(original, clientSecret);
+      const tampered = Buffer.from('{"charge":{"id":123,"total_price":"999.00"}}');
+
+      expect(verifyRechargeWebhookLegacy(tampered, signature, clientSecret)).toBe(false);
+    });
+
+    it('should return false for the wrong secret', () => {
+      const payload = Buffer.from('{"charge":{"id":123}}');
+      const signature = generateLegacySignature(payload, clientSecret);
+
+      expect(verifyRechargeWebhookLegacy(payload, signature, 'wrong_secret')).toBe(false);
+    });
+
+    it('should NOT match an HMAC signature (legacy Recharge is a plain hash)', () => {
       const payload = Buffer.from('{"charge":{"id":123}}');
       const hmacSig = crypto
         .createHmac('sha256', clientSecret)
         .update(payload)
         .digest('hex');
 
-      expect(verifyRechargeWebhook(payload, hmacSig, clientSecret)).toBe(false);
+      expect(verifyRechargeWebhookLegacy(payload, hmacSig, clientSecret)).toBe(false);
     });
   });
 
@@ -72,64 +158,121 @@ describe('Recharge Webhook Endpoint', () => {
       const response = await request(app)
         .post('/webhooks/recharge')
         .set('Content-Type', 'application/json')
-        .set('X-Recharge-Topic', 'charge/paid')
         .send('{"charge":{"id":123}}');
 
       expect(response.status).toBe(400);
       expect(response.text).toBe('Invalid signature');
     });
 
-    it('should return 400 for an invalid signature', async () => {
-      const response = await request(app)
-        .post('/webhooks/recharge')
-        .set('Content-Type', 'application/json')
-        .set('X-Recharge-Hmac-Sha256', 'invalid_signature')
-        .set('X-Recharge-Topic', 'charge/paid')
-        .send('{"charge":{"id":123}}');
-
-      expect(response.status).toBe(400);
-    });
-
-    it('should return 200 for a valid signature', async () => {
+    it('should return 200 for a valid timestamp-bound signature', async () => {
       const payload = JSON.stringify({ charge: { id: 123, status: 'success' } });
-      const signature = generateRechargeSignature(payload, clientSecret);
+      const header = generateTimestampedSignature(payload, clientSecret, now());
 
       const response = await request(app)
         .post('/webhooks/recharge')
         .set('Content-Type', 'application/json')
-        .set('X-Recharge-Hmac-Sha256', signature)
-        .set('X-Recharge-Topic', 'charge/paid')
+        .set('X-Recharge-Webhook-Signature', header)
         .send(payload);
 
       expect(response.status).toBe(200);
       expect(response.text).toBe('OK');
     });
 
-    it('should handle different webhook topics', async () => {
-      const topics = [
-        'charge/created',
-        'charge/paid',
-        'charge/failed',
-        'subscription/created',
-        'subscription/cancelled',
-        'order/created',
-        'order/processed',
-        'customer/updated'
+    it('should return 400 for an invalid timestamp-bound signature', async () => {
+      const response = await request(app)
+        .post('/webhooks/recharge')
+        .set('Content-Type', 'application/json')
+        .set('X-Recharge-Webhook-Signature', `t=${now()},v1=${'0'.repeat(64)}`)
+        .send('{"charge":{"id":123}}');
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 400 for an expired timestamp', async () => {
+      const payload = '{"charge":{"id":123}}';
+      const header = generateTimestampedSignature(payload, clientSecret, now() - 172801);
+
+      const response = await request(app)
+        .post('/webhooks/recharge')
+        .set('Content-Type', 'application/json')
+        .set('X-Recharge-Webhook-Signature', header)
+        .send(payload);
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should NOT fall back to legacy when the new header is present but invalid', async () => {
+      const payload = '{"charge":{"id":123}}';
+      const legacySignature = generateLegacySignature(payload, clientSecret);
+
+      const response = await request(app)
+        .post('/webhooks/recharge')
+        .set('Content-Type', 'application/json')
+        .set('X-Recharge-Webhook-Signature', `t=${now()},v1=${'0'.repeat(64)}`)
+        .set('X-Recharge-Hmac-Sha256', legacySignature)
+        .send(payload);
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 200 for a valid legacy signature when the new header is absent', async () => {
+      const payload = JSON.stringify({ charge: { id: 123, status: 'success' } });
+      const signature = generateLegacySignature(payload, clientSecret);
+
+      const response = await request(app)
+        .post('/webhooks/recharge')
+        .set('Content-Type', 'application/json')
+        .set('X-Recharge-Hmac-Sha256', signature)
+        .send(payload);
+
+      expect(response.status).toBe(200);
+      expect(response.text).toBe('OK');
+    });
+
+    it('should return 400 for an invalid legacy signature', async () => {
+      const response = await request(app)
+        .post('/webhooks/recharge')
+        .set('Content-Type', 'application/json')
+        .set('X-Recharge-Hmac-Sha256', 'invalid_signature')
+        .send('{"charge":{"id":123}}');
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should dispatch on the top-level payload resource key', async () => {
+      const payloads = [
+        { charge: { id: 456 } },
+        { subscription: { id: 456 } },
+        { order: { id: 456 } },
+        { customer: { id: 456 } },
+        { address: { id: 456 } },
       ];
 
-      for (const topic of topics) {
-        const payload = JSON.stringify({ charge: { id: 456 } });
-        const signature = generateRechargeSignature(payload, clientSecret);
+      for (const body of payloads) {
+        const payload = JSON.stringify(body);
+        const header = generateTimestampedSignature(payload, clientSecret, now());
 
         const response = await request(app)
           .post('/webhooks/recharge')
           .set('Content-Type', 'application/json')
-          .set('X-Recharge-Hmac-Sha256', signature)
-          .set('X-Recharge-Topic', topic)
+          .set('X-Recharge-Webhook-Signature', header)
           .send(payload);
 
         expect(response.status).toBe(200);
       }
+    });
+
+    it('should still return 200 for an unrecognized resource key', async () => {
+      const payload = JSON.stringify({ something_new: { id: 789 } });
+      const header = generateTimestampedSignature(payload, clientSecret, now());
+
+      const response = await request(app)
+        .post('/webhooks/recharge')
+        .set('Content-Type', 'application/json')
+        .set('X-Recharge-Webhook-Signature', header)
+        .send(payload);
+
+      expect(response.status).toBe(200);
     });
   });
 

@@ -8,7 +8,8 @@ failing; subscriptions being created, updated, or cancelled; and orders being cr
 without polling the API.
 
 When a subscribed event occurs, Recharge sends an HTTP `POST` request to your registered endpoint with
-a JSON payload and an `X-Recharge-Hmac-Sha256` signature header you use to verify authenticity.
+a JSON payload and signature headers you use to verify authenticity — a recommended timestamp-bound
+scheme (`X-Recharge-Webhook-Signature`) plus the legacy `X-Recharge-Hmac-Sha256` header.
 
 ## Common Event Types (Topics)
 
@@ -35,7 +36,8 @@ Topics use a `resource/action` format. Subscribe to one topic per webhook subscr
 ### A note on legacy topic names
 
 Use `charge/paid` for the paid-charge event. `charge/success` is a legacy name that does not appear in
-current documentation. Likewise `order/success` is legacy; prefer `order/created` / `order/processed`.
+current documentation. (`order/success` is NOT legacy — it appears in the current Orders webhook
+topics table alongside `order/created` and `order/processed`.)
 
 ## Event Payload Structure
 
@@ -63,8 +65,14 @@ which are added as additional top-level keys.
 
 | Header | Description |
 |--------|-------------|
-| `X-Recharge-Hmac-Sha256` | Signature for verification (hex-encoded `sha256(client_secret + body)`) |
-| `X-Recharge-Topic` | The subscription topic (e.g. `charge/paid`) — used to dispatch on the event |
+| `X-Recharge-Webhook-Timestamp` | Unix epoch seconds (integer) at the time the request was signed |
+| `X-Recharge-Webhook-Signature` | Recommended timestamp-bound signature: `t=<epoch>,v1=<hex>` (HMAC-SHA-256 over `<timestamp>.<body>`) |
+| `X-Recharge-Hmac-Sha256` | Legacy signature (hex-encoded `sha256(client_secret + body)` — a plain hash, not HMAC) |
+
+**There is no topic header.** Recharge does not send a documented topic/action header, so dispatch on
+the payload's top-level resource key (`charge`, `order`, `subscription`, …). If your handler needs the
+exact action (`created` vs `updated` vs `paid`), register a **distinct endpoint path per topic** when
+creating the webhook subscription (`POST /webhooks` with a different `address` per topic).
 
 ## Delivery, Timeouts, and Retries
 

@@ -19,8 +19,8 @@ Minimal example of receiving Recharge webhooks with signature verification using
    cp .env.example .env
    ```
 
-3. Add your Recharge **API Client Secret** to `.env`. Find it in the merchant portal:
-   **Tools and apps → API tokens →** open your token **→ API Client Secret**. This is not
+3. Add your Recharge **API Client Secret** to `.env`. Find it in the Recharge Dashboard:
+   **Integrations → API Tokens →** click your token (**Edit API Token** page). This is not
    the API access token used to call the API.
 
 ## Run
@@ -51,9 +51,13 @@ Register the printed tunnel URL as the `address` when you create a webhook subsc
 
 ## Verification note
 
-Despite the `X-Recharge-Hmac-Sha256` header name, Recharge uses a **plain SHA-256** of
-`clientSecret + rawBody` (secret first), hex-encoded — **not HMAC**. The route reads the raw body with
-`await request.text()` before parsing so the exact bytes are hashed.
+The handler verifies the **recommended timestamp-bound scheme** first: the
+`X-Recharge-Webhook-Signature` header carries `t=<epoch>,v1=<hex>`, where `v1` is an HMAC-SHA-256
+over `<timestamp>.<rawBody>` keyed by the client secret. Deliveries older than 48 hours are rejected.
+When that header is absent it falls back to the **legacy** `X-Recharge-Hmac-Sha256` header — which,
+despite the name, is a **plain SHA-256** of `clientSecret + rawBody` (secret first), hex-encoded —
+**not HMAC**. The route reads the raw body with `await request.text()` before parsing so the exact
+bytes are hashed.
 
 ## Endpoint
 
