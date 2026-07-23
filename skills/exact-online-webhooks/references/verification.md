@@ -27,6 +27,20 @@ The **message is the exact raw bytes of the `Content` node** as they appear in
 the request body — the substring starting at the `{` after `"Content":` and
 ending at the `}` right before `,"HashCode":`, braces included.
 
+> **Sourcing caveat.** Exact's support KB is JS-rendered and never states the
+> signed substring in prose. These boundaries come from well-established
+> community implementations (notably picqer's PHP client) that are known to work
+> against live deliveries — not from a quotable official spec. Treat the exact
+> substring as high-confidence-but-unverified: log the raw body on your first
+> deliveries and confirm your digest matches `HashCode` before going live.
+>
+> **The extraction is positional and therefore brittle.** It assumes `Content`
+> is the first key, `HashCode` is last, and that there is no whitespace around
+> either separator. If Exact ever emits spacing (`{"Content" : {`), reorders the
+> keys, or adds a third top-level field, the markers stop matching and every
+> delivery fails verification. If that happens, log the raw body and adjust the
+> boundaries rather than falling back to re-serializing the parsed object.
+
 ### Why you must use the raw substring (not the re-serialized object)
 
 HMAC is byte-exact. If you `JSON.parse` the body and then `JSON.stringify` the

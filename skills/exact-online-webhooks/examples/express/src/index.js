@@ -43,6 +43,12 @@ function verifyExactWebhook(rawBody, secret) {
   if (!hashCode) {
     return false;
   }
+  // No secret configured means we cannot verify anything — fail closed rather
+  // than throwing an opaque 500 from createHmac(…, undefined).
+  if (!secret) {
+    console.error('EXACT_WEBHOOK_SECRET is not set — rejecting delivery');
+    return false;
+  }
 
   const expected = crypto
     .createHmac('sha256', secret)

@@ -58,10 +58,11 @@ subscription is created with the `IsInstant` flag.
 | `GoodsDeliveries` | A goods delivery is created/updated | Fulfilment, shipping |
 | `Contacts` | A contact person changes | CRM sync |
 
-Exact Online documents around 30 topics (e.g. `SalesInvoices`, `PurchaseOrders`,
-`Subscriptions`, `Documents`, `TransactionLines`, and more). The set of available
-topics can change; the authoritative list is returned by the API and documented
-by Exact.
+The six topics above are the ones confirmed against Exact's documentation.
+Exact's docs refer to roughly 30 topics in total, but the exact spellings of the
+others could not be verified — check the current Webhooks article in the Exact
+Online support KB (and your own subscription responses) before hard-coding any
+topic name not listed above.
 
 ## The Fetch-to-Enrich Pattern
 

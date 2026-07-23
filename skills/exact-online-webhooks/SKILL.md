@@ -70,6 +70,13 @@ included). Key it with your app's **Webhook secret** (from the Exact App Center)
 hex-encode, **uppercase**, and compare to `HashCode`. Do **not** re-serialize the
 parsed `Content` object — key order/whitespace would differ and break the hash.
 
+> **Verify this against a real delivery before relying on it.** Exact's KB pages
+> are JS-rendered and don't state the signed substring in prose; the exact
+> boundaries used here match well-established community implementations (e.g.
+> picqer's PHP client) rather than a quotable official spec. Log the raw body on
+> your first deliveries and confirm the digest matches — see
+> [references/verification.md](references/verification.md) for the failure modes.
+
 ```javascript
 const crypto = require('crypto');
 
