@@ -632,6 +632,27 @@
       ]
     },
     {
+      "name": "meraki-webhooks",
+      "description": "Receive and verify Cisco Meraki Dashboard webhook alerts. Use when setting up Meraki webhook handlers, validating the sharedSecret, or handling alert events like motion_alert, settings_changed, sensor_alert, or stopped_reporting.",
+      "source": "./skills/meraki-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/meraki-webhooks",
+      "keywords": [
+        "webhooks",
+        "meraki"
+      ]
+    },
+    {
       "name": "mollie-webhooks",
       "description": "Handle unsigned Mollie webhooks with the fetch-to-confirm pattern, retrieving authoritative payment status from the Mollie API by id.",
       "source": "./skills/mollie-webhooks",
