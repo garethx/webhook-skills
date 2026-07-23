@@ -54,8 +54,10 @@ not `interviewSchedule.create`).
 
 Some events trigger additional events. For example, `candidateHire` also fires
 `applicationUpdate` and `candidateStageChange`. Because you may receive several
-related webhooks for one logical action — and Ashby retries failed deliveries —
-**make handlers idempotent** (e.g. dedupe on a stable ID from `data`).
+related webhooks for one logical action, **make handlers idempotent** (e.g. dedupe
+on a stable ID from `data`). Ashby does not document a retry or backoff policy —
+only the auto-disable behavior below — so do not assume a failed delivery will be
+re-sent.
 
 ## Event Headers
 

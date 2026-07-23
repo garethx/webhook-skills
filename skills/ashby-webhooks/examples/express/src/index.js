@@ -50,6 +50,13 @@ app.post('/webhooks/ashby',
     // Verify webhook signature first, before parsing
     if (!verifyAshbyWebhook(req.body, signature, process.env.ASHBY_WEBHOOK_SECRET)) {
       console.error('Webhook signature verification failed');
+      // WARNING: on Ashby any status >= 400 — including this 401 — counts as a
+      // delivery failure and can AUTO-DISABLE the webhook until someone
+      // re-enables it in Admin > Integrations > Webhooks. Rejecting is the right
+      // security call, so alert on this log line: a wrong secret will otherwise
+      // take the integration offline silently. The alternative is to return 2xx
+      // here (without processing) and alert out-of-band. See
+      // references/verification.md.
       return res.status(401).send('Invalid signature');
     }
 

@@ -87,6 +87,33 @@ def verify_ashby_webhook(raw_body: bytes, signature_header: str, secret: str) ->
   failure) counts as a delivery failure and can auto-disable the webhook. Return
   `2xx` after a successful verify + handle.
 
+## Rejecting with 401 vs. Ashby's Auto-Disable
+
+**Read this before shipping.** The examples in this skill return `401` when the
+signature does not verify. That is the correct security behavior — an unverified
+request is not yours to acknowledge — but on Ashby a `401` is a *delivery
+failure*, and repeated failures **auto-disable the webhook until a human
+re-enables it in the dashboard**. One misconfigured secret can therefore take the
+integration offline silently.
+
+Two workable choices:
+
+1. **Reject with `401` (what the examples do).** Safest from a security and
+   debugging standpoint: bad requests are visibly rejected. Because failures can
+   auto-disable the webhook, you **must** alert on verification failures (log at
+   error level and page/notify on the first occurrence) and check the webhook's
+   enabled state in **Admin → Integrations → Webhooks** after any secret change or
+   deploy.
+2. **Return `2xx` and alert out-of-band.** Drop the unverified request without
+   processing it, return `200`, and raise the alert through your own monitoring.
+   This keeps the webhook enabled through a misconfiguration, at the cost of
+   giving an attacker (and Ashby's own delivery log) no signal that anything was
+   rejected.
+
+Pick one deliberately. Whichever you choose, verification failures must be
+alertable — silently returning `2xx` with no alert means a wrong secret looks
+exactly like normal operation.
+
 ## Debugging Verification Failures
 
 - **Always fails:** You are likely verifying a parsed/re-serialized body instead

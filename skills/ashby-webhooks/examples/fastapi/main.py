@@ -43,6 +43,13 @@ async def ashby_webhook(request: Request):
 
     # Verify webhook signature before parsing
     if not verify_ashby_webhook(raw_body, signature_header, ashby_secret):
+        # WARNING: on Ashby any status >= 400 -- including this 401 -- counts as a
+        # delivery failure and can AUTO-DISABLE the webhook until someone re-enables
+        # it in Admin > Integrations > Webhooks. Rejecting is the right security call,
+        # so alert on verification failures: a wrong secret will otherwise take the
+        # integration offline silently. The alternative is to return 2xx here (without
+        # processing) and alert out-of-band. See references/verification.md.
+        print("Webhook signature verification failed")
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     # Parse the payload after verification.
