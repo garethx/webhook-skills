@@ -1504,6 +1504,27 @@
       ]
     },
     {
+      "name": "ringcentral-webhooks",
+      "description": "Receive and verify RingCentral webhooks. Use when setting up RingCentral webhook subscriptions, completing the Validation-Token handshake, checking the Verification-Token header, or handling message-store, presence, and telephony session events.",
+      "source": "./skills/ringcentral-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/ringcentral-webhooks",
+      "keywords": [
+        "webhooks",
+        "ringcentral"
+      ]
+    },
+    {
       "name": "salesforce-webhooks",
       "description": "Handle Salesforce Outbound Messages (SOAP/XML), validate OrganizationId, and return the required Ack response.",
       "source": "./skills/salesforce-webhooks",
