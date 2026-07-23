@@ -935,6 +935,27 @@
       ]
     },
     {
+      "name": "retell-webhooks",
+      "description": "Receive and verify Retell AI webhooks. Use when setting up Retell webhook handlers, debugging X-Retell-Signature verification, or handling voice call events like call_started, call_ended, call_analyzed, and transcript_updated.",
+      "source": "./skills/retell-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/retell-webhooks",
+      "keywords": [
+        "webhooks",
+        "retell"
+      ]
+    },
+    {
       "name": "salesforce-webhooks",
       "description": "Handle Salesforce Outbound Messages (SOAP/XML), validate OrganizationId, and return the required Ack response.",
       "source": "./skills/salesforce-webhooks",
