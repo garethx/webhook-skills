@@ -33,6 +33,27 @@
       ]
     },
     {
+      "name": "attentive-webhooks",
+      "description": "Receive and verify Attentive webhooks. Use when setting up Attentive webhook handlers, debugging signature verification (x-attentive-hmac-sha256), or handling SMS and email events like sms.subscribed, sms.unsubscribed, email.opened, or custom_attribute.set.",
+      "source": "./skills/attentive-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/attentive-webhooks",
+      "keywords": [
+        "webhooks",
+        "attentive"
+      ]
+    },
+    {
       "name": "auth0-webhooks",
       "description": "Authenticate Auth0 Custom Log Stream deliveries (Authorization token), handle batched login and signup log events.",
       "source": "./skills/auth0-webhooks",
