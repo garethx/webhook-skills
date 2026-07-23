@@ -719,6 +719,27 @@
       ]
     },
     {
+      "name": "monday-webhooks",
+      "description": "Receive and verify monday.com webhooks. Use when setting up monday.com webhook handlers, implementing the challenge handshake, debugging JWT verification, or handling board events like create_item, change_column_value, change_status_column_value, create_update, or create_subitem.",
+      "source": "./skills/monday-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/monday-webhooks",
+      "keywords": [
+        "webhooks",
+        "monday"
+      ]
+    },
+    {
       "name": "notion-webhooks",
       "description": "Verify Notion webhook signatures (HMAC-SHA256 with verification_token handshake), handle page and comment events.",
       "source": "./skills/notion-webhooks",
