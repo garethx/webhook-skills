@@ -29,6 +29,12 @@ raw body for the event-specific payload.
 
 ## Common Event Types
 
+> Topic names and the `x-webhook-topic` header were verified against ShipBob's
+> official 2026-01 webhooks documentation — its "Webhook Topics & Events" table
+> (which also lists the required read scope per topic) and its "Webhook Headers"
+> example. Legacy 1.0/2.0 versions used underscore topic names and are
+> documented separately by ShipBob.
+
 | Topic | Triggered When | Common Use Cases | Read scope |
 |-------|----------------|------------------|------------|
 | `order.shipped` | An order's shipment ships | Notify customer, mark order shipped | `orders_read` / `fulfillments_read` |
