@@ -539,6 +539,32 @@ providers:
       npm: [facebook-nodejs-business-sdk]
       pip: [facebook-business]
 
+  - name: fireflies
+    displayName: Fireflies
+    docs:
+      webhooks: https://docs.fireflies.ai/graphql-api/webhooks
+      verification: https://docs.fireflies.ai/graphql-api/webhooks#webhook-authentication
+    notes: >
+      AI meeting assistant (transcription/summaries). Verify deliveries via the
+      x-hub-signature header: a hex-encoded HMAC-SHA256 of the RAW request body
+      keyed with your webhook signing secret, with NO "sha256=" prefix — compare
+      the header value directly (timing-safe). This is the classic/V1 scheme;
+      there is no Standard Webhooks support and no official SDK, so verification
+      is manual in every framework. The event type is carried in the JSON body as
+      eventType (currently only "Transcription completed"), NOT in a header. V1
+      payload is JSON: {meetingId, eventType, clientReferenceId?}; the webhook is
+      a notification — fetch the transcript from the GraphQL API using meetingId.
+      Configure the endpoint URL and a 16-32 char signing secret (custom or
+      auto-generated) in dashboard Settings > Developer Settings, or pass a
+      per-upload webhook URL in the uploadAudio mutation. No documented retry
+      policy — make handlers idempotent on meetingId. A newer Webhooks V2 API
+      exists (X-Hub-Signature with "sha256=<hex>" prefix, snake_case payload
+      event/meeting_id, events meeting.transcribed/meeting.summarized/
+      meeting.bot_joined); this skill targets the V1 x-hub-signature scheme.
+    testScenario:
+      events:
+        - Transcription completed
+
   - name: fusionauth
     displayName: FusionAuth
     docs:
