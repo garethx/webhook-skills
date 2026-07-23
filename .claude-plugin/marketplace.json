@@ -1003,6 +1003,27 @@
       ]
     },
     {
+      "name": "shipbob-webhooks",
+      "description": "Receive and verify ShipBob webhooks. Use when setting up ShipBob webhook handlers, debugging signature verification, or handling fulfillment events like order.shipped, order.shipment.delivered, order.shipment.tracking.updated, return.created, wro.created, or billing.charge.created.",
+      "source": "./skills/shipbob-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/shipbob-webhooks",
+      "keywords": [
+        "webhooks",
+        "shipbob"
+      ]
+    },
+    {
       "name": "shopify-webhooks",
       "description": "Verify Shopify HMAC signatures (SHA256, base64), handle order, product, and customer events.",
       "source": "./skills/shopify-webhooks",
