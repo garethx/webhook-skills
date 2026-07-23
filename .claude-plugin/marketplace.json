@@ -1523,6 +1523,27 @@
       ]
     },
     {
+      "name": "twitch-webhooks",
+      "description": "Receive and verify Twitch EventSub webhooks. Use when setting up Twitch webhook handlers, debugging signature verification, handling the webhook_callback_verification challenge, or handling EventSub events like stream.online, stream.offline, channel.follow, channel.subscribe, and channel.channel_points_custom_reward_redemption.add.",
+      "source": "./skills/twitch-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/twitch-webhooks",
+      "keywords": [
+        "webhooks",
+        "twitch"
+      ]
+    },
+    {
       "name": "twitter-webhooks",
       "description": "Receive and verify Twitter/X Account Activity API webhooks. Use when setting up X (Twitter) webhook handlers, debugging the x-twitter-webhooks-signature HMAC-SHA256 check, answering the CRC (Challenge-Response Check) crc_token request, or handling events like tweet_create_events, favorite_events, follow_events, and direct_message_events.",
       "source": "./skills/twitter-webhooks",
