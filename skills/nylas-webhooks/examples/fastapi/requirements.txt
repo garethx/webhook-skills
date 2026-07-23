@@ -1,0 +1,7 @@
+fastapi>=0.139.2
+uvicorn>=0.34.0
+nylas>=6.17.0
+
+# Dev / test
+pytest>=9.1.1
+httpx>=0.28.1

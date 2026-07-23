@@ -33,6 +33,90 @@
       ]
     },
     {
+      "name": "airtable-webhooks",
+      "description": "Receive and verify Airtable webhooks. Use when setting up Airtable webhook handlers, debugging X-Airtable-Content-MAC signature verification, handling the thin-ping notification, or fetching base changes (tableData, tableFields, tableMetadata add/remove/update) from the webhook payloads API.",
+      "source": "./skills/airtable-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/airtable-webhooks",
+      "keywords": [
+        "webhooks",
+        "airtable"
+      ]
+    },
+    {
+      "name": "alchemy-webhooks",
+      "description": "Receive and verify Alchemy Notify webhooks. Use when setting up Alchemy webhook handlers, debugging X-Alchemy-Signature verification, or handling onchain events like ADDRESS_ACTIVITY, MINED_TRANSACTION, DROPPED_TRANSACTION, NFT_ACTIVITY, NFT_METADATA_UPDATE, or GRAPHQL (Custom Webhook).",
+      "source": "./skills/alchemy-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/alchemy-webhooks",
+      "keywords": [
+        "webhooks",
+        "alchemy"
+      ]
+    },
+    {
+      "name": "asana-webhooks",
+      "description": "Receive and verify Asana webhooks. Use when setting up Asana webhook handlers, implementing the X-Hook-Secret handshake, debugging X-Hook-Signature verification, or handling task, project, and story events like added, changed, removed, deleted, and undeleted.",
+      "source": "./skills/asana-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/asana-webhooks",
+      "keywords": [
+        "webhooks",
+        "asana"
+      ]
+    },
+    {
+      "name": "attentive-webhooks",
+      "description": "Receive and verify Attentive webhooks. Use when setting up Attentive webhook handlers, debugging signature verification (x-attentive-hmac-sha256), or handling SMS and email events like sms.subscribed, sms.unsubscribed, email.opened, or custom_attribute.set.",
+      "source": "./skills/attentive-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/attentive-webhooks",
+      "keywords": [
+        "webhooks",
+        "attentive"
+      ]
+    },
+    {
       "name": "auth0-webhooks",
       "description": "Authenticate Auth0 Custom Log Stream deliveries (Authorization token), handle batched login and signup log events.",
       "source": "./skills/auth0-webhooks",
@@ -56,6 +140,49 @@
       ]
     },
     {
+      "name": "aws-sns-webhooks",
+      "description": "Receive and verify AWS SNS (Amazon Simple Notification Service) webhooks over HTTP/HTTPS. Use when setting up an SNS HTTP subscription endpoint, confirming a subscription (SubscriptionConfirmation / SubscribeURL), verifying SNS message signatures (SigningCertURL, SignatureVersion 1 SHA1 / 2 SHA256), or handling Notification and UnsubscribeConfirmation messages.",
+      "source": "./skills/aws-sns-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/aws-sns-webhooks",
+      "keywords": [
+        "webhooks",
+        "aws",
+        "sns"
+      ]
+    },
+    {
+      "name": "bigcommerce-webhooks",
+      "description": "Receive and verify BigCommerce webhooks. Use when setting up BigCommerce webhook handlers, debugging Standard Webhooks signature verification, or handling store events like store/order/created, store/order/statusUpdated, store/product/updated, or store/cart/abandoned.",
+      "source": "./skills/bigcommerce-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/bigcommerce-webhooks",
+      "keywords": [
+        "webhooks",
+        "bigcommerce"
+      ]
+    },
+    {
       "name": "bitbucket-webhooks",
       "description": "Verify Bitbucket webhook signatures (X-Hub-Signature, HMAC-SHA256), handle repo push and pull request events.",
       "source": "./skills/bitbucket-webhooks",
@@ -76,6 +203,28 @@
         "bitbucket",
         "atlassian",
         "git"
+      ]
+    },
+    {
+      "name": "bridge-xyz-webhooks",
+      "description": "Receive and verify Bridge (bridge.xyz) webhooks. Use when setting up Bridge webhook handlers, debugging RSA signature verification of the X-Webhook-Signature header, or handling stablecoin/fiat events like customer.updated, kyc_link.updated, transfer.updated, and virtual_account.activity.",
+      "source": "./skills/bridge-xyz-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/bridge-xyz-webhooks",
+      "keywords": [
+        "webhooks",
+        "bridge",
+        "xyz"
       ]
     },
     {
@@ -121,6 +270,27 @@
         "chargebee",
         "billing",
         "subscriptions"
+      ]
+    },
+    {
+      "name": "circle-webhooks",
+      "description": "Receive and verify Circle (Circle Payments Network / Circle Mint) webhooks. Use when setting up Circle webhook handlers, debugging ECDSA signature verification (X-Circle-Signature, X-Circle-Key-Id), or handling notifications like payments, paymentIntents, transfers, and payouts.",
+      "source": "./skills/circle-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/circle-webhooks",
+      "keywords": [
+        "webhooks",
+        "circle"
       ]
     },
     {
@@ -194,6 +364,27 @@
       ]
     },
     {
+      "name": "commercelayer-webhooks",
+      "description": "Receive and verify Commerce Layer webhooks. Use when setting up Commerce Layer webhook handlers, debugging X-CommerceLayer-Signature verification, or handling commerce events like orders.place, orders.approve, orders.pay, or shipments.ship.",
+      "source": "./skills/commercelayer-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/commercelayer-webhooks",
+      "keywords": [
+        "webhooks",
+        "commercelayer"
+      ]
+    },
+    {
       "name": "cursor-webhooks",
       "description": "Verify Cursor Cloud Agent webhook signatures (HMAC-SHA256), handle agent status events.",
       "source": "./skills/cursor-webhooks",
@@ -214,6 +405,27 @@
         "cursor",
         "ai",
         "agents"
+      ]
+    },
+    {
+      "name": "customerio-webhooks",
+      "description": "Receive and verify Customer.io Reporting Webhooks. Use when setting up Customer.io webhook handlers, debugging X-CIO-Signature verification, or handling messaging events like email delivered, email opened, email clicked, email bounced, sms sent, push delivered, or customer unsubscribed.",
+      "source": "./skills/customerio-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/customerio-webhooks",
+      "keywords": [
+        "webhooks",
+        "customerio"
       ]
     },
     {
@@ -263,6 +475,48 @@
       ]
     },
     {
+      "name": "docusign-webhooks",
+      "description": "Receive and verify DocuSign Connect webhooks. Use when setting up DocuSign webhook handlers, debugging HMAC signature verification of the X-DocuSign-Signature-1 header, or handling eSignature events like envelope-sent, envelope-completed, and recipient-completed.",
+      "source": "./skills/docusign-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/docusign-webhooks",
+      "keywords": [
+        "webhooks",
+        "docusign"
+      ]
+    },
+    {
+      "name": "ebay-webhooks",
+      "description": "Receive and verify eBay Notification API webhooks (Platform Notifications / Event Notifications). Use when setting up an eBay webhook endpoint, passing the endpoint challenge validation, debugging the x-ebay-signature ECDSA verification, fetching the public key with getPublicKey, or handling events like MARKETPLACE_ACCOUNT_DELETION.",
+      "source": "./skills/ebay-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/ebay-webhooks",
+      "keywords": [
+        "webhooks",
+        "ebay"
+      ]
+    },
+    {
       "name": "elevenlabs-webhooks",
       "description": "Verify ElevenLabs webhook signatures (Standard Webhooks/Svix), handle call transcription events.",
       "source": "./skills/elevenlabs-webhooks",
@@ -283,6 +537,28 @@
         "elevenlabs",
         "voice",
         "ai"
+      ]
+    },
+    {
+      "name": "exact-online-webhooks",
+      "description": "Receive and verify Exact Online webhooks. Use when setting up Exact Online webhook handlers, debugging HashCode signature verification, subscribing to topics via the WebhookSubscriptions REST endpoint, or handling entity change events like Accounts, Items, StockPositions, FinancialTransactions, GoodsDeliveries, and Contacts. Note: Exact does NOT use Standard Webhooks — the signature is a HashCode field inside the JSON body (HMAC-SHA256 over the Content node, hex, uppercased), not an HTTP header.",
+      "source": "./skills/exact-online-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/exact-online-webhooks",
+      "keywords": [
+        "webhooks",
+        "exact",
+        "online"
       ]
     },
     {
@@ -307,6 +583,27 @@
       ]
     },
     {
+      "name": "fireblocks-webhooks",
+      "description": "Receive and verify Fireblocks webhooks. Use when setting up Fireblocks webhook handlers, debugging Fireblocks-Webhook-Signature verification (detached JWS / RS512 / JWKS), or handling digital-asset events like transaction.created, transaction.status.updated, or transaction.approval_status.updated.",
+      "source": "./skills/fireblocks-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/fireblocks-webhooks",
+      "keywords": [
+        "webhooks",
+        "fireblocks"
+      ]
+    },
+    {
       "name": "fireflies-webhooks",
       "description": "Receive and verify Fireflies.ai webhooks. Use when setting up Fireflies webhook handlers, debugging x-hub-signature verification, or handling the \"Transcription completed\" event when a meeting transcript is ready.",
       "source": "./skills/fireflies-webhooks",
@@ -325,6 +622,27 @@
       "keywords": [
         "webhooks",
         "fireflies"
+      ]
+    },
+    {
+      "name": "frontapp-webhooks",
+      "description": "Receive and verify Front (Frontapp) application webhooks. Use when setting up Front webhook handlers, debugging X-Front-Signature verification, handling the X-Front-Challenge subscription validation, or processing Front events like inbound_received, outbound_sent, conversation_moved, assignee_changed, tag_added, and new_comment_added.",
+      "source": "./skills/frontapp-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/frontapp-webhooks",
+      "keywords": [
+        "webhooks",
+        "frontapp"
       ]
     },
     {
@@ -607,6 +925,48 @@
       ]
     },
     {
+      "name": "linkedin-webhooks",
+      "description": "Receive and verify LinkedIn webhooks. Use when setting up LinkedIn webhook handlers, completing the challengeCode endpoint validation, debugging X-LI-Signature verification, or handling LEAD_ACTION (Lead Sync) and ORGANIZATION_SOCIAL_ACTION_NOTIFICATIONS (Community Management) events.",
+      "source": "./skills/linkedin-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/linkedin-webhooks",
+      "keywords": [
+        "webhooks",
+        "linkedin"
+      ]
+    },
+    {
+      "name": "lithic-webhooks",
+      "description": "Receive and verify Lithic webhooks. Use when setting up Lithic event subscriptions, debugging Standard Webhooks signature verification, or handling card and money-movement events like card.created, card_transaction.updated, payment_transaction.created, and dispute.updated.",
+      "source": "./skills/lithic-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/lithic-webhooks",
+      "keywords": [
+        "webhooks",
+        "lithic"
+      ]
+    },
+    {
       "name": "mailchimp-webhooks",
       "description": "Authenticate Mailchimp webhooks (URL secret and GET validation), handle subscribe, unsubscribe, and profile events.",
       "source": "./skills/mailchimp-webhooks",
@@ -653,6 +1013,49 @@
       ]
     },
     {
+      "name": "meraki-webhooks",
+      "description": "Receive and verify Cisco Meraki Dashboard webhook alerts. Use when setting up Meraki webhook handlers, validating the sharedSecret, or handling alert events like motion_alert, settings_changed, sensor_alert, or stopped_reporting.",
+      "source": "./skills/meraki-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/meraki-webhooks",
+      "keywords": [
+        "webhooks",
+        "meraki"
+      ]
+    },
+    {
+      "name": "microsoft-graph-webhooks",
+      "description": "Receive and verify Microsoft Graph change notifications (webhooks). Use when setting up a Microsoft Graph webhook / subscription handler, completing the validationToken endpoint validation handshake, validating clientState, decrypting rich notifications (includeResourceData), handling lifecycle events (reauthorizationRequired, subscriptionRemoved, missed), or processing created/updated/deleted change notifications for Outlook mail, Teams messages, OneDrive/SharePoint driveItems, users, and groups.",
+      "source": "./skills/microsoft-graph-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/microsoft-graph-webhooks",
+      "keywords": [
+        "webhooks",
+        "microsoft",
+        "graph"
+      ]
+    },
+    {
       "name": "mollie-webhooks",
       "description": "Handle unsigned Mollie webhooks with the fetch-to-confirm pattern, retrieving authoritative payment status from the Mollie API by id.",
       "source": "./skills/mollie-webhooks",
@@ -676,6 +1079,48 @@
       ]
     },
     {
+      "name": "monday-webhooks",
+      "description": "Receive and verify monday.com webhooks. Use when setting up monday.com webhook handlers, implementing the challenge handshake, debugging JWT verification, or handling board events like create_item, change_column_value, change_status_column_value, create_update, or create_subitem.",
+      "source": "./skills/monday-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/monday-webhooks",
+      "keywords": [
+        "webhooks",
+        "monday"
+      ]
+    },
+    {
+      "name": "neon-webhooks",
+      "description": "Receive and verify Neon Auth webhooks. Use when setting up Neon webhook handlers, debugging Ed25519 / detached JWS signature verification, or handling Neon Auth events like user.created, user.before_create, send.otp, send.magic_link, or phone_number.verified.",
+      "source": "./skills/neon-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/neon-webhooks",
+      "keywords": [
+        "webhooks",
+        "neon"
+      ]
+    },
+    {
       "name": "notion-webhooks",
       "description": "Verify Notion webhook signatures (HMAC-SHA256 with verification_token handshake), handle page and comment events.",
       "source": "./skills/notion-webhooks",
@@ -696,6 +1141,48 @@
         "notion",
         "docs",
         "knowledge"
+      ]
+    },
+    {
+      "name": "nuvemshop-webhooks",
+      "description": "Receive and verify Nuvemshop (Tiendanube) webhooks. Use when setting up Nuvemshop webhook handlers, debugging x-linkedstore-hmac-sha256 signature verification, or handling store events like order/created, order/paid, order/cancelled, product/updated, or app/uninstalled.",
+      "source": "./skills/nuvemshop-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/nuvemshop-webhooks",
+      "keywords": [
+        "webhooks",
+        "nuvemshop"
+      ]
+    },
+    {
+      "name": "nylas-webhooks",
+      "description": "Receive and verify Nylas webhooks. Use when setting up Nylas webhook handlers, debugging x-nylas-signature verification, completing the challenge handshake, or handling email and calendar events like message.created, message.opened, event.created, event.updated, or grant.expired.",
+      "source": "./skills/nylas-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/nylas-webhooks",
+      "keywords": [
+        "webhooks",
+        "nylas"
       ]
     },
     {
@@ -794,6 +1281,27 @@
       ]
     },
     {
+      "name": "oura-webhooks",
+      "description": "Receive and verify Oura webhooks. Use when setting up Oura Ring webhook handlers, completing the subscription verification handshake, debugging x-oura-signature verification, or handling data events like sleep, daily_readiness, daily_activity, and workout.",
+      "source": "./skills/oura-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/oura-webhooks",
+      "keywords": [
+        "webhooks",
+        "oura"
+      ]
+    },
+    {
       "name": "paddle-webhooks",
       "description": "Verify Paddle webhook signatures (HMAC-SHA256 with multi-signature rotation), handle subscription and billing events.",
       "source": "./skills/paddle-webhooks",
@@ -841,6 +1349,111 @@
       ]
     },
     {
+      "name": "paystack-webhooks",
+      "description": "Receive and verify Paystack webhooks. Use when setting up Paystack webhook handlers, debugging x-paystack-signature verification, or handling payment events like charge.success, transfer.success, transfer.failed, refund.processed, subscription.create, or invoice.payment_failed.",
+      "source": "./skills/paystack-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/paystack-webhooks",
+      "keywords": [
+        "webhooks",
+        "paystack"
+      ]
+    },
+    {
+      "name": "persona-webhooks",
+      "description": "Receive and verify Persona webhooks. Use when setting up Persona webhook handlers, debugging Persona-Signature verification, or handling identity verification events like inquiry.completed, inquiry.approved, verification.passed, account.created, or case.resolved.",
+      "source": "./skills/persona-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/persona-webhooks",
+      "keywords": [
+        "webhooks",
+        "persona"
+      ]
+    },
+    {
+      "name": "picqer-webhooks",
+      "description": "Receive and verify Picqer webhooks. Use when setting up Picqer webhook handlers, debugging X-Picqer-Signature verification, or handling warehouse and order events like orders.completed, picklists.closed, or products.stock_changed.",
+      "source": "./skills/picqer-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/picqer-webhooks",
+      "keywords": [
+        "webhooks",
+        "picqer"
+      ]
+    },
+    {
+      "name": "pipedrive-webhooks",
+      "description": "Receive and authenticate Pipedrive webhooks. Use when setting up Pipedrive webhook handlers, debugging HTTP Basic Auth verification, or handling CRM events like create.deal, change.person, or delete.activity.",
+      "source": "./skills/pipedrive-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/pipedrive-webhooks",
+      "keywords": [
+        "webhooks",
+        "pipedrive"
+      ]
+    },
+    {
+      "name": "polar-webhooks",
+      "description": "Receive and verify Polar webhooks. Use when setting up Polar webhook handlers, debugging Standard Webhooks signature verification, or handling billing events like order.paid, subscription.created, subscription.canceled, or checkout.updated.",
+      "source": "./skills/polar-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/polar-webhooks",
+      "keywords": [
+        "webhooks",
+        "polar"
+      ]
+    },
+    {
       "name": "postmark-webhooks",
       "description": "Authenticate Postmark webhooks (Basic Auth / token), handle email delivery, bounce, open, click, and spam events.",
       "source": "./skills/postmark-webhooks",
@@ -884,6 +1497,27 @@
         "razorpay",
         "payments",
         "billing"
+      ]
+    },
+    {
+      "name": "recharge-webhooks",
+      "description": "Receive and verify Recharge (subscription commerce) webhooks. Use when setting up Recharge webhook handlers, debugging X-Recharge-Hmac-Sha256 signature verification, or handling subscription events like charge/paid, charge/failed, subscription/created, subscription/cancelled, and order/created.",
+      "source": "./skills/recharge-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/recharge-webhooks",
+      "keywords": [
+        "webhooks",
+        "recharge"
       ]
     },
     {
@@ -956,6 +1590,69 @@
       ]
     },
     {
+      "name": "retell-webhooks",
+      "description": "Receive and verify Retell AI webhooks. Use when setting up Retell webhook handlers, debugging X-Retell-Signature verification, or handling voice call events like call_started, call_ended, call_analyzed, and transcript_updated.",
+      "source": "./skills/retell-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/retell-webhooks",
+      "keywords": [
+        "webhooks",
+        "retell"
+      ]
+    },
+    {
+      "name": "revolut-webhooks",
+      "description": "Receive and verify Revolut Merchant webhooks. Use when setting up Revolut webhook handlers, debugging Revolut-Signature verification, or handling order and payment events like ORDER_COMPLETED, ORDER_AUTHORISED, or ORDER_PAYMENT_DECLINED.",
+      "source": "./skills/revolut-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/revolut-webhooks",
+      "keywords": [
+        "webhooks",
+        "revolut"
+      ]
+    },
+    {
+      "name": "ringcentral-webhooks",
+      "description": "Receive and verify RingCentral webhooks. Use when setting up RingCentral webhook subscriptions, completing the Validation-Token handshake, checking the Verification-Token header, or handling message-store, presence, and telephony session events.",
+      "source": "./skills/ringcentral-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/ringcentral-webhooks",
+      "keywords": [
+        "webhooks",
+        "ringcentral"
+      ]
+    },
+    {
       "name": "salesforce-webhooks",
       "description": "Handle Salesforce Outbound Messages (SOAP/XML), validate OrganizationId, and return the required Ack response.",
       "source": "./skills/salesforce-webhooks",
@@ -975,6 +1672,27 @@
         "webhooks",
         "salesforce",
         "crm"
+      ]
+    },
+    {
+      "name": "sanity-webhooks",
+      "description": "Receive and verify Sanity GROQ-powered webhooks. Use when setting up Sanity webhook handlers, debugging signature verification with the sanity-webhook-signature header, or handling Content Lake document create/update/delete events for cache revalidation and search reindexing.",
+      "source": "./skills/sanity-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/sanity-webhooks",
+      "keywords": [
+        "webhooks",
+        "sanity"
       ]
     },
     {
@@ -1024,6 +1742,48 @@
       ]
     },
     {
+      "name": "shipbob-webhooks",
+      "description": "Receive and verify ShipBob webhooks. Use when setting up ShipBob webhook handlers, debugging signature verification, or handling fulfillment events like order.shipped, order.shipment.delivered, order.shipment.tracking.updated, return.created, wro.created, or billing.charge.created.",
+      "source": "./skills/shipbob-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/shipbob-webhooks",
+      "keywords": [
+        "webhooks",
+        "shipbob"
+      ]
+    },
+    {
+      "name": "shipstation-webhooks",
+      "description": "Receive and verify ShipStation webhooks. Use when setting up ShipStation webhook handlers, securing endpoints that have no signature (secret token in the URL), fetching the thin resource_url payload with Basic auth, or handling ORDER_NOTIFY, ITEM_ORDER_NOTIFY, SHIP_NOTIFY, ITEM_SHIP_NOTIFY, FULFILLMENT_SHIPPED, and FULFILLMENT_REJECTED events.",
+      "source": "./skills/shipstation-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/shipstation-webhooks",
+      "keywords": [
+        "webhooks",
+        "shipstation"
+      ]
+    },
+    {
       "name": "shopify-webhooks",
       "description": "Verify Shopify HMAC signatures (SHA256, base64), handle order, product, and customer events.",
       "source": "./skills/shopify-webhooks",
@@ -1070,6 +1830,48 @@
       ]
     },
     {
+      "name": "smartcar-webhooks",
+      "description": "Receive and verify Smartcar webhooks. Use when setting up Smartcar webhook handlers, debugging SC-Signature verification, responding to the VERIFY challenge, or handling vehicle events like VEHICLE_STATE and VEHICLE_ERROR.",
+      "source": "./skills/smartcar-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/smartcar-webhooks",
+      "keywords": [
+        "webhooks",
+        "smartcar"
+      ]
+    },
+    {
+      "name": "solidgate-webhooks",
+      "description": "Receive and verify Solidgate webhooks. Use when setting up Solidgate webhook handlers, debugging signature verification with the merchant and signature headers, or handling payment events like card_gate.order.updated, card_gate.chargeback.received, subscription.updated.v2, or alt_gate.order.updated.",
+      "source": "./skills/solidgate-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/solidgate-webhooks",
+      "keywords": [
+        "webhooks",
+        "solidgate"
+      ]
+    },
+    {
       "name": "square-webhooks",
       "description": "Verify Square webhook signatures (x-square-hmacsha256-signature over notification URL + body, HMAC-SHA256), handle payment, refund, invoice, and order events.",
       "source": "./skills/square-webhooks",
@@ -1091,6 +1893,48 @@
         "payments",
         "billing",
         "commerce"
+      ]
+    },
+    {
+      "name": "statsig-webhooks",
+      "description": "Receive and verify Statsig event webhooks (the Generic Webhook integration). Use when setting up Statsig webhook handlers, debugging X-Statsig-Signature verification, or handling config change events (gate/experiment created, updated) and exposure event batches.",
+      "source": "./skills/statsig-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/statsig-webhooks",
+      "keywords": [
+        "webhooks",
+        "statsig"
+      ]
+    },
+    {
+      "name": "strava-webhooks",
+      "description": "Receive and verify Strava webhooks (Webhook Events API). Use when setting up Strava push subscriptions, implementing the GET subscription validation handshake, debugging the hub.challenge / hub.verify_token exchange, or handling activity and athlete events like activity create, activity update, activity delete, and athlete deauthorization.",
+      "source": "./skills/strava-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/strava-webhooks",
+      "keywords": [
+        "webhooks",
+        "strava"
       ]
     },
     {
@@ -1118,6 +1962,112 @@
       ]
     },
     {
+      "name": "svix-webhooks",
+      "description": "Receive and verify Svix webhooks (the Standard Webhooks scheme used by many providers). Use when setting up a Svix webhook handler, debugging svix-id / svix-timestamp / svix-signature verification, handling secret rotation with multiple signatures, or parsing the {\"type\": \"...\", \"data\": {...}} envelope for events like invoice.paid, user.created, or message.sent.",
+      "source": "./skills/svix-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/svix-webhooks",
+      "keywords": [
+        "webhooks",
+        "svix"
+      ]
+    },
+    {
+      "name": "tally-webhooks",
+      "description": "Receive and verify Tally webhooks. Use when setting up Tally form webhook handlers, debugging Tally-Signature verification, or handling FORM_RESPONSE submission events and reading answers from data.fields.",
+      "source": "./skills/tally-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/tally-webhooks",
+      "keywords": [
+        "webhooks",
+        "tally"
+      ]
+    },
+    {
+      "name": "telnyx-webhooks",
+      "description": "Receive and verify Telnyx webhooks. Use when setting up Telnyx webhook handlers, debugging Ed25519 signature verification with the telnyx-signature-ed25519 and telnyx-timestamp headers, or handling messaging events like message.received, message.sent, or message.finalized.",
+      "source": "./skills/telnyx-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/telnyx-webhooks",
+      "keywords": [
+        "webhooks",
+        "telnyx"
+      ]
+    },
+    {
+      "name": "tiktok-shop-webhooks",
+      "description": "Receive and verify TikTok Shop webhooks. Use when setting up TikTok Shop webhook handlers, debugging Authorization-header signature verification, or handling events like ORDER_STATUS_CHANGE, PACKAGE_UPDATE, RECIPIENT_ADDRESS_UPDATE, PRODUCT_STATUS_CHANGE, or SELLER_DEAUTHORIZATION.",
+      "source": "./skills/tiktok-shop-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/tiktok-shop-webhooks",
+      "keywords": [
+        "webhooks",
+        "tiktok",
+        "shop"
+      ]
+    },
+    {
+      "name": "trello-webhooks",
+      "description": "Receive and verify Trello webhooks. Use when setting up Trello webhook handlers, debugging x-trello-webhook signature verification, or handling board and card events like createCard, updateCard, commentCard, or addMemberToBoard.",
+      "source": "./skills/trello-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/trello-webhooks",
+      "keywords": [
+        "webhooks",
+        "trello"
+      ]
+    },
+    {
       "name": "twilio-webhooks",
       "description": "Verify Twilio webhook signatures (HMAC-SHA1, X-Twilio-Signature) for form-encoded and JSON variants, handle SMS, voice, and status callback events.",
       "source": "./skills/twilio-webhooks",
@@ -1139,6 +2089,113 @@
         "sms",
         "voice",
         "communications"
+      ]
+    },
+    {
+      "name": "twitch-webhooks",
+      "description": "Receive and verify Twitch EventSub webhooks. Use when setting up Twitch webhook handlers, debugging signature verification, handling the webhook_callback_verification challenge, or handling EventSub events like stream.online, stream.offline, channel.follow, channel.subscribe, and channel.channel_points_custom_reward_redemption.add.",
+      "source": "./skills/twitch-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/twitch-webhooks",
+      "keywords": [
+        "webhooks",
+        "twitch"
+      ]
+    },
+    {
+      "name": "twitter-webhooks",
+      "description": "Receive and verify Twitter/X Account Activity API webhooks. Use when setting up X (Twitter) webhook handlers, debugging the x-twitter-webhooks-signature HMAC-SHA256 check, answering the CRC (Challenge-Response Check) crc_token request, or handling events like tweet_create_events, favorite_events, follow_events, and direct_message_events.",
+      "source": "./skills/twitter-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/twitter-webhooks",
+      "keywords": [
+        "webhooks",
+        "twitter"
+      ]
+    },
+    {
+      "name": "typeform-webhooks",
+      "description": "Receive and verify Typeform webhooks. Use when setting up Typeform webhook handlers, debugging Typeform-Signature verification, or handling form events like form_response and form_response_partial submissions.",
+      "source": "./skills/typeform-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/typeform-webhooks",
+      "keywords": [
+        "webhooks",
+        "typeform"
+      ]
+    },
+    {
+      "name": "uber-webhooks",
+      "description": "Receive and verify Uber Eats webhooks. Use when setting up Uber webhook handlers, debugging X-Uber-Signature verification, or handling order events like orders.notification, orders.cancel, store.provisioned, or store.status.changed.",
+      "source": "./skills/uber-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/uber-webhooks",
+      "keywords": [
+        "webhooks",
+        "uber"
+      ]
+    },
+    {
+      "name": "vercel-log-drains-webhooks",
+      "description": "Receive and verify Vercel Log Drains deliveries. Use when setting up a Vercel log drain HTTP endpoint, debugging x-vercel-signature verification, handling the x-vercel-verify endpoint handshake, or processing batched log entries from sources like lambda, edge, build, static, external, firewall, and redirect.",
+      "source": "./skills/vercel-log-drains-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/vercel-log-drains-webhooks",
+      "keywords": [
+        "webhooks",
+        "vercel",
+        "log",
+        "drains"
       ]
     },
     {
@@ -1210,6 +2267,27 @@
       ]
     },
     {
+      "name": "wix-webhooks",
+      "description": "Receive and verify Wix webhooks. Use when setting up Wix webhook handlers for self-hosted/self-managed apps, debugging JWT signature verification with your app's public key, or handling events like wix.ecom.v1.order_created, wix.ecom.v1.order_approved, wix.ecom.v1.order_updated, and wix.ecom.v1.order_canceled.",
+      "source": "./skills/wix-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/wix-webhooks",
+      "keywords": [
+        "webhooks",
+        "wix"
+      ]
+    },
+    {
       "name": "woocommerce-webhooks",
       "description": "Verify WooCommerce webhook signatures (HMAC-SHA256, base64), handle order, product, and customer events.",
       "source": "./skills/woocommerce-webhooks",
@@ -1254,6 +2332,48 @@
         "auth",
         "identity",
         "sso"
+      ]
+    },
+    {
+      "name": "xero-webhooks",
+      "description": "Receive and verify Xero webhooks. Use when setting up Xero webhook handlers, debugging x-xero-signature verification, passing Xero's Intent to Receive (ITR) validation, or handling accounting events like CONTACT/CREATE, INVOICE/UPDATE, CREDITNOTE, and SUBSCRIPTION changes.",
+      "source": "./skills/xero-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/xero-webhooks",
+      "keywords": [
+        "webhooks",
+        "xero"
+      ]
+    },
+    {
+      "name": "zendesk-webhooks",
+      "description": "Receive and verify Zendesk webhooks. Use when setting up Zendesk webhook handlers, debugging signature verification (X-Zendesk-Webhook-Signature), or handling event subscriptions like zen:event-type:ticket.created, zen:event-type:ticket.comment_added, or trigger/automation webhooks.",
+      "source": "./skills/zendesk-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/zendesk-webhooks",
+      "keywords": [
+        "webhooks",
+        "zendesk"
       ]
     },
     {
