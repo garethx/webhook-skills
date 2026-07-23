@@ -1,0 +1,20 @@
+{
+  "name": "wix-webhooks-express",
+  "version": "1.0.0",
+  "description": "Wix webhook handler with Express and @wix/sdk",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@wix/ecom": "^1.0.2293",
+    "@wix/sdk": "^1.21.13",
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.1.4"
+  }
+}

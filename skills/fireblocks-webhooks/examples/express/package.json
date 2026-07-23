@@ -1,0 +1,20 @@
+{
+  "name": "fireblocks-webhooks-express",
+  "version": "1.0.0",
+  "description": "Fireblocks webhook handler with Express",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "jose": "^6.2.4"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0",
+    "vitest": "^4.1.10"
+  }
+}
