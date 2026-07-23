@@ -96,6 +96,27 @@
       ]
     },
     {
+      "name": "ashby-webhooks",
+      "description": "Receive and verify Ashby webhooks. Use when setting up Ashby webhook handlers, debugging Ashby-Signature verification, or handling recruiting events like applicationSubmit, candidateHire, candidateStageChange, or interviewScheduleCreate.",
+      "source": "./skills/ashby-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/ashby-webhooks",
+      "keywords": [
+        "webhooks",
+        "ashby"
+      ]
+    },
+    {
       "name": "attentive-webhooks",
       "description": "Receive and verify Attentive webhooks. Use when setting up Attentive webhook handlers, debugging signature verification (x-attentive-hmac-sha256), or handling SMS and email events like sms.subscribed, sms.unsubscribed, email.opened, or custom_attribute.set.",
       "source": "./skills/attentive-webhooks",
