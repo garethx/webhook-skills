@@ -1,0 +1,19 @@
+{
+  "name": "sanity-webhooks-express",
+  "version": "1.0.0",
+  "description": "Sanity webhook handler with Express",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@sanity/webhook": "^4.0.4",
+    "dotenv": "^16.4.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.0.0"
+  }
+}
