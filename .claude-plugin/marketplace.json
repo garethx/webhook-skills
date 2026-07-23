@@ -2243,6 +2243,27 @@
       ]
     },
     {
+      "name": "walmart-webhooks",
+      "description": "Receive and verify Walmart Marketplace performance webhooks. Use when setting up Walmart webhook handlers, debugging WM_SEC.SIGNATURE HMAC-SHA256 signature verification, or handling seller events like PO_CREATED, INVENTORY_OOS, OFFER_PUBLISHED, BUY_BOX_CHANGED, and RETURN_CREATED.",
+      "source": "./skills/walmart-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/walmart-webhooks",
+      "keywords": [
+        "webhooks",
+        "walmart"
+      ]
+    },
+    {
       "name": "webflow-webhooks",
       "description": "Verify Webflow webhook signatures (HMAC-SHA256 with timestamp), handle form submission, ecommerce, and CMS events.",
       "source": "./skills/webflow-webhooks",
