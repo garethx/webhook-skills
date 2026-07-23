@@ -1767,6 +1767,27 @@
       ]
     },
     {
+      "name": "solidgate-webhooks",
+      "description": "Receive and verify Solidgate webhooks. Use when setting up Solidgate webhook handlers, debugging signature verification with the merchant and signature headers, or handling payment events like card_gate.order.updated, card_gate.chargeback.received, subscription.updated.v2, or alt_gate.order.updated.",
+      "source": "./skills/solidgate-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/solidgate-webhooks",
+      "keywords": [
+        "webhooks",
+        "solidgate"
+      ]
+    },
+    {
       "name": "square-webhooks",
       "description": "Verify Square webhook signatures (x-square-hmacsha256-signature over notification URL + body, HMAC-SHA256), handle payment, refund, invoice, and order events.",
       "source": "./skills/square-webhooks",
