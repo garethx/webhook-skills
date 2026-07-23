@@ -35,6 +35,14 @@ X-Webhook-Signature: t=<timestamp_ms>,v0=<base64_signature>
 
 ### The Double-Hash Quirk (important)
 
+> **Verified against Bridge's official sample code** (Configure webhooks guide):
+> `digester = hashlib.sha256(signed_payload.encode())` then
+> `public_key.verify(signature_bytes, digester.digest(), padding.PKCS1v15(), hashes.SHA256())`.
+> Note `digester.digest()` — the **raw digest bytes**, not `hexdigest()`. Because
+> `verify(...)` hashes its input again, the payload is effectively hashed twice.
+> Passing hex instead of bytes here is the classic way to break this.
+
+
 Bridge's reference implementation feeds the **already-computed SHA256 digest**
 into an RSA-SHA256 verifier. An RSA-SHA256 verify hashes its input with SHA256 as
 part of the operation — so `digest` is effectively hashed **again**. In other
