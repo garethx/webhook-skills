@@ -1,0 +1,23 @@
+{
+  "name": "commercelayer-webhooks-nextjs",
+  "version": "1.0.0",
+  "description": "Commerce Layer webhook handler with Next.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@commercelayer/sdk": "^7.12.1",
+    "next": "^16.2.11",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
