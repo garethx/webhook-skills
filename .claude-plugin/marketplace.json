@@ -251,6 +251,27 @@
       ]
     },
     {
+      "name": "circle-webhooks",
+      "description": "Receive and verify Circle (Circle Payments Network / Circle Mint) webhooks. Use when setting up Circle webhook handlers, debugging ECDSA signature verification (X-Circle-Signature, X-Circle-Key-Id), or handling notifications like payments, paymentIntents, transfers, and payouts.",
+      "source": "./skills/circle-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/circle-webhooks",
+      "keywords": [
+        "webhooks",
+        "circle"
+      ]
+    },
+    {
       "name": "claude-managed-agents-webhooks",
       "description": "Verify Anthropic Claude Managed Agents webhook signatures (X-Webhook-Signature, Standard Webhooks), handle session lifecycle and outcome evaluation events.",
       "source": "./skills/claude-managed-agents-webhooks",
