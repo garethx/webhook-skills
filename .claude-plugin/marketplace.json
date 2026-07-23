@@ -1102,6 +1102,27 @@
       ]
     },
     {
+      "name": "nuvemshop-webhooks",
+      "description": "Receive and verify Nuvemshop (Tiendanube) webhooks. Use when setting up Nuvemshop webhook handlers, debugging x-linkedstore-hmac-sha256 signature verification, or handling store events like order/created, order/paid, order/cancelled, product/updated, or app/uninstalled.",
+      "source": "./skills/nuvemshop-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/nuvemshop-webhooks",
+      "keywords": [
+        "webhooks",
+        "nuvemshop"
+      ]
+    },
+    {
       "name": "nylas-webhooks",
       "description": "Receive and verify Nylas webhooks. Use when setting up Nylas webhook handlers, debugging x-nylas-signature verification, completing the challenge handshake, or handling email and calendar events like message.created, message.opened, event.created, event.updated, or grant.expired.",
       "source": "./skills/nylas-webhooks",
