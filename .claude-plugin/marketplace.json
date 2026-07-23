@@ -79,6 +79,28 @@
       ]
     },
     {
+      "name": "bridge-xyz-webhooks",
+      "description": "Receive and verify Bridge (bridge.xyz) webhooks. Use when setting up Bridge webhook handlers, debugging RSA signature verification of the X-Webhook-Signature header, or handling stablecoin/fiat events like customer.updated, kyc_link.updated, transfer.updated, and virtual_account.activity.",
+      "source": "./skills/bridge-xyz-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/bridge-xyz-webhooks",
+      "keywords": [
+        "webhooks",
+        "bridge",
+        "xyz"
+      ]
+    },
+    {
       "name": "calendly-webhooks",
       "description": "Verify Calendly webhook signatures (Calendly-Webhook-Signature, HMAC-SHA256 with timestamp), handle invitee.created and invitee.canceled events.",
       "source": "./skills/calendly-webhooks",
