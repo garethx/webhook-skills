@@ -1095,6 +1095,27 @@
       ]
     },
     {
+      "name": "persona-webhooks",
+      "description": "Receive and verify Persona webhooks. Use when setting up Persona webhook handlers, debugging Persona-Signature verification, or handling identity verification events like inquiry.completed, inquiry.approved, verification.passed, account.created, or case.resolved.",
+      "source": "./skills/persona-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/persona-webhooks",
+      "keywords": [
+        "webhooks",
+        "persona"
+      ]
+    },
+    {
       "name": "picqer-webhooks",
       "description": "Receive and verify Picqer webhooks. Use when setting up Picqer webhook handlers, debugging X-Picqer-Signature verification, or handling warehouse and order events like orders.completed, picklists.closed, or products.stock_changed.",
       "source": "./skills/picqer-webhooks",
