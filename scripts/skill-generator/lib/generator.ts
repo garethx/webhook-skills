@@ -282,14 +282,25 @@ export async function generateSkill(
     const skillPath = getSkillPath(provider);
 
     // Register the new skill in the plugin manifest so it can't drift from skills/.
-    const filesToStage = [skillPath];
     if (!options.dryRun) {
       const { added } = syncManifest(worktreePath);
       if (added.length > 0) {
         logger.info(`Registered ${added.length} skill(s) in marketplace.json`);
-        filesToStage.push('.claude-plugin/marketplace.json');
       }
     }
+
+    // Stage the integration files alongside the skill. The AI updates
+    // README.md and providers.yaml per CONTRIBUTING/AGENTS conventions, and
+    // marketplace.json may already be registered by the AI (in which case
+    // syncManifest reports nothing added) — validate-provider.sh requires all
+    // three, so a commit without them produces a PR that always fails CI.
+    // git add is a no-op for unmodified paths.
+    const filesToStage = [
+      skillPath,
+      'README.md',
+      'providers.yaml',
+      '.claude-plugin/marketplace.json',
+    ];
 
     await addFiles(worktreePath, filesToStage, { logger, dryRun: options.dryRun });
     await commit(worktreePath, `feat: add ${provider.name}-webhooks skill`, {

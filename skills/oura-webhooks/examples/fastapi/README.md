@@ -1,0 +1,60 @@
+# Oura Webhooks - FastAPI Example
+
+Minimal example of receiving Oura webhooks with the subscription handshake and
+`x-oura-signature` verification using FastAPI.
+
+## Prerequisites
+
+- Python 3.9+
+- An Oura application (Client ID + Client Secret) from the
+  [Oura Developer portal](https://cloud.ouraring.com/oauth/applications)
+
+## Setup
+
+1. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Copy environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Fill in `.env`:
+   - `OURA_CLIENT_SECRET` — HMAC key for the signature
+   - `OURA_VERIFICATION_TOKEN` — the token you pass when creating the subscription
+
+## Run
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+Server runs on http://localhost:8000
+
+- `GET  /webhooks/oura` — subscription handshake (echoes the `challenge`)
+- `POST /webhooks/oura` — receives and verifies webhook events
+
+## Test
+
+```bash
+pytest test_webhook.py
+```
+
+### Receive real webhooks locally
+
+Use the Hookdeck CLI to tunnel Oura deliveries to your local server (no account required):
+
+```bash
+npx hookdeck-cli listen 8000 oura --path /webhooks/oura
+```
+
+Set the printed Hookdeck URL as the `callback_url` when you create a subscription (see
+`../../references/setup.md`).
