@@ -1513,6 +1513,27 @@
       ]
     },
     {
+      "name": "smartcar-webhooks",
+      "description": "Receive and verify Smartcar webhooks. Use when setting up Smartcar webhook handlers, debugging SC-Signature verification, responding to the VERIFY challenge, or handling vehicle events like VEHICLE_STATE and VEHICLE_ERROR.",
+      "source": "./skills/smartcar-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/smartcar-webhooks",
+      "keywords": [
+        "webhooks",
+        "smartcar"
+      ]
+    },
+    {
       "name": "square-webhooks",
       "description": "Verify Square webhook signatures (x-square-hmacsha256-signature over notification URL + body, HMAC-SHA256), handle payment, refund, invoice, and order events.",
       "source": "./skills/square-webhooks",
