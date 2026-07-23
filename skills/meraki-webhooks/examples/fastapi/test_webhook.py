@@ -48,6 +48,15 @@ class TestVerifyMerakiWebhook:
     def test_non_json_body_returns_false(self):
         assert verify_meraki_webhook(b"not json", SECRET) is False
 
+    def test_no_configured_secret_accepts_and_warns(self, capsys):
+        """Meraki's shared secret is optional: unset means TLS-only, not fail-open silently."""
+        import main
+
+        main._warned_no_secret_configured = False
+        body = json.dumps({"alertTypeId": "motion_alert"}).encode()
+        assert verify_meraki_webhook(body, "") is True
+        assert "MERAKI_WEBHOOK_SECRET is not set" in capsys.readouterr().out
+
 
 class TestMerakiWebhook:
     """Tests for the webhook endpoint."""
@@ -62,7 +71,7 @@ class TestMerakiWebhook:
     def test_missing_secret_returns_401(self):
         response = self._post(json.dumps({"alertTypeId": "motion_alert"}))
         assert response.status_code == 401
-        assert "Invalid shared secret" in response.json()["detail"]
+        assert "Missing or invalid sharedSecret" in response.json()["detail"]
 
     def test_wrong_secret_returns_401(self):
         response = self._post(build_payload(shared_secret="wrong"))

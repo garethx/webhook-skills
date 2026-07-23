@@ -13,6 +13,10 @@ app = FastAPI()
 meraki_secret = os.environ.get("MERAKI_WEBHOOK_SECRET")
 
 
+# Warn only once so an unsecured deployment is visible without flooding logs.
+_warned_no_secret_configured = False
+
+
 def verify_meraki_webhook(raw_body: bytes, secret: str) -> bool:
     """Verify a Cisco Meraki webhook.
 
@@ -20,15 +24,34 @@ def verify_meraki_webhook(raw_body: bytes, secret: str) -> bool:
     secret" you configured on the HTTP server back inside the JSON body as
     ``sharedSecret``. Verification is a timing-safe string compare on that
     field. TLS (HTTPS with a CA-trusted cert) is the real transport protection.
+
+    The shared secret is OPTIONAL in Meraki: leave it blank on the HTTP server
+    and deliveries carry no ``sharedSecret`` at all. So handle the two cases
+    explicitly rather than comparing "" to "" and silently passing:
+      - No secret configured -> accept, but warn that TLS is the only protection.
+      - Secret configured    -> the payload MUST carry a matching ``sharedSecret``.
     """
+    global _warned_no_secret_configured
+
     try:
         payload = json.loads(raw_body)
     except ValueError:
         return False
 
+    if not secret:
+        if not _warned_no_secret_configured:
+            _warned_no_secret_configured = True
+            print(
+                "WARNING: MERAKI_WEBHOOK_SECRET is not set: no shared-secret verification "
+                "is configured, so TLS is the only protection for these webhooks. Set a "
+                "shared secret on the Meraki HTTP server and in MERAKI_WEBHOOK_SECRET to "
+                "verify deliveries."
+            )
+        return True
+
     received = str(payload.get("sharedSecret", ""))
     # compare_digest is constant-time and length-safe.
-    return hmac.compare_digest(received, secret or "")
+    return hmac.compare_digest(received, secret)
 
 
 @app.post("/webhooks/meraki")
@@ -38,7 +61,9 @@ async def meraki_webhook(request: Request):
 
     # Verify the shared secret (carried in the body, not a header)
     if not verify_meraki_webhook(raw_body, meraki_secret):
-        raise HTTPException(status_code=401, detail="Invalid shared secret")
+        raise HTTPException(
+            status_code=401, detail="Missing or invalid sharedSecret in payload"
+        )
 
     # Parse the payload after verification
     payload = json.loads(raw_body)

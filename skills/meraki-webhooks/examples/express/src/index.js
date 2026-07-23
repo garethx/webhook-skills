@@ -6,6 +6,9 @@ const crypto = require('crypto');
 
 const app = express();
 
+// Warn only once so an unsecured deployment is visible without flooding logs.
+let warnedNoSecretConfigured = false;
+
 /**
  * Verify a Cisco Meraki webhook.
  *
@@ -14,9 +17,15 @@ const app = express();
  * as `sharedSecret`. Verification is a timing-safe string compare on that field.
  * TLS (HTTPS with a CA-trusted cert) is the real transport protection.
  *
+ * The shared secret is OPTIONAL in Meraki: leave it blank on the HTTP server and
+ * deliveries carry no `sharedSecret` at all. So this handles the two cases
+ * explicitly rather than comparing '' to '' and silently passing:
+ *   - No secret configured -> accept, but warn that TLS is the only protection.
+ *   - Secret configured    -> the payload MUST carry a matching `sharedSecret`.
+ *
  * @param {Buffer|string} rawBody - Raw request body
  * @param {string} secret - Configured shared secret (MERAKI_WEBHOOK_SECRET)
- * @returns {boolean} - Whether the payload's sharedSecret matches
+ * @returns {boolean} - Whether the delivery is accepted
  */
 function verifyMerakiWebhook(rawBody, secret) {
   let payload;
@@ -26,8 +35,20 @@ function verifyMerakiWebhook(rawBody, secret) {
     return false;
   }
 
+  if (!secret) {
+    if (!warnedNoSecretConfigured) {
+      warnedNoSecretConfigured = true;
+      console.warn(
+        'MERAKI_WEBHOOK_SECRET is not set: no shared-secret verification is configured, ' +
+          'so TLS is the only protection for these webhooks. Set a shared secret on the ' +
+          'Meraki HTTP server and in MERAKI_WEBHOOK_SECRET to verify deliveries.'
+      );
+    }
+    return true;
+  }
+
   const received = Buffer.from(String(payload.sharedSecret ?? ''));
-  const expected = Buffer.from(String(secret ?? ''));
+  const expected = Buffer.from(String(secret));
 
   // timingSafeEqual throws if lengths differ — guard first.
   if (received.length !== expected.length) {
@@ -47,7 +68,7 @@ app.post('/webhooks/meraki',
     // Verify the shared secret (carried in the body, not a header)
     if (!verifyMerakiWebhook(req.body, process.env.MERAKI_WEBHOOK_SECRET)) {
       console.error('Meraki webhook verification failed');
-      return res.status(401).send('Invalid shared secret');
+      return res.status(401).send('Missing or invalid sharedSecret in payload');
     }
 
     // Parse the payload after verification

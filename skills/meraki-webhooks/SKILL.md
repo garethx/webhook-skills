@@ -27,16 +27,30 @@ metadata:
 
 The secret is optional and travels unencrypted, so **TLS (HTTPS with a CA-trusted cert — no self-signed) is the real transport protection**; the `sharedSecret` only proves the sender knows the value you set. Parse the body, then compare timing-safe.
 
+> **Branch explicitly on whether a secret is configured.** With none configured, both sides coerce to `''` and every request passes with no warning — a silent fail-open. Unset means TLS-only (accept, but warn); set means the payload must carry a matching `sharedSecret`. See [references/verification.md](references/verification.md).
+
 Node:
 
 ```javascript
 const crypto = require('crypto');
 
+let warnedNoSecretConfigured = false;
+
 function verify(rawBody, secret) {
   let payload;
   try { payload = JSON.parse(rawBody); } catch { return false; }
+
+  if (!secret) {
+    // TLS-only mode: nothing to compare against. Accept, but say so once.
+    if (!warnedNoSecretConfigured) {
+      warnedNoSecretConfigured = true;
+      console.warn('MERAKI_WEBHOOK_SECRET is not set: no shared-secret verification is configured.');
+    }
+    return true;
+  }
+
   const received = Buffer.from(String(payload.sharedSecret ?? ''));
-  const expected = Buffer.from(String(secret ?? ''));
+  const expected = Buffer.from(String(secret));
   // Different lengths can't be equal; timingSafeEqual would throw.
   return received.length === expected.length &&
     crypto.timingSafeEqual(received, expected);
@@ -48,13 +62,24 @@ Python:
 ```python
 import json, hmac
 
+_warned_no_secret_configured = False
+
 def verify(raw_body: bytes, secret: str) -> bool:
+    global _warned_no_secret_configured
     try:
         payload = json.loads(raw_body)
     except ValueError:
         return False
+
+    if not secret:
+        # TLS-only mode: nothing to compare against. Accept, but say so once.
+        if not _warned_no_secret_configured:
+            _warned_no_secret_configured = True
+            print("WARNING: MERAKI_WEBHOOK_SECRET is not set: no shared-secret verification is configured.")
+        return True
+
     received = str(payload.get("sharedSecret", ""))
-    return hmac.compare_digest(received, secret or "")
+    return hmac.compare_digest(received, secret)
 ```
 
 > **For complete handlers with route wiring, event dispatch, and tests**, see:

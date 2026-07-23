@@ -45,6 +45,14 @@ describe('verifyMerakiWebhook', () => {
   it('returns false for non-JSON body', () => {
     expect(verifyMerakiWebhook('not json', SECRET)).toBe(false);
   });
+
+  it('accepts and warns when no secret is configured (Meraki secret is optional)', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const body = JSON.stringify({ alertTypeId: 'motion_alert' });
+    expect(verifyMerakiWebhook(body, '')).toBe(true);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
 });
 
 describe('POST /webhooks/meraki', () => {
@@ -55,7 +63,7 @@ describe('POST /webhooks/meraki', () => {
       .send(JSON.stringify({ alertTypeId: 'motion_alert' }));
 
     expect(response.status).toBe(401);
-    expect(response.text).toBe('Invalid shared secret');
+    expect(response.text).toBe('Missing or invalid sharedSecret in payload');
   });
 
   it('returns 401 when sharedSecret is wrong', async () => {

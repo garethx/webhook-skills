@@ -3,12 +3,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
+// Warn only once so an unsecured deployment is visible without flooding logs.
+let warnedNoSecretConfigured = false;
+
 /**
  * Verify a Cisco Meraki webhook.
  *
  * Meraki does NOT sign webhooks with an HMAC header. It echoes the "Shared
  * secret" you configured on the HTTP server back inside the JSON body as
  * `sharedSecret`. Verification is a timing-safe string compare on that field.
+ *
+ * The shared secret is OPTIONAL in Meraki: leave it blank on the HTTP server and
+ * deliveries carry no `sharedSecret` at all. So handle the two cases explicitly
+ * rather than comparing '' to '' and silently passing:
+ *   - No secret configured -> accept, but warn that TLS is the only protection.
+ *   - Secret configured    -> the payload MUST carry a matching `sharedSecret`.
  */
 export function verifyMerakiWebhook(rawBody: string, secret: string): boolean {
   let payload: { sharedSecret?: unknown };
@@ -18,8 +27,20 @@ export function verifyMerakiWebhook(rawBody: string, secret: string): boolean {
     return false;
   }
 
+  if (!secret) {
+    if (!warnedNoSecretConfigured) {
+      warnedNoSecretConfigured = true;
+      console.warn(
+        'MERAKI_WEBHOOK_SECRET is not set: no shared-secret verification is configured, ' +
+          'so TLS is the only protection for these webhooks. Set a shared secret on the ' +
+          'Meraki HTTP server and in MERAKI_WEBHOOK_SECRET to verify deliveries.'
+      );
+    }
+    return true;
+  }
+
   const received = Buffer.from(String(payload.sharedSecret ?? ''));
-  const expected = Buffer.from(String(secret ?? ''));
+  const expected = Buffer.from(String(secret));
 
   // timingSafeEqual throws if lengths differ — guard first.
   if (received.length !== expected.length) {
@@ -39,7 +60,10 @@ export async function POST(request: NextRequest) {
   // Verify the shared secret (carried in the body, not a header)
   if (!verifyMerakiWebhook(body, process.env.MERAKI_WEBHOOK_SECRET!)) {
     console.error('Meraki webhook verification failed');
-    return NextResponse.json({ error: 'Invalid shared secret' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'Missing or invalid sharedSecret in payload' },
+      { status: 401 }
+    );
   }
 
   // Parse the payload after verification
