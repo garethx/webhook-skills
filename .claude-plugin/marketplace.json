@@ -1153,6 +1153,27 @@
       ]
     },
     {
+      "name": "oura-webhooks",
+      "description": "Receive and verify Oura webhooks. Use when setting up Oura Ring webhook handlers, completing the subscription verification handshake, debugging x-oura-signature verification, or handling data events like sleep, daily_readiness, daily_activity, and workout.",
+      "source": "./skills/oura-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/oura-webhooks",
+      "keywords": [
+        "webhooks",
+        "oura"
+      ]
+    },
+    {
       "name": "paddle-webhooks",
       "description": "Verify Paddle webhook signatures (HMAC-SHA256 with multi-signature rotation), handle subscription and billing events.",
       "source": "./skills/paddle-webhooks",
