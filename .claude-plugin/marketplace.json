@@ -307,6 +307,27 @@
       ]
     },
     {
+      "name": "fireflies-webhooks",
+      "description": "Receive and verify Fireflies.ai webhooks. Use when setting up Fireflies webhook handlers, debugging x-hub-signature verification, or handling the \"Transcription completed\" event when a meeting transcript is ready.",
+      "source": "./skills/fireflies-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/fireflies-webhooks",
+      "keywords": [
+        "webhooks",
+        "fireflies"
+      ]
+    },
+    {
       "name": "fusionauth-webhooks",
       "description": "Verify FusionAuth JWT webhook signatures (RSA via JWKS), handle user, login, and registration events.",
       "source": "./skills/fusionauth-webhooks",
