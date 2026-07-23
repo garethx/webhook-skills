@@ -1,0 +1,19 @@
+{
+  "name": "docusign-webhooks-express",
+  "version": "1.0.0",
+  "description": "DocuSign Connect webhook handler with Express",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "docusign-esign": "^10.0.0",
+    "dotenv": "^16.3.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.0.0"
+  }
+}
