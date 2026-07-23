@@ -1074,6 +1074,27 @@
       ]
     },
     {
+      "name": "paystack-webhooks",
+      "description": "Receive and verify Paystack webhooks. Use when setting up Paystack webhook handlers, debugging x-paystack-signature verification, or handling payment events like charge.success, transfer.success, transfer.failed, refund.processed, subscription.create, or invoice.payment_failed.",
+      "source": "./skills/paystack-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/paystack-webhooks",
+      "keywords": [
+        "webhooks",
+        "paystack"
+      ]
+    },
+    {
       "name": "picqer-webhooks",
       "description": "Receive and verify Picqer webhooks. Use when setting up Picqer webhook handlers, debugging X-Picqer-Signature verification, or handling warehouse and order events like orders.completed, picklists.closed, or products.stock_changed.",
       "source": "./skills/picqer-webhooks",
