@@ -1121,6 +1121,27 @@
       ]
     },
     {
+      "name": "twitter-webhooks",
+      "description": "Receive and verify Twitter/X Account Activity API webhooks. Use when setting up X (Twitter) webhook handlers, debugging the x-twitter-webhooks-signature HMAC-SHA256 check, answering the CRC (Challenge-Response Check) crc_token request, or handling events like tweet_create_events, favorite_events, follow_events, and direct_message_events.",
+      "source": "./skills/twitter-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/twitter-webhooks",
+      "keywords": [
+        "webhooks",
+        "twitter"
+      ]
+    },
+    {
       "name": "vercel-webhooks",
       "description": "Verify Vercel webhook signatures (HMAC-SHA1, x-vercel-signature), handle deployment and project events.",
       "source": "./skills/vercel-webhooks",
