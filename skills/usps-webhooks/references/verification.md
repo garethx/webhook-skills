@@ -40,7 +40,7 @@ USPS publishes no official SDK for webhook verification, so verify manually.
 const crypto = require('crypto');
 
 function verifyUspsSignature(timestamp, payload, hmacHeader, secret) {
-  if (!hmacHeader) return false;
+  if (!hmacHeader || !secret) return false; // nothing to verify against
   const expected = crypto
     .createHmac('sha256', secret)
     .update(timestamp + payload) // raw stringified payload, unmodified
@@ -70,7 +70,7 @@ const ok = verifyUspsSignature(
 import hmac, hashlib, base64, json
 
 def verify_usps_signature(timestamp: str, payload: str, hmac_header: str, secret: str) -> bool:
-    if not hmac_header:
+    if not hmac_header or not secret:  # nothing to verify against
         return False
     expected = base64.b64encode(
         hmac.new(secret.encode(), (timestamp + payload).encode(), hashlib.sha256).digest()
@@ -85,15 +85,46 @@ ok = verify_usps_signature(
     envelope["timestamp"],
     envelope["payload"],
     hmac_header,
-    os.environ["USPS_WEBHOOK_SECRET"],
+    os.environ.get("USPS_WEBHOOK_SECRET"),  # may be None - see the branch below
 )
 ```
 
+## What the Examples Do When No Secret Is Configured
+
+USPS only signs notifications when the subscription was created with a 32-char
+`secret`. Without one, **no `X-HMAC` header is sent at all** — there is nothing
+to verify, and a handler that blindly calls `createHmac('sha256', undefined)` /
+`secret.encode()` crashes with an opaque 500.
+
+The examples in this skill therefore take an **explicit, documented branch**:
+
+- **`USPS_WEBHOOK_SECRET` set** → verify `X-HMAC` (or the `hmac-header` alias)
+  over `timestamp + payload`; reject with `400` on mismatch or a missing header.
+- **`USPS_WEBHOOK_SECRET` unset** → log a **one-time warning** stating that
+  notifications are being processed with no per-message verification and that
+  IP allowlisting should be used instead, then process the delivery.
+
+This mirrors how USPS actually behaves rather than failing closed on a
+configuration USPS considers valid. It is a deliberate trade-off: an unverified
+endpoint accepts anything that reaches it. If your deployment cannot rely on an
+IP allowlist, change that branch to reject the request instead — the point is
+that the choice is visible in the code, not an accident.
+
+Set a `secret` whenever you can. Treat the unset case as a development or
+IP-restricted-network mode.
+
 ## IP Allowlisting (alternative / defense in depth)
 
-Independently of (or alongside) the HMAC signature, you can restrict inbound
-traffic to USPS's published source IP ranges at your firewall or load balancer.
-This is the only verification available if you did **not** set a `secret`.
+IP allowlisting is the other option USPS offers, either instead of the HMAC
+signature or alongside it: restrict inbound traffic to the USPS source IP ranges
+at your firewall or load balancer. It is the only verification available if you
+did **not** set a `secret`.
+
+USPS does not publish those ranges in the Subscriptions API documentation, and
+no authoritative list was confirmed for this skill. **Obtain the current ranges
+from USPS directly** (your API onboarding contact or developer support) and
+re-check them periodically — do not copy IP ranges from third-party blog posts,
+and do not assume a stable published list exists.
 
 ## Common Gotchas
 
@@ -108,7 +139,9 @@ This is the only verification available if you did **not** set a `secret`.
 - **Timing-safe compare.** Use `crypto.timingSafeEqual` / `hmac.compare_digest`
   and guard against buffer-length mismatches.
 - **No secret = no verification.** If the subscription has no `secret` and you
-  have no IP allowlist, there is nothing to verify — set a `secret`.
+  have no IP allowlist, there is nothing to verify — set a `secret`. Do not let
+  the missing secret reach `createHmac` / `hmac.new`; branch on it explicitly
+  (see above) so you get a clear warning instead of a `TypeError`/500.
 
 ## Debugging Verification Failures
 

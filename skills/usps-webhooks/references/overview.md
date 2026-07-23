@@ -37,7 +37,7 @@ Every notification is a JSON envelope:
 | Field | Description |
 |-------|-------------|
 | `subscriptionId` | The subscription that produced this notification |
-| `subscriptionType` | The subscription domain. Currently `TRACKING` |
+| `subscriptionType` | Which payload schema the `payload` string holds. `TRACKING` is the confirmed value; a scan-event-extract type also exists (see below) |
 | `timestamp` | ISO-8601 time USPS generated the notification. **Part of the signed content** |
 | `payload` | **Stringified JSON** with the tracking details. `JSON.parse()` after verifying. **Part of the signed content** |
 | `links` | HATEOAS links (e.g. to fetch full tracking detail from the Tracking API) |
@@ -47,13 +47,32 @@ Every notification is a JSON envelope:
 > [USPS Tracking API](https://developers.usps.com/trackingv3) using the
 > tracking number (or follow the `links`).
 
-## Event Types
+## Event Types Are Really Two Payload Schemas
 
-The subscribable **event filter** currently exposes a single value,
-`ALL_UPDATES`, so USPS sends a notification for **every** tracking update on the
-packages you subscribed to. Handlers therefore dispatch on the envelope
-`subscriptionType` (only `TRACKING` today), and then on the tracking `status`
-inside the parsed payload.
+USPS has no event-name enum in the sense most providers do. The subscribable
+**event filter** exposes a single value, `ALL_UPDATES`, so USPS sends a
+notification for **every** update on the packages you subscribed to. What varies
+between notifications is the **shape of the `payload` string**, and the envelope
+`subscriptionType` tells you which shape you got.
+
+There are **two** documented notification schemas:
+
+| Schema | What the `payload` string contains |
+|--------|------------------------------------|
+| **Tracking Subscription Event** | A tracking summary for one item: the tracking number, its current status, and recent `trackingEvents`. This is the `TRACKING` `subscriptionType` and the one most integrations want. |
+| **Scan Event Extract Subscription Event** | A single raw scan record as captured by the USPS network — one physical scan (event code, date/time, facility/ZIP, tracking number) rather than a rolled-up status. Used for feed-style ingestion where you want every scan as its own message. |
+
+> **Unconfirmed:** the exact `subscriptionType` string USPS sends for the scan
+> event extract schema, and the precise field names inside that payload, could
+> not be verified from the developer portal (it is a JS-rendered SPA and the
+> schema was not fully readable). `TRACKING` is confirmed. Log the first
+> delivery of each subscription you create, then add an explicit branch — and
+> always keep a fallback branch for a `subscriptionType` you do not recognize.
+
+Handlers therefore dispatch first on `subscriptionType` to pick a schema, and
+then — for the tracking schema — on the `status` inside the parsed payload.
+
+## Tracking Statuses (Tracking Subscription Event)
 
 | Tracking status | Triggered when | Common use cases |
 |-----------------|----------------|------------------|

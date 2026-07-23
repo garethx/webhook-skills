@@ -75,8 +75,10 @@ per-message verification mechanisms — use at least one:
 1. **HMAC signature (recommended).** Provide a 32-char `secret`. USPS sends
    `Base64(HMAC-SHA256(secret, timestamp + payload))` in the `X-HMAC` header.
    See [verification.md](verification.md).
-2. **IP allowlisting.** Restrict inbound traffic to USPS's published source IP
-   ranges at your firewall / load balancer.
+2. **IP allowlisting.** Restrict inbound traffic to the USPS source IP ranges at
+   your firewall / load balancer. USPS does not publish those ranges in the
+   Subscriptions API docs — obtain the current list from USPS directly and
+   re-check it periodically.
 
 > ⚠️ If you provide **neither** a `secret` **nor** an IP allowlist, there is
 > **no** per-message verification at all — anyone who learns your listener URL

@@ -21,7 +21,7 @@ const app = express();
  * @returns {boolean} Whether the signature is valid
  */
 function verifyUspsSignature(timestamp, payload, hmacHeader, secret) {
-  if (!hmacHeader) return false;
+  if (!hmacHeader || !secret) return false;
   const expected = crypto
     .createHmac('sha256', secret)
     .update(timestamp + payload)
@@ -33,11 +33,26 @@ function verifyUspsSignature(timestamp, payload, hmacHeader, secret) {
   }
 }
 
-// USPS webhook endpoint - must use the raw body to reconstruct the signed content
+// Warn once, not per request, when the subscription has no signing secret
+let warnedNoSecret = false;
+function warnNoSecretOnce() {
+  if (warnedNoSecret) return;
+  warnedNoSecret = true;
+  console.warn(
+    'USPS_WEBHOOK_SECRET is not set: USPS notifications are being processed with ' +
+    'NO per-message verification. Restrict inbound traffic to the USPS source IP ' +
+    'ranges, or recreate the subscription with a 32-char `secret`.'
+  );
+}
+
+// USPS webhook endpoint. The signature covers two envelope *fields*
+// (timestamp + payload), not the raw body - but we take the body as a Buffer
+// and parse it ourselves so no body parser touches the `payload` string first.
 app.post('/webhooks/usps',
   express.raw({ type: '*/*' }),
   async (req, res) => {
     const hmacHeader = req.headers['x-hmac'] || req.headers['hmac-header'];
+    const secret = process.env.USPS_WEBHOOK_SECRET;
 
     // Parse the envelope so we can read the signed fields (timestamp + payload).
     // The inner `payload` is used verbatim for verification - never re-serialize it.
@@ -50,8 +65,13 @@ app.post('/webhooks/usps',
 
     const { subscriptionType, timestamp, payload } = envelope;
 
-    // Verify the signature over `timestamp + payload`
-    if (!verifyUspsSignature(timestamp, payload, hmacHeader, process.env.USPS_WEBHOOK_SECRET)) {
+    // Verify the signature over `timestamp + payload`. A subscription created
+    // without a `secret` gets no X-HMAC header at all, so there is nothing to
+    // verify - that is an explicit, documented branch (see
+    // references/verification.md), not an accidental bypass.
+    if (!secret) {
+      warnNoSecretOnce();
+    } else if (!verifyUspsSignature(timestamp, payload, hmacHeader, secret)) {
       console.error('Webhook signature verification failed');
       return res.status(400).send('Invalid signature');
     }
@@ -66,7 +86,9 @@ app.post('/webhooks/usps',
 
     console.log(`Received ${subscriptionType} notification (${envelope.subscriptionId})`);
 
-    // Dispatch on subscription type (currently only TRACKING)
+    // Dispatch on subscription type. `TRACKING` is the confirmed value; USPS also
+    // delivers a scan-event-extract schema (a single raw scan record), so always
+    // keep the default branch - see references/overview.md.
     switch (subscriptionType) {
       case 'TRACKING':
         handleTrackingEvent(tracking);

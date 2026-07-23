@@ -14,6 +14,21 @@ app = FastAPI()
 
 usps_secret = os.environ.get("USPS_WEBHOOK_SECRET")
 
+# Warn once, not per request, when the subscription has no signing secret
+_warned_no_secret = False
+
+
+def warn_no_secret_once():
+    global _warned_no_secret
+    if _warned_no_secret:
+        return
+    _warned_no_secret = True
+    print(
+        "USPS_WEBHOOK_SECRET is not set: USPS notifications are being processed "
+        "with NO per-message verification. Restrict inbound traffic to the USPS "
+        "source IP ranges, or recreate the subscription with a 32-char `secret`."
+    )
+
 
 def verify_usps_signature(timestamp: str, payload: str, hmac_header: str, secret: str) -> bool:
     """Verify a USPS webhook signature.
@@ -23,7 +38,7 @@ def verify_usps_signature(timestamp: str, payload: str, hmac_header: str, secret
     keyed on the subscription `secret`, and sends the Base64 digest in the
     `X-HMAC` header (deprecated alias: `hmac-header`).
     """
-    if not hmac_header:
+    if not hmac_header or not secret:
         return False
     expected = base64.b64encode(
         hmac.new(
@@ -37,7 +52,9 @@ def verify_usps_signature(timestamp: str, payload: str, hmac_header: str, secret
 
 @app.post("/webhooks/usps")
 async def usps_webhook(request: Request):
-    # Raw body is needed to reconstruct the signed content
+    # The signature covers two envelope *fields* (timestamp + payload), not the
+    # raw body - we read and parse the body ourselves so nothing touches the
+    # `payload` string before verification.
     raw_body = await request.body()
     hmac_header = request.headers.get("x-hmac") or request.headers.get("hmac-header")
 
@@ -52,8 +69,13 @@ async def usps_webhook(request: Request):
     timestamp = envelope.get("timestamp", "")
     payload = envelope.get("payload", "")
 
-    # Verify the signature over `timestamp + payload`
-    if not verify_usps_signature(timestamp, payload, hmac_header, usps_secret):
+    # Verify the signature over `timestamp + payload`. A subscription created
+    # without a `secret` gets no X-HMAC header at all, so there is nothing to
+    # verify - that is an explicit, documented branch (see
+    # references/verification.md), not an accidental bypass.
+    if not usps_secret:
+        warn_no_secret_once()
+    elif not verify_usps_signature(timestamp, payload, hmac_header, usps_secret):
         raise HTTPException(status_code=400, detail="Invalid signature")
 
     # Only now is it safe to parse the inner payload
@@ -64,7 +86,9 @@ async def usps_webhook(request: Request):
 
     print(f"Received {subscription_type} notification ({envelope.get('subscriptionId')})")
 
-    # Dispatch on subscription type (currently only TRACKING)
+    # Dispatch on subscription type. "TRACKING" is the confirmed value; USPS also
+    # delivers a scan-event-extract schema (a single raw scan record), so always
+    # keep the fallback branch - see references/overview.md.
     if subscription_type == "TRACKING":
         handle_tracking_event(tracking)
     else:
