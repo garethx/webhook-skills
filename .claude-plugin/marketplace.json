@@ -628,6 +628,27 @@
       ]
     },
     {
+      "name": "linkedin-webhooks",
+      "description": "Receive and verify LinkedIn webhooks. Use when setting up LinkedIn webhook handlers, completing the challengeCode endpoint validation, debugging X-LI-Signature verification, or handling LEAD_ACTION (Lead Sync) and ORGANIZATION_SOCIAL_ACTION_NOTIFICATIONS (Community Management) events.",
+      "source": "./skills/linkedin-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/linkedin-webhooks",
+      "keywords": [
+        "webhooks",
+        "linkedin"
+      ]
+    },
+    {
       "name": "mailchimp-webhooks",
       "description": "Authenticate Mailchimp webhooks (URL secret and GET validation), handle subscribe, unsubscribe, and profile events.",
       "source": "./skills/mailchimp-webhooks",
