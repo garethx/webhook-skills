@@ -120,7 +120,10 @@ class TestWalmartWebhookEndpoint:
         assert response.status_code == 200
         assert response.json() == {"received": True}
 
-    def test_handles_documented_event_types(self):
+    def test_handles_known_event_types(self):
+        # Only PO_CREATED, INVENTORY_OOS, BUY_BOX_CHANGED and RETURN_CREATED are
+        # confirmed event type names; the rest are illustrative. Confirm the full set
+        # via Walmart's Get event types API for your account.
         event_types = [
             "PO_CREATED", "PO_LINE_AUTOCANCELLED", "INTENT_TO_CANCEL", "INVENTORY_OOS",
             "OFFER_PUBLISHED", "OFFER_UNPUBLISHED", "BUY_BOX_CHANGED", "RETURN_CREATED",

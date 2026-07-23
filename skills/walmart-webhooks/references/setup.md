@@ -23,9 +23,14 @@ Call the [Get event types](https://developer.walmart.com/us-marketplace/docs/get
 
 - `PO_CREATED` (resource `ORDER`)
 - `INVENTORY_OOS` (resource `INVENTORY`)
-- `OFFER_PUBLISHED` / `OFFER_UNPUBLISHED` (resource `ITEM`)
 - `BUY_BOX_CHANGED` (resource `PRICE`)
 - `RETURN_CREATED` (resource `ReturnsAndRefunds`)
+
+Those four names are confirmed. Other event types documented elsewhere in this
+skill (`OFFER_PUBLISHED`, `REPORT_STATUS`, `RETURN_DELIVERED`, and so on) are
+illustrative and were not confirmed — **this API is the source of truth**, and
+availability varies by account and program, so subscribe only to names it
+actually returns for you.
 
 ## 3. Subscribe to Events
 

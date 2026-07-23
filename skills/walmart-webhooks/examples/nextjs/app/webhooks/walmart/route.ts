@@ -3,7 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-// Reject deliveries whose timestamp is older than this (seconds).
+// Reject deliveries whose timestamp differs from now by more than this, in either
+// direction (a symmetric ±5 min window that also absorbs modest clock skew).
 const REPLAY_TOLERANCE_SECONDS = 5 * 60;
 
 /**

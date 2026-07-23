@@ -4,7 +4,7 @@ description: >
   Receive and verify Walmart Marketplace performance webhooks. Use when setting
   up Walmart webhook handlers, debugging WM_SEC.SIGNATURE HMAC-SHA256 signature
   verification, or handling seller events like PO_CREATED, INVENTORY_OOS,
-  OFFER_PUBLISHED, BUY_BOX_CHANGED, and RETURN_CREATED.
+  BUY_BOX_CHANGED, and RETURN_CREATED.
 license: MIT
 metadata:
   author: hookdeck
@@ -71,7 +71,7 @@ def verify_walmart_webhook(method, path_with_query, timestamp, raw_body, signatu
     return hmac.compare_digest(signature, expected)
 ```
 
-> **Also enforce** (see the examples): HTTPS/TLS 1.2+ only, a replay window (~5 min tolerance, ~2 min clock skew) against `WM_SEC.TIMESTAMP`, confirm the seller identity in the payload is one you're authorized for, dedupe by delivery/event id (~7 days), and return `2xx` only **after** a durable write. Respond within 3 seconds — repeated failures trigger a webhook failure notification email to account administrators.
+> **Also enforce** (see the examples): HTTPS/TLS 1.2+ only, a replay window against `WM_SEC.TIMESTAMP` (the examples use a symmetric ±5 min window, which covers stale replays and modest clock skew), confirm the seller identity in the payload is one you're authorized for, dedupe by delivery/event id (~7 days), and return `2xx` only **after** a durable write. Respond within 3 seconds — repeated failures trigger a webhook failure notification email to account administrators.
 
 > **For complete handlers with route wiring, event dispatch, and tests**, see:
 > - [examples/express/](examples/express/)
@@ -82,16 +82,18 @@ def verify_walmart_webhook(method, path_with_query, timestamp, raw_body, signatu
 
 Each delivery carries an `eventType` (with a `resourceName` and `eventVersion`). Subscribe via Walmart's Webhooks Subscription API.
 
+> **Confirm these names for your account.** Only `PO_CREATED`, `INVENTORY_OOS`, `BUY_BOX_CHANGED`, and `RETURN_CREATED` (marked ✅ below) were verified verbatim against Walmart's [Get event types](https://developer.walmart.com/us-marketplace/docs/get-event-types) API. The remaining rows — and their `resourceName` mappings — are illustrative; event availability varies by program, so call Get event types for your own account before subscribing to them.
+
 | eventType | resourceName | Triggered When |
 |-----------|--------------|----------------|
-| `PO_CREATED` | `ORDER` | A new purchase order is routed to you for fulfillment |
+| ✅ `PO_CREATED` | `ORDER` | A new purchase order is routed to you for fulfillment |
 | `PO_LINE_AUTOCANCELLED` | `ORDER` | A PO line is auto-cancelled |
 | `INTENT_TO_CANCEL` | `ORDER` | A customer requests to cancel an order |
-| `INVENTORY_OOS` | `INVENTORY` | An item goes out of stock |
+| ✅ `INVENTORY_OOS` | `INVENTORY` | An item goes out of stock |
 | `OFFER_PUBLISHED` | `ITEM` | An offer becomes published/live |
 | `OFFER_UNPUBLISHED` | `ITEM` | An offer is unpublished |
-| `BUY_BOX_CHANGED` | `PRICE` | Buy Box ownership/price changes for an item |
-| `RETURN_CREATED` | `ReturnsAndRefunds` | A customer creates a return |
+| ✅ `BUY_BOX_CHANGED` | `PRICE` | Buy Box ownership/price changes for an item |
+| ✅ `RETURN_CREATED` | `ReturnsAndRefunds` | A customer creates a return |
 | `REPORT_STATUS` | `REPORTS` | A requested report is ready |
 | `SELLER_PERFORMANCE_ALARMS` | `ITEMS` | A seller performance alarm fires |
 

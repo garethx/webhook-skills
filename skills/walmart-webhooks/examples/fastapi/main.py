@@ -15,7 +15,8 @@ app = FastAPI()
 
 WALMART_WEBHOOK_SECRET = os.environ.get("WALMART_WEBHOOK_SECRET", "")
 
-# Reject deliveries whose timestamp is older than this (seconds).
+# Reject deliveries whose timestamp differs from now by more than this, in either
+# direction (a symmetric +/-5 min window that also absorbs modest clock skew).
 REPLAY_TOLERANCE_SECONDS = 5 * 60
 
 

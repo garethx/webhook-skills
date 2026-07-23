@@ -115,7 +115,7 @@ Always compare with a constant-time function (`crypto.timingSafeEqual` / `hmac.c
 
 A valid signature is necessary but not sufficient. Also:
 
-- **Enforce a replay window** — reject deliveries whose `WM_SEC.TIMESTAMP` is older than ~5 minutes (allow ~2 minutes of clock skew).
+- **Enforce a replay window** — reject deliveries whose `WM_SEC.TIMESTAMP` is more than 5 minutes away from your current time **in either direction**. The examples use a symmetric ±5 minute window (`REPLAY_TOLERANCE_SECONDS = 5 * 60`), which rejects stale replays and also absorbs modest clock skew between your server and Walmart's.
 - **HTTPS/TLS 1.2+ only.**
 - **Confirm the seller identity** in the payload (`sellerId`) is one you're authorized to process.
 - **Dedupe by delivery/event id** for ~7 days to handle retries idempotently.

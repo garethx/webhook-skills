@@ -140,7 +140,10 @@ describe('POST /webhooks/walmart', () => {
     expect(res.text).toBe('OK');
   });
 
-  it('handles the documented event types', async () => {
+  // Only PO_CREATED, INVENTORY_OOS, BUY_BOX_CHANGED and RETURN_CREATED are confirmed
+  // event type names; the rest are illustrative. Confirm the full set via Walmart's
+  // Get event types API for your account.
+  it('handles the event types the dispatcher knows about', async () => {
     const eventTypes = [
       'PO_CREATED', 'PO_LINE_AUTOCANCELLED', 'INTENT_TO_CANCEL', 'INVENTORY_OOS',
       'OFFER_PUBLISHED', 'OFFER_UNPUBLISHED', 'BUY_BOX_CHANGED', 'RETURN_CREATED',

@@ -6,8 +6,9 @@ const crypto = require('crypto');
 
 const app = express();
 
-// Reject deliveries whose timestamp is older than this (seconds). Walmart's
-// WM_SEC.TIMESTAMP is Unix epoch seconds; allow ~5 min + clock skew.
+// Reject deliveries whose timestamp differs from now by more than this, in either
+// direction (a symmetric ±5 min window that also absorbs modest clock skew).
+// Walmart's WM_SEC.TIMESTAMP is Unix epoch seconds.
 const REPLAY_TOLERANCE_SECONDS = 5 * 60;
 
 /**
