@@ -1183,6 +1183,27 @@
       ]
     },
     {
+      "name": "recharge-webhooks",
+      "description": "Receive and verify Recharge (subscription commerce) webhooks. Use when setting up Recharge webhook handlers, debugging X-Recharge-Hmac-Sha256 signature verification, or handling subscription events like charge/paid, charge/failed, subscription/created, subscription/cancelled, and order/created.",
+      "source": "./skills/recharge-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/recharge-webhooks",
+      "keywords": [
+        "webhooks",
+        "recharge"
+      ]
+    },
+    {
       "name": "recurly-webhooks",
       "description": "Authenticate Recurly webhooks (HTTP Basic Auth), parse XML notifications for subscription and payment events.",
       "source": "./skills/recurly-webhooks",
