@@ -881,6 +881,27 @@
       ]
     },
     {
+      "name": "lithic-webhooks",
+      "description": "Receive and verify Lithic webhooks. Use when setting up Lithic event subscriptions, debugging Standard Webhooks signature verification, or handling card and money-movement events like card.created, card_transaction.updated, payment_transaction.created, and dispute.updated.",
+      "source": "./skills/lithic-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/lithic-webhooks",
+      "keywords": [
+        "webhooks",
+        "lithic"
+      ]
+    },
+    {
       "name": "mailchimp-webhooks",
       "description": "Authenticate Mailchimp webhooks (URL secret and GET validation), handle subscribe, unsubscribe, and profile events.",
       "source": "./skills/mailchimp-webhooks",
