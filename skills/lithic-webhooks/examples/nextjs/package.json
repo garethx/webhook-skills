@@ -1,0 +1,23 @@
+{
+  "name": "lithic-webhooks-nextjs",
+  "version": "1.0.0",
+  "description": "Lithic webhook handler with Next.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "lithic": "^0.144.0",
+    "next": "^16.2.11",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
