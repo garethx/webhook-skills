@@ -38,6 +38,34 @@
 #   3. Update README.md Provider Skills table
 
 providers:
+  - name: bigcommerce
+    displayName: BigCommerce
+    docs:
+      webhooks: https://docs.bigcommerce.com/developer/docs/integrations/webhooks/overview
+      verification: https://docs.bigcommerce.com/developer/docs/integrations/webhooks/https
+      events: https://docs.bigcommerce.com/developer/docs/integrations/webhooks/event-reference/events
+    notes: >
+      Webhooks are created via API only (POST /stores/{store_hash}/v3/hooks; also V2 and a
+      GraphQL Admin API variant with data filters) — not via the store dashboard. Two
+      verification options: (1) optional custom headers set at creation ({"headers":
+      {"username": "...", "value": "..."}}) echoed on every callback for basic-auth-style
+      checks, and (2) signature verification now documented per the Standard Webhooks spec —
+      docs advise Standard Webhooks libraries, verifying with the app's base64-encoded client
+      secret and checking the timestamp against replay. Payload is thin: data carries only
+      resource type and id (plus store_id, scope, hash, producer, created_at) — call back to
+      the REST API to fetch the resource. Respond HTTP 200 immediately; failures retry over
+      ~48h (60s up to daily) after which the hook is deactivated and the app owner emailed.
+      A per-domain blocklist kicks in for 3 minutes if success ratio drops below 90% in a
+      2-minute sliding window. HTTPS on port 443 only; new hooks can take up to 1 minute to
+      activate.
+    testScenario:
+      events:
+        - store/order/created
+        - store/product/inventory/updated
+        - store/cart/abandoned
+    sdks:
+      pip: [bigcommerce]
+
   - name: chargebee
     displayName: Chargebee
     docs:
@@ -153,6 +181,67 @@ providers:
       events:
         - voice.generation.completed
         - voice.clone.completed
+
+  - name: fireblocks
+    displayName: Fireblocks
+    docs:
+      webhooks: https://developers.fireblocks.com/reference/webhooks-v2
+      verification: https://developers.fireblocks.com/reference/validating-webhooks
+      events: https://developers.fireblocks.com/reference/webhooks-structures-eventtypes-transaction
+    notes: >
+      Two signature schemes exist. Legacy (webhooks v1): "Fireblocks-Signature" header,
+      base64-encoded RSA PKCS#1 v1.5 signature over the SHA-512 hash of the raw request
+      body, verified against a static per-environment RSA public key published in the docs
+      (separate PEM keys for US, EU/EU2, and sandbox). New (webhooks v2):
+      "Fireblocks-Webhook-Signature" header carrying a detached JWS (RS512); the kid maps to
+      auto-rotated keys at regional JWKS endpoints (e.g.
+      https://keys.fireblocks.io/.well-known/jwks.json, cache max-age 3600). Both headers
+      were sent during the migration period; v1 deprecation was slated for March 2026 —
+      RE-VERIFY current state before shipping. Does NOT follow the Standard Webhooks spec.
+      Verify against raw body bytes. Configure in Console (Developer Center) or via the
+      Webhooks v2 API; v2 adds event subscriptions and resend of events up to 30 days.
+      Retries: expects HTTP 200; 5xx/429/408 retried with exponential backoff at
+      10/30/120/300/900/1800/3600/7200/14400s, max 10 attempts. Official SDKs cover webhook
+      management but do not ship signature-verification helpers — docs provide
+      TypeScript/Python/Go/Java verification snippets. v2 event names are dotted lowercase
+      (transaction.created, transaction.status.updated); v1 names are uppercase
+      (TRANSACTION_CREATED).
+    testScenario:
+      events:
+        - transaction.created
+        - transaction.status.updated
+    sdks:
+      npm: ["@fireblocks/ts-sdk", "fireblocks-sdk"]
+      pip: ["fireblocks", "fireblocks-sdk"]
+  - name: facebook
+    displayName: Facebook
+    docs:
+      webhooks: https://developers.facebook.com/docs/graph-api/webhooks
+      verification: https://developers.facebook.com/docs/graph-api/webhooks/getting-started
+      events: https://developers.facebook.com/docs/graph-api/webhooks/reference
+    notes: >
+      Verify POST deliveries via X-Hub-Signature-256 header: "sha256=" prefix followed by a
+      hex-encoded HMAC-SHA256 of the RAW request body keyed with the App Secret (legacy
+      X-Hub-Signature carries SHA1). Compute over the raw bytes before any JSON parsing —
+      Meta signs an escaped-unicode form of the payload, so re-serialized JSON will not match.
+      Endpoint registration requires a GET handshake: Meta sends hub.mode=subscribe,
+      hub.verify_token (must match the Verify Token set in App Dashboard > Webhooks), and
+      hub.challenge, which must be echoed back with 200. Does NOT follow the Standard
+      Webhooks spec. Payloads are JSON with {object, entry[]} and may batch up to 1000
+      updates per POST — handle each entry individually. Respond 200 OK quickly; failed
+      deliveries are retried immediately then with decreasing frequency for 36 hours, after
+      which they are dropped. Optional mTLS (Meta client cert CN
+      client.webhooks.fbclientcerts.com). Apps in Development mode only receive test
+      notifications; Page subscriptions also need pages_manage_metadata granted via
+      /{page-id}/subscribed_apps. Events are (object, field) pairs, not dotted names.
+    testScenario:
+      events:
+        - page.feed
+        - page.messages
+        - page.leadgen
+    sdks:
+      npm: [facebook-nodejs-business-sdk]
+      pip: [facebook-business]
 
   - name: fusionauth
     displayName: FusionAuth
@@ -358,6 +447,38 @@ providers:
         - Issue create
         - Comment create
 
+  - name: linkedin
+    displayName: LinkedIn
+    docs:
+      webhooks: https://learn.microsoft.com/en-us/linkedin/shared/api-guide/developer-webhooks
+      verification: https://learn.microsoft.com/en-us/linkedin/shared/api-guide/webhook-validation
+    notes: >
+      Two-part verification, both HMAC-SHA256 keyed with the app clientSecret. (1) Endpoint
+      validation: LinkedIn GETs your URL with ?challengeCode=<uuid>; respond within 3s with
+      JSON {challengeCode, challengeResponse} where challengeResponse =
+      hex(HMACSHA256(challengeCode, clientSecret)). Endpoints are re-validated every 2 hours
+      and blocked after 3 consecutive failures (unblock via portal or the developerWebhooks
+      revalidateWebhook action). (2) Per-request X-LI-Signature header =
+      hex(HMACSHA256("hmacsha256=" + raw JSON body, clientSecret)) — the "hmacsha256="
+      prefix is only in the string-to-sign, not the header; raw body + constant-time
+      compare. Does NOT follow the Standard Webhooks spec. Webhooks exist per-product,
+      gated behind partner programs: Lead Sync (POST /rest/leadNotifications; payload type
+      LEAD_ACTION; requires r_marketing_leadgen_automation + Lead Sync program), Community
+      Management (PUT /rest/eventSubscriptions, eventType
+      ORGANIZATION_SOCIAL_ACTION_NOTIFICATIONS; requires rw_organization_admin), and Talent
+      (Apply Connect job status + resync). Gotchas: HTTPS only, ngrok explicitly
+      unsupported; duplicates expected — dedupe on notificationId; redelivery every 5
+      minutes for up to 8 hours (documented for org social actions), missed notifications
+      retrievable via pull API for 60 days; from 2026-03-16 unvalidated Lead Sync webhooks
+      stop receiving notifications.
+    testScenario:
+      events:
+        - LEAD_ACTION
+        - ORGANIZATION_SOCIAL_ACTION_NOTIFICATIONS
+    sdks:
+      npm: [linkedin-api-client]
+      pip: [linkedin-api-client]
+
   - name: mailgun
     displayName: Mailgun
     docs:
@@ -380,6 +501,66 @@ providers:
       events:
         - delivered
         - failed
+
+  - name: monday
+    displayName: monday.com
+    docs:
+      webhooks: https://developer.monday.com/api-reference/reference/webhooks
+      verification: https://developer.monday.com/apps/docs/integration-authorization
+    notes: >
+      Webhooks are created per-board via the Webhooks integration in the board's
+      Integrations center or via the GraphQL create_webhook mutation (board_id, url, event,
+      optional config). On creation monday.com POSTs a JSON body with a "challenge" token;
+      the endpoint must echo it back as {"challenge": "<token>"} or registration fails.
+      Requests MAY carry a JWT in the Authorization header — verify with a JWT library
+      against the app's Signing Secret (board/integration webhooks) or Client Secret (app
+      lifecycle webhooks); JWT auth is only guaranteed for webhooks created with an
+      integration app token — webhooks created with a personal API token or the no-code
+      board integration may not include it, leaving the challenge handshake as the only
+      creation-time check. Does NOT follow the Standard Webhooks spec. Payload wraps data in
+      an "event" object (userId, boardId, pulseId, pulseName, columnValues, triggerTime,
+      subscriptionId, triggerUuid; subitem events add parentItemId/parentItemBoardId).
+      Retries: once a minute for 30 minutes.
+    testScenario:
+      events:
+        - create_item
+        - change_column_value
+        - create_update
+    sdks:
+      npm: [monday-sdk-js]
+  - name: microsoft-graph
+    displayName: Microsoft Graph
+    docs:
+      webhooks: https://learn.microsoft.com/en-us/graph/webhooks
+      verification: https://learn.microsoft.com/en-us/graph/change-notifications-delivery-webhooks
+      events: https://learn.microsoft.com/en-us/graph/api/resources/subscription?view=graph-rest-1.0
+    notes: >
+      No HMAC signatures and does NOT follow the Standard Webhooks spec; three-part
+      validation model: (1) endpoint validation — on subscription create, Graph POSTs
+      ?validationToken={token} and you must echo the URL-decoded token back as text/plain
+      with HTTP 200 within 10 seconds; (2) clientState — opaque shared secret set at
+      subscription time, echoed in every notification, reject mismatches; (3) for rich
+      notifications (includeResourceData: true), each POST carries a validationTokens array
+      of JWTs — validate via Microsoft identity platform OIDC keys, audience = your app ID,
+      caller appid = 0bf30f3b-4a52-48df-9a82-234910c4a086; resource data is AES-encrypted
+      (CBC/PKCS7) with an RSA-wrapped dataKey plus HMAC-SHA256 dataSignature, requiring
+      encryptionCertificate at subscribe time. Subscriptions via POST
+      https://graph.microsoft.com/v1.0/subscriptions with changeType
+      (created/updated/deleted, comma-combinable), resource, notificationUrl,
+      expirationDateTime. Short max lifetimes force renewal via PATCH: presence 1 hour,
+      Teams messages 3 days, Outlook ~7 days (~1 day with resource data), driveItem and
+      SharePoint list ~30 days, user/group ~29 days. Must return 2xx within 3 seconds
+      (202 recommended, process async) or Graph retries up to 4 hours. Handle lifecycle
+      notifications on a separate lifecycleNotificationUrl: reauthorizationRequired,
+      subscriptionRemoved, missed (resync via delta query). SDKs manage subscriptions only —
+      no official verification helper.
+    testScenario:
+      events:
+        - "changeType: created,updated on resource /me/mailFolders('inbox')/messages"
+        - "changeType: updated,deleted on resource /users"
+    sdks:
+      npm: ["@microsoft/microsoft-graph-client"]
+      pip: ["msgraph-sdk"]
 
   - name: notion
     displayName: Notion
@@ -524,6 +705,59 @@ providers:
         - PAYMENT.CAPTURE.COMPLETED
         - BILLING.SUBSCRIPTION.CREATED
 
+  - name: polar
+    displayName: Polar
+    docs:
+      webhooks: https://polar.sh/docs/integrate/webhooks/endpoints
+      verification: https://polar.sh/docs/integrate/webhooks/delivery
+      events: https://polar.sh/docs/integrate/webhooks/events
+    notes: >
+      Follows the Standard Webhooks spec: HMAC-SHA256 signature over
+      "{webhook-id}.{webhook-timestamp}.{body}" delivered via webhook-id, webhook-timestamp,
+      and webhook-signature headers. Gotcha: the webhook secret is expected to be
+      base64-encoded before signing — the official SDKs handle this, but custom/
+      standard-webhooks verifiers must base64-encode the dashboard secret first (Polar
+      secrets are user-set or randomly generated, NOT whsec_-prefixed). Verify against the
+      raw request body (e.g. express.raw). SDK helpers: validateEvent /
+      WebhookVerificationError from "@polar-sh/sdk/webhooks" (Node) and validate_event from
+      polar_sdk.webhooks (Python). Endpoints configured in organization settings with
+      per-event subscription and a Raw/Discord/Slack format choice — only "Raw" sends the
+      JSON payload for verification. Delivery: 10s request timeout (respond fast, ideally
+      <2s), up to 10 retries with exponential backoff, auto-disabled after 10 consecutive
+      failures (manual re-enable). Sandbox environment and "polar listen" CLI tunnel
+      available for local testing.
+    testScenario:
+      events:
+        - order.created
+        - subscription.active
+        - checkout.updated
+    sdks:
+      npm: ["@polar-sh/sdk"]
+      pip: ["polar-sdk"]
+  - name: picqer
+    displayName: Picqer
+    docs:
+      webhooks: https://picqer.com/en/api/webhooks
+      verification: https://picqer.com/en/api/webhooks#validating-webhooks
+    notes: >
+      Signature: HMAC-SHA256 of the entire raw request body using the optional per-hook
+      `secret` set at registration, base64-encoded (not hex), sent in the X-Picqer-Signature
+      header (constant-time compare; raw body required). Secret is OPTIONAL at hook creation
+      — if omitted, no signature verification is possible; flag this in skill docs. Does NOT
+      follow the Standard Webhooks spec. Hooks are created via POST /api/v1/hooks (fields:
+      name, event, address, optional secret); DELETE deactivates (not deletes),
+      POST /hooks/{id}/reactivate re-enables. Endpoint must respond 200/201/202 within 10s;
+      failures retried 15 times over ~17 hours, and a hook is auto-deactivated after 5
+      complete failures within 24h. API auth is HTTP Basic (API key as username); rate limit
+      normally 500 req/min (dynamic), 429 + Picqer error code 28 on excess. Official SDK is
+      PHP-only (picqer/api-client on Packagist); no official npm or pip package.
+    testScenario:
+      events:
+        - orders.created
+        - orders.status_changed
+        - picklists.closed
+        - picklists.shipments.created
+
   - name: replicate
     displayName: Replicate
     docs:
@@ -564,6 +798,31 @@ providers:
       events:
         - Bounce
         - Delivery
+
+  - name: sanity
+    displayName: Sanity
+    docs:
+      webhooks: https://www.sanity.io/docs/webhooks
+      verification: https://github.com/sanity-io/webhook-toolkit
+    notes: >
+      GROQ-powered webhooks fire on document create/update/delete in the Content Lake;
+      there are no fixed event names — triggers are defined per-webhook with a GROQ filter
+      (incl. delta::changedAny/changedOnly, before()/after()) and the payload is
+      user-defined via a GROQ projection (defaults to the full document). Configured at
+      sanity.io/manage. Signature: sanity-webhook-signature header, Stripe-style
+      "t=<ms-timestamp>,v1=<sig>", HMAC-SHA256 over "<timestamp>.<rawBody>" with the
+      webhook secret, base64url-encoded (no padding) — NOT Standard Webhooks compliant.
+      Verify against the raw body. Delivery: 1 concurrent request, 2 retries at 30s
+      intervals, 30s timeout; use the idempotency-key header for dedup; webhooks ignore
+      draft and version events by default; no strict delivery guarantee — don't rely solely
+      on webhooks. Official helper: @sanity/webhook (isValidSignature, assertValidSignature,
+      requireSignedRequest middleware; v4 needs Node 18+). No official pip package.
+    testScenario:
+      events:
+        - document created (GROQ filter _type == "post", create trigger)
+        - document updated (delta::changedAny(title))
+    sdks:
+      npm: ["@sanity/webhook"]
 
   - name: scrapfly
     displayName: Scrapfly
@@ -686,6 +945,59 @@ providers:
         - payment_intent.succeeded
         - checkout.session.completed
 
+  - name: tiktok-shop
+    displayName: TikTok Shop
+    docs:
+      webhooks: https://partner.tiktokshop.com/docv2/page/tts-webhooks-overview
+      verification: https://partner.tiktokshop.com/docv2/page/configuration-guide
+    notes: >
+      Signature arrives in the HTTP Authorization header (no "Bearer" prefix) as a
+      lowercase-hex HMAC-SHA256: sign base = app_key + raw_request_body, key = app_secret.
+      Verify against the raw body exactly as received; this scheme is distinct from TikTok
+      Shop's API request signing and does NOT follow the Standard Webhooks spec (no
+      timestamp in the signature, so no replay protection). Configure per shop in Partner
+      Center (App & Service > app > Basic Information > Developing > Webhook URL / Event
+      subscriptions) or via Events API PUT/GET/DELETE
+      https://open-api.tiktokglobalshop.com/event/202309/webhooks. Endpoint must be HTTPS on
+      a domain (no IP, no custom port), TLS 1.2+, and return HTTP 200 with empty body within
+      3 seconds; 401 signals rejected signature. Delivery is at-least-once with 4 retries
+      after failure (2 min, 30 min, 3 h, 12 h) then gives up — dedupe on
+      tts_notification_id; docs recommend polling reconciliation. Payload metadata: type
+      (numeric — unreliable, branch on subscribed event_type instead), tts_notification_id,
+      shop_id, timestamp, data. NOTE: partner docs are a client-side React app — plain HTTP
+      fetches get an empty shell; use a JS-rendering browser.
+    testScenario:
+      events:
+        - ORDER_STATUS_CHANGE
+        - PACKAGE_UPDATE
+        - PRODUCT_STATUS_CHANGE
+  - name: svix
+    displayName: Svix
+    docs:
+      webhooks: https://docs.svix.com/receiving/introduction
+      verification: https://docs.svix.com/receiving/verifying-payloads/how
+    notes: >
+      Svix is webhook infrastructure used by many upstream services; "SVIX" verification
+      applies to any provider delivering webhooks via Svix. Requests carry svix-id,
+      svix-timestamp, and svix-signature headers. Signature =
+      base64(HMAC-SHA256(key, "{svix-id}.{svix-timestamp}.{raw_body}")) where key is the
+      base64-DECODED portion of the secret after the "whsec_" prefix. svix-signature may
+      hold multiple space-delimited "v1,<sig>" entries for secret rotation — match ANY;
+      strip the "v1," prefix before constant-time compare. Svix libraries reject timestamps
+      more than 5 minutes off (past or future); verify against the raw request body only.
+      Scheme is the basis of the Standard Webhooks spec; some senders use interchangeable
+      webhook-id / webhook-timestamp / webhook-signature header names (Professional/
+      Enterprise-tier option) — accept both. Event types/payloads are defined by the
+      upstream service (browsable in that sender's Svix App Portal); common envelope
+      convention is {"type": "<event.name>", "data": {...}} but not enforced.
+    testScenario:
+      events:
+        - generic.event.created
+        - generic.event.updated
+    sdks:
+      npm: [svix]
+      pip: [svix]
+
   - name: twilio
     displayName: Twilio
     docs:
@@ -706,6 +1018,58 @@ providers:
       events:
         - incoming SMS
         - message status callback
+
+  - name: typeform
+    displayName: Typeform
+    docs:
+      webhooks: https://www.typeform.com/developers/webhooks/
+      verification: https://www.typeform.com/developers/webhooks/secure-your-webhooks/
+    notes: >
+      Signature: Typeform-Signature header = "sha256=" + base64(HMAC-SHA256(raw body,
+      secret)). Note base64 encoding (not hex) — a common gotcha; verification requires the
+      raw, unparsed request body. Secret is set per-webhook via the UI (form Connect >
+      Webhooks > Edit > Add a Secret) or the Webhooks API (PUT
+      /forms/{form_id}/webhooks/{tag} with url, enabled, secret, verify_ssl, event_types).
+      Does NOT follow the Standard Webhooks spec. Payload has event_type, event_id, and a
+      form_response object with an answers array (unanswered/logic-skipped fields omitted).
+      Retries: 410/404 disables immediately; 429/408/503/423 retried every 2-3 min for 10
+      hours; other failures retried ~5 times with growing intervals; auto-disabled at 100%
+      failure rate over 24h. Endpoint must be https (no self-signed certs).
+      form_response_partial requires the partial-submit-points form feature (may be
+      plan-gated).
+    testScenario:
+      events:
+        - form_response
+    sdks:
+      npm: ["@typeform/api-client"]
+  - name: twitter
+    displayName: Twitter/X
+    docs:
+      webhooks: https://docs.x.com/x-api/webhooks/introduction
+      verification: https://docs.x.com/x-api/webhooks/quickstart
+      events: https://docs.x.com/x-api/account-activity/introduction
+    notes: >
+      HMAC-SHA256 over the raw request body using the app's consumer secret (API secret key)
+      as the HMAC key; signature is base64-encoded, prefixed with "sha256=", and sent in the
+      x-twitter-webhooks-signature header. Compare with constant-time comparison. Does NOT
+      follow the Standard Webhooks spec and there is no timestamp in the scheme, so no replay
+      protection. Challenge-Response Check (CRC): X sends GET <webhook_url>?crc_token=... at
+      registration, roughly hourly, and on demand (PUT /2/webhooks/:webhook_id triggers one);
+      you must reply within the timeout with JSON {"response_token": "sha256=" +
+      base64(HMAC-SHA256(consumer_secret, crc_token))} or the webhook is marked invalid and
+      delivery stops. Use the consumer secret, not the bearer/access token. Webhooks are
+      configured via the V2 Webhooks API (POST/GET/DELETE /2/webhooks with OAuth2 App-Only
+      bearer auth); per-user subscriptions via POST
+      /2/account_activity/webhooks/:webhook_id/subscriptions/all (OAuth 1.0a user context).
+      Endpoint must be public HTTPS with no port in the URL and respond within 10 seconds.
+      Requires an approved developer account; Account Activity API tiers: Pay-Per-Use
+      (1 webhook, 3 subscriptions) or Enterprise (5+ webhooks, 5000+ subscriptions).
+      Retry-on-failure behavior is not documented for v2 — treat delivery as at-most-once.
+    testScenario:
+      events:
+        - tweet_create_events
+        - favorite_events
+        - direct_message_events
 
   - name: vercel
     displayName: Vercel
@@ -765,6 +1129,35 @@ providers:
         - form_submission
         - ecomm_new_order
 
+  - name: whatsapp
+    displayName: WhatsApp
+    docs:
+      webhooks: https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/overview
+      verification: https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint/
+      events: https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/reference/messages
+    notes: >
+      Meta signs POST payloads with X-Hub-Signature-256: "sha256=" + lowercase hex
+      HMAC-SHA256 of the raw JSON request body, keyed with the app secret; compute over the
+      exact raw bytes received (Meta may escape unicode). Endpoint must also answer a GET
+      verification handshake: when hub.mode=subscribe and hub.verify_token matches, respond
+      200 with the hub.challenge value as the body. Does NOT follow the Standard Webhooks
+      spec. All payloads are wrapped as {object: "whatsapp_business_account", entry: [{id,
+      changes: [{value, field}]}]}; the "field" property names the subscription — inbound
+      user messages arrive in value.messages[], outbound status updates
+      (sent/delivered/read/failed) in value.statuses[], both under field "messages".
+      Configure in Meta App Dashboard > WhatsApp > Configuration, or via the Graph API
+      /subscriptions edge with object=whatsapp_business_account. Gotchas: requests may batch
+      up to 1000 updates; payloads up to 3 MB; failed deliveries retried with decreasing
+      frequency for up to 7 days and retries go to every subscribed app — dedupe by
+      message/event id; valid TLS cert required; some webhooks only fire in Live mode.
+      Events are subscription fields, not dotted event names.
+    testScenario:
+      events:
+        - messages
+        - message_template_status_update
+    sdks:
+      npm: [whatsapp]
+
   - name: woocommerce
     displayName: WooCommerce
     docs:
@@ -780,6 +1173,34 @@ providers:
       events:
         - order.created
         - order.updated
+
+  - name: zendesk
+    displayName: Zendesk
+    docs:
+      webhooks: https://developer.zendesk.com/documentation/webhooks/creating-and-monitoring-webhooks/
+      verification: https://developer.zendesk.com/documentation/webhooks/verifying/
+      events: https://developer.zendesk.com/api-reference/webhooks/event-types/webhook-event-types/
+    notes: >
+      Signature: HMAC-SHA256, base64-encoded, signed content = timestamp + raw body (no
+      separator); headers X-Zendesk-Webhook-Signature and
+      X-Zendesk-Webhook-Signature-Timestamp. Secret via GET
+      /api/v2/webhooks/{webhook_id}/signing_secret (reset with POST; Admin Center "Reveal
+      secret" also works); test webhooks use the static secret
+      dGhpc19zZWNyZXRfaXNfZm9yX3Rlc3Rpbmdfb25seQ==. Does NOT follow the Standard Webhooks
+      spec. Two models: event subscriptions (zen:event-type:* names across ticket, user,
+      organization, article, community post, agent availability domains) vs. webhooks
+      connected to triggers/automations (custom JSON payload defined in the trigger); a
+      webhook subscribed to events cannot also be connected to a trigger. Raw body required
+      (some requests, e.g. GET/DELETE methods, have no body). Retries: 409 up to 3x;
+      429/503 honored if retry-after < 60s; 12s timeout with up to 5 retries; circuit
+      breaker pauses delivery at 70% error rate or 1,000+ errors in 5 min. Endpoint auth
+      options (API key, basic, bearer) are separate from and additional to signature
+      verification. No official npm/pip SDK for verification — docs show inline crypto
+      examples.
+    testScenario:
+      events:
+        - zen:event-type:ticket.created
+        - zen:event-type:user.created
 
   - name: hookdeck-event-gateway
     displayName: Hookdeck Event Gateway
