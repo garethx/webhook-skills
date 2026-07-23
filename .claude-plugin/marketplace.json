@@ -1049,6 +1049,30 @@
       ]
     },
     {
+      "name": "solidgate-webhooks",
+      "description": "Verify Solidgate webhook signatures (merchant + signature headers, HMAC-SHA512 over publicKey+body+publicKey, base64-of-hex double-encode), handle card_gate.order.updated, card_gate.chargeback.received, subscription.updated.v2, and alt_gate.order.updated events.",
+      "source": "./skills/solidgate-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/solidgate-webhooks",
+      "keywords": [
+        "webhooks",
+        "solidgate",
+        "payments",
+        "subscriptions",
+        "chargebacks"
+      ]
+    },
+    {
       "name": "square-webhooks",
       "description": "Verify Square webhook signatures (x-square-hmacsha256-signature over notification URL + body, HMAC-SHA256), handle payment, refund, invoice, and order events.",
       "source": "./skills/square-webhooks",
