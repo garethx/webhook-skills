@@ -45,9 +45,10 @@ is_valid = client.verify(
 
 ### Manual Verification (Node / fallback)
 
-The Retell **Node/TypeScript SDK does not provide a webhook verify helper**, so
-Node handlers verify manually with the built-in `crypto` module. This matches
-the Python SDK's algorithm exactly.
+The Retell **Node/TypeScript SDK does not provide a webhook verify helper**
+(confirmed against `retell-sdk` 5.46.0 on npm — there is no `./webhooks` export
+and no `verify` on the client), so Node handlers verify manually with the
+built-in `crypto` module. This matches the Python SDK's algorithm exactly.
 
 ```javascript
 const crypto = require('crypto');

@@ -30,8 +30,14 @@ signature arrives in the `X-Retell-Signature` header formatted as
 **raw request body concatenated with the timestamp**. Always verify against the
 **raw body**, never a re-serialized JSON string.
 
-The **Python SDK** ships a verify helper (`client.verify(body, api_key, signature)`).
-The **Node SDK has no verify helper**, so Node handlers verify manually:
+The **Python SDK** ships a verify helper (`client.verify(body, api_key, signature)` —
+positional params, so the keyword form used in the FastAPI example also works).
+The **Node SDK has no verify helper**, so Node handlers verify manually.
+
+> Verified against `retell-sdk` **5.56.0 (PyPI)** and **5.46.0 (npm)**: the Python
+> package exposes `retell.lib.webhook_auth.verify`, re-exported as `client.verify`;
+> the npm package has no webhook/verify export. Check your installed version — the
+> helper's presence and argument order have moved between releases.
 
 ```javascript
 const crypto = require('crypto');
