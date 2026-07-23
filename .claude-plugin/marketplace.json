@@ -992,6 +992,27 @@
       ]
     },
     {
+      "name": "meraki-webhooks",
+      "description": "Receive and verify Cisco Meraki Dashboard webhook alerts. Use when setting up Meraki webhook handlers, validating the sharedSecret, or handling alert events like motion_alert, settings_changed, sensor_alert, or stopped_reporting.",
+      "source": "./skills/meraki-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/meraki-webhooks",
+      "keywords": [
+        "webhooks",
+        "meraki"
+      ]
+    },
+    {
       "name": "microsoft-graph-webhooks",
       "description": "Receive and verify Microsoft Graph change notifications (webhooks). Use when setting up a Microsoft Graph webhook / subscription handler, completing the validationToken endpoint validation handshake, validating clientState, decrypting rich notifications (includeResourceData), handling lifecycle events (reauthorizationRequired, subscriptionRemoved, missed), or processing created/updated/deleted change notifications for Outlook mail, Teams messages, OneDrive/SharePoint driveItems, users, and groups.",
       "source": "./skills/microsoft-graph-webhooks",
