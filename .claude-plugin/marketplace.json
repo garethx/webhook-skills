@@ -1021,6 +1021,27 @@
       ]
     },
     {
+      "name": "sanity-webhooks",
+      "description": "Receive and verify Sanity GROQ-powered webhooks. Use when setting up Sanity webhook handlers, debugging signature verification with the sanity-webhook-signature header, or handling Content Lake document create/update/delete events for cache revalidation and search reindexing.",
+      "source": "./skills/sanity-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/sanity-webhooks",
+      "keywords": [
+        "webhooks",
+        "sanity"
+      ]
+    },
+    {
       "name": "scrapfly-webhooks",
       "description": "Verify Scrapfly webhook signatures (HMAC-SHA256, uppercase/lowercase hex), dispatch scrape, extraction, and screenshot jobs from one shared webhook URL.",
       "source": "./skills/scrapfly-webhooks",
