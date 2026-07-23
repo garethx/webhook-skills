@@ -1829,6 +1829,27 @@
       ]
     },
     {
+      "name": "xero-webhooks",
+      "description": "Receive and verify Xero webhooks. Use when setting up Xero webhook handlers, debugging x-xero-signature verification, passing Xero's Intent to Receive (ITR) validation, or handling accounting events like CONTACT/CREATE, INVOICE/UPDATE, CREDITNOTE, and SUBSCRIPTION changes.",
+      "source": "./skills/xero-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/xero-webhooks",
+      "keywords": [
+        "webhooks",
+        "xero"
+      ]
+    },
+    {
       "name": "zendesk-webhooks",
       "description": "Receive and verify Zendesk webhooks. Use when setting up Zendesk webhook handlers, debugging signature verification (X-Zendesk-Webhook-Signature), or handling event subscriptions like zen:event-type:ticket.created, zen:event-type:ticket.comment_added, or trigger/automation webhooks.",
       "source": "./skills/zendesk-webhooks",
