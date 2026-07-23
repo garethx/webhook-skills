@@ -1726,6 +1726,32 @@ providers:
         - card_gate.order.updated
         - subscription.updated.v2
 
+  - name: statsig
+    displayName: Statsig
+    docs:
+      webhooks: https://docs.statsig.com/integrations/event_webhook
+      verification: https://docs.statsig.com/integrations/event_webhook#webhook-signature
+    notes: >
+      Feature flags and experimentation platform. The Event Webhook (surfaced as
+      the "Generic Webhook" integration) DOES sign requests using a Slack/Stripe-style
+      HMAC-SHA256 scheme (NOT the Standard Webhooks spec). Two headers:
+      X-Statsig-Request-Timestamp and X-Statsig-Signature. Build the basestring by
+      joining version + timestamp + raw body with colons: "v0:{timestamp}:{raw_body}".
+      Compute HMAC-SHA256(signing_secret, basestring), hex-encode, prefix with "v0="
+      and compare to X-Statsig-Signature. IMPORTANT: the timestamp is in MILLISECONDS
+      (13 digits). Use the RAW, unparsed body. The signing secret is on the Webhook
+      integration card in Project Settings > Integrations. Payloads are JSON batches:
+      exposures arrive as a top-level array; config changes are wrapped as
+      {"data": [...]} with metadata type/name/description/action (action e.g.
+      "created", "updated"). Setup: Project Settings > Integrations > Generic Webhook,
+      enter destination URL, use Event Filtering to pick Exposures vs Config Changes.
+      No official webhook-verification SDK; docs give HMAC pseudo-code. Retry behavior
+      not documented.
+    testScenario:
+      events:
+        - config_change
+        - exposure
+
   - name: stripe
     displayName: Stripe
     docs:
