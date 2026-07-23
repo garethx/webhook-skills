@@ -34,8 +34,9 @@ legacy `X-Hub-Signature` SHA-1 header). See [verification.md](verification.md).
 
 ## Respond Fast, Process Async
 
-Your endpoint **must return HTTP `200`** to acknowledge receipt. Flexport retries
-delivery if it does not receive a `200`. Do the minimum synchronously (verify the
+Your endpoint **must return HTTP `200`** promptly to acknowledge receipt.
+Flexport's retry behavior is not documented, so do not assume a delivery you fail
+to acknowledge will be re-sent. Do the minimum synchronously (verify the
 signature, enqueue the event) and process the work asynchronously so you always
 respond quickly.
 

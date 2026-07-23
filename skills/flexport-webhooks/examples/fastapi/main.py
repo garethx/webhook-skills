@@ -55,7 +55,10 @@ async def flexport_webhook(request: Request):
 
     print(f"Received Flexport event {event_type} (id: {event.get('id')})")
 
-    # Dispatch on the milestone identifier (/object#event format)
+    # Dispatch on the milestone identifier (/object#event format).
+    # NOTE: only /shipment#created and /shipment_leg#departed are confirmed against
+    # Flexport's milestone reference -- the other branches below are illustrative, so
+    # verify the exact identifiers for your account before relying on them.
     if event_type == "/shipment#created":
         print(f"Shipment created: {resource.get('id')}")
         # TODO: create internal shipment/order record
@@ -91,7 +94,8 @@ async def flexport_webhook(request: Request):
     else:
         print(f"Unhandled event type: {event_type}")
 
-    # Return 200 to acknowledge receipt (Flexport retries otherwise)
+    # Return 200 promptly to acknowledge receipt (Flexport's retry behavior is not
+    # documented, so do not rely on a failed delivery being re-sent)
     return {"received": True}
 
 

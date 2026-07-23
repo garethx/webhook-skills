@@ -48,6 +48,14 @@ Example:
 
 ## Common Event Types
 
+> **Verify these names before relying on them.** Only `/shipment#created` and
+> `/shipment_leg#departed` are confirmed against Flexport's milestone reference;
+> the full milestone enum could not be read in full from Flexport's docs. The
+> remaining rows are **illustrative** examples of the `/object#event` format, not
+> a verified enum — confirm the exact identifiers against
+> [Flexport's milestone reference](https://apidocs.flexport.com/v2/tag/Webhook-Endpoints/)
+> or the events your account actually receives.
+
 | Event (`type`) | Triggered When | Common Use Cases |
 |----------------|----------------|------------------|
 | `/shipment#created` | A shipment is created (quote confirmed) | Kick off internal order/shipment records |
@@ -59,10 +67,11 @@ Example:
 | `/invoice#invoice_payment_made` | An invoice payment is processed | Reconcile accounts payable |
 | `/purchase_order#acknowledged` | A purchase order is acknowledged | Advance procurement workflows |
 
-Flexport groups milestones into categories including Estimated Transit Events,
-Actual Transit Events, Administrative Events, Invoice Events, Document Events,
-PurchaseOrder Events, and Container Load Result Events. Some milestones are
-**available upon request** and must be enabled by Flexport for your account.
+Flexport groups milestones into categories (transit, administrative, invoice,
+document, purchase order, container load result, and others) — check the
+milestone reference for the current category names and their contents. Some
+milestones are **available upon request** and must be enabled by Flexport for
+your account.
 
 ## Full Event Reference
 

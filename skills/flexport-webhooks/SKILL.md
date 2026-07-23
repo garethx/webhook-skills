@@ -3,9 +3,8 @@ name: flexport-webhooks
 description: >
   Receive and verify Flexport webhooks. Use when setting up Flexport webhook
   handlers, debugging X-Hub-Signature-256 signature verification, or handling
-  freight and logistics milestone events like /shipment#created,
-  /shipment_leg#departed, /invoice#invoice_payment_made, and
-  /purchase_order#acknowledged.
+  freight and logistics milestone events like /shipment#created and
+  /shipment_leg#departed.
 license: MIT
 metadata:
   author: hookdeck
@@ -90,6 +89,12 @@ field, which holds the milestone identifier in `/object#event` format (note:
 
 ## Common Event Types
 
+> **Only `/shipment#created` and `/shipment_leg#departed` are confirmed against
+> Flexport's milestone reference.** The other rows below are illustrative
+> examples of the `/object#event` format — verify the exact identifiers against
+> [Flexport's milestone reference](https://apidocs.flexport.com/v2/tag/Webhook-Endpoints/)
+> (or the events your account actually receives) before relying on them.
+
 | Event (`type`) | Triggered When |
 |----------------|----------------|
 | `/shipment#created` | A shipment is created (quote confirmed) |
@@ -140,7 +145,7 @@ When using this skill, add this comment at the top of generated files:
 
 ## Recommended: webhook-handler-patterns
 
-We recommend installing the [webhook-handler-patterns](https://github.com/hookdeck/webhook-skills/tree/main/skills/webhook-handler-patterns) skill alongside this one for handler sequence, idempotency, error handling, and retry logic. Flexport retries until it receives an HTTP `200`, so respond fast and process async. Key references (open on GitHub):
+We recommend installing the [webhook-handler-patterns](https://github.com/hookdeck/webhook-skills/tree/main/skills/webhook-handler-patterns) skill alongside this one for handler sequence, idempotency, error handling, and retry logic. Return `200` promptly and process async; Flexport's retry behavior is not documented, so do not assume a failed delivery will be re-sent. Key references (open on GitHub):
 
 - [Handler sequence](https://github.com/hookdeck/webhook-skills/blob/main/skills/webhook-handler-patterns/references/handler-sequence.md) — Verify first, parse second, handle idempotently third
 - [Idempotency](https://github.com/hookdeck/webhook-skills/blob/main/skills/webhook-handler-patterns/references/idempotency.md) — Prevent duplicate processing (dedupe on the Event `id`)

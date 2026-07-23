@@ -48,7 +48,11 @@ export async function POST(request: NextRequest) {
 
   console.log(`Received Flexport event ${type} (id: ${event.id})`);
 
-  // Dispatch on the milestone identifier (/object#event format)
+  // Dispatch on the milestone identifier (/object#event format).
+  // NOTE: only /shipment#created and /shipment_leg#departed are confirmed
+  // against Flexport's milestone reference — the other cases below are
+  // illustrative, so verify the exact identifiers for your account before
+  // relying on them.
   switch (type) {
     case '/shipment#created':
       console.log('Shipment created:', data.resource?.id);
@@ -94,6 +98,7 @@ export async function POST(request: NextRequest) {
       console.log(`Unhandled event type: ${type}`);
   }
 
-  // Return 200 to acknowledge receipt (Flexport retries otherwise)
+  // Return 200 promptly to acknowledge receipt (Flexport's retry behavior is not
+  // documented, so do not rely on a failed delivery being re-sent)
   return NextResponse.json({ received: true });
 }
