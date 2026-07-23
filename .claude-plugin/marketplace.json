@@ -307,6 +307,27 @@
       ]
     },
     {
+      "name": "flexport-webhooks",
+      "description": "Receive and verify Flexport webhooks. Use when setting up Flexport webhook handlers, debugging X-Hub-Signature-256 signature verification, or handling freight and logistics milestone events like /shipment#created, /shipment_leg#departed, /invoice#invoice_payment_made, and /purchase_order#acknowledged.",
+      "source": "./skills/flexport-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/flexport-webhooks",
+      "keywords": [
+        "webhooks",
+        "flexport"
+      ]
+    },
+    {
       "name": "fusionauth-webhooks",
       "description": "Verify FusionAuth JWT webhook signatures (RSA via JWKS), handle user, login, and registration events.",
       "source": "./skills/fusionauth-webhooks",
