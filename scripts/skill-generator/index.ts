@@ -714,7 +714,14 @@ async function handleReview(
           const commitVerb = isNewSkill ? 'add' : 'improve';
           const commitMessage = `${commitPrefix}: ${commitVerb} ${provider.name}-webhooks skill`;
           
-          await addFiles(workingDir, [skillPath], { logger, dryRun: reviewOptions.dryRun });
+          // Stage integration files too (README row, providers.yaml entry,
+          // marketplace registration) — validate-provider.sh requires them,
+          // and git add is a no-op for unmodified paths.
+          await addFiles(
+            workingDir,
+            [skillPath, 'README.md', 'providers.yaml', '.claude-plugin/marketplace.json'],
+            { logger, dryRun: reviewOptions.dryRun }
+          );
           await commit(workingDir, commitMessage, {
             logger,
             dryRun: reviewOptions.dryRun,
