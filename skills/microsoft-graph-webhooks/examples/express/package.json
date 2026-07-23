@@ -1,0 +1,20 @@
+{
+  "name": "microsoft-graph-webhooks-express",
+  "version": "1.0.0",
+  "description": "Microsoft Graph change notification (webhook) handler with Express",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "subscribe": "node src/subscribe.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "dotenv": "^16.3.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^6.3.0"
+  }
+}
