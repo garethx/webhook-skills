@@ -1200,6 +1200,27 @@
       ]
     },
     {
+      "name": "pipedrive-webhooks",
+      "description": "Receive and authenticate Pipedrive webhooks. Use when setting up Pipedrive webhook handlers, debugging HTTP Basic Auth verification, or handling CRM events like create.deal, change.person, or delete.activity.",
+      "source": "./skills/pipedrive-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/pipedrive-webhooks",
+      "keywords": [
+        "webhooks",
+        "pipedrive"
+      ]
+    },
+    {
       "name": "polar-webhooks",
       "description": "Receive and verify Polar webhooks. Use when setting up Polar webhook handlers, debugging Standard Webhooks signature verification, or handling billing events like order.paid, subscription.created, subscription.canceled, or checkout.updated.",
       "source": "./skills/polar-webhooks",
