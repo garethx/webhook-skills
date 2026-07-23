@@ -1,0 +1,8 @@
+fastapi>=0.139.2
+uvicorn>=0.23.0
+python-dotenv>=1.0.0
+pytest>=9.1.1
+httpx>=0.28.1
+# Only needed by the subscribe/renew helper (subscribe.py), not the receiver:
+msgraph-sdk>=1.60.0
+azure-identity>=1.19.0
