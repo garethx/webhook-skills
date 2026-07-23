@@ -1642,30 +1642,6 @@ providers:
       events:
         - ORDER_NOTIFY
         - SHIP_NOTIFY
-  - name: recharge
-    displayName: Recharge
-    docs:
-      webhooks: https://docs.getrecharge.com/docs/webhooks-overview
-      verification: https://docs.getrecharge.com/docs/webhooks-overview#validating-webhooks
-      events: https://developer.rechargepayments.com/2021-11/webhooks_endpoints/webhooks_available
-    notes: >
-      Subscription commerce platform. Signature is in the X-Recharge-Hmac-Sha256 header
-      but it is NOT a true HMAC: it is a plain SHA-256 of the API Client Secret
-      concatenated with the raw JSON body (secret first, then body), hex-encoded. Use
-      sha256(secret + rawBody), not hmac(). Raw body must be byte-exact. Secret is the
-      "API Client Secret" from the merchant portal (Tools and apps -> API tokens), NOT
-      the API access token. Subscription topic is sent in the X-Recharge-Topic header;
-      payloads wrap the resource by key (e.g. {"charge": {...}}). Webhooks are created via
-      the Admin API (POST https://api.rechargeapps.com/webhooks with address + topic,
-      optional included_objects). Respond 200 within 5 seconds; no response, 408, 429, or
-      5xx is a failure. Recharge retries 20 times over 48 hours then deletes the
-      subscription. No webhook-relevant official SDK. Common events: charge/paid,
-      charge/failed, subscription/created, subscription/cancelled, order/created.
-    testScenario:
-      events:
-        - charge/paid
-        - subscription/cancelled
-
   - name: shopify
     displayName: Shopify
     docs:
