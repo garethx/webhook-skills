@@ -751,6 +751,28 @@ providers:
         - deployment.created
         - deployment.succeeded
 
+  - name: walmart
+    displayName: Walmart
+    docs:
+      webhooks: https://developer.walmart.com/us-marketplace/docs/notifications-overview
+      verification: https://developer.walmart.com/us-marketplace/docs/security-and-authenticity
+      events: https://developer.walmart.com/us-marketplace/docs/get-event-types
+    notes: >
+      Walmart Marketplace performance webhooks. HMAC-SHA256 with a shared webhook secret.
+      Headers (case-insensitive): WM_SEC.TIMESTAMP (Unix epoch seconds), WM_SEC.SIGNATURE
+      (base64 HMAC-SHA256), WM_SEC.KEY_ID (optional, for rotation). The signature is NOT over
+      the raw body directly: build a canonical string
+      "<METHOD>\n<PATH_AND_QUERY>\n<WM_SEC.TIMESTAMP>\n<SHA256_HEX_OF_RAW_BODY>", then
+      signature = base64(HMAC_SHA256(secret, string_to_sign)); compare timing-safe. Requires the
+      raw body (SHA256 lowercase hex). Enforce a ~5 min replay window and dedupe by delivery id;
+      return 2xx within 3s after a durable write. Do NOT implement the legacy SHA256WithRSA
+      request-signing scheme (WM_SEC.AUTH_SIGNATURE / WM_CONSUMER.*) — that is for outbound seller
+      calls to Walmart, not inbound webhook verification. No official SDK.
+    testScenario:
+      events:
+        - PO_CREATED
+        - INVENTORY_OOS
+
   - name: webflow
     displayName: Webflow
     docs:
