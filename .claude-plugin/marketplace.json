@@ -1252,6 +1252,27 @@
       ]
     },
     {
+      "name": "revolut-webhooks",
+      "description": "Receive and verify Revolut Merchant webhooks. Use when setting up Revolut webhook handlers, debugging Revolut-Signature verification, or handling order and payment events like ORDER_COMPLETED, ORDER_AUTHORISED, or ORDER_PAYMENT_DECLINED.",
+      "source": "./skills/revolut-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/revolut-webhooks",
+      "keywords": [
+        "webhooks",
+        "revolut"
+      ]
+    },
+    {
       "name": "salesforce-webhooks",
       "description": "Handle Salesforce Outbound Messages (SOAP/XML), validate OrganizationId, and return the required Ack response.",
       "source": "./skills/salesforce-webhooks",
