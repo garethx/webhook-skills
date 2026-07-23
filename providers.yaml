@@ -430,6 +430,31 @@ providers:
         - voice.generation.completed
         - voice.clone.completed
 
+  - name: exact-online
+    displayName: Exact Online
+    docs:
+      webhooks: https://support.exactonline.com/community/s/article/All-All-DNO-Content-webhooksc?language=en_GB
+      verification: https://support.exactonline.com/community/s/article/All-All-DNO-Content-webhookstut?language=en_GB
+    notes: >
+      Cloud accounting/ERP platform. Does NOT use the Standard Webhooks spec and sends
+      NO signature header — the signature is the HashCode field INSIDE the JSON body:
+      {"Content":{...},"HashCode":"<hex>"}. Verify by computing HMAC-SHA256 over the raw
+      JSON of the Content node (the exact substring between {"Content": and ,"HashCode":,
+      braces included — do NOT re-serialize the parsed object), keyed with the app's
+      Webhook secret from the App Center (NOT the OAuth client secret), hex-encoded and
+      UPPERCASED, then compare timing-safe to HashCode. Subscribe with an OAuth2 bearer via
+      POST /api/v1/{division}/webhooks/WebhookSubscriptions passing Topic + CallbackURL;
+      one subscription per topic per app per division. Payloads are thin — Content carries
+      only Topic, Action (Create/Update/Delete), Key (entity GUID), Division, ClientId — so
+      call the REST API to fetch the full record. Return 2xx quickly; Exact retries failures.
+      GoodsDeliveries supports near-instant delivery via the IsInstant flag. No official SDK.
+      Confirmed topics: Accounts, Items, StockPositions, FinancialTransactions,
+      GoodsDeliveries, Contacts (docs list ~30 topics).
+    testScenario:
+      events:
+        - Accounts
+        - Items
+
   - name: frontapp
     displayName: Front
     docs:
