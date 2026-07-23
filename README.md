@@ -30,6 +30,7 @@ Skills for receiving and verifying webhooks from specific providers. Each includ
 | Provider | Skill | What It Does |
 |----------|-------|--------------|
 | [Adyen](https://docs.adyen.com/development-resources/webhooks/) | [`adyen-webhooks`](skills/adyen-webhooks/) | Verify Adyen webhook HMAC signatures (`additionalData.hmacSignature`), handle AUTHORISATION, CAPTURE, and REFUND notifications |
+| [Asana](https://developers.asana.com/docs/webhooks-guide) | [`asana-webhooks`](skills/asana-webhooks/) | Complete the Asana X-Hook-Secret handshake, verify X-Hook-Signature (HMAC-SHA256), handle batched compact events and heartbeats |
 | [Airtable](https://airtable.com/developers/web/api/webhooks-overview) | [`airtable-webhooks`](skills/airtable-webhooks/) | Verify Airtable webhook pings (`X-Airtable-Content-MAC`, HMAC-SHA256), fetch payloads with a cursor, manage 7-day webhook expiry |
 | [Attentive](https://docs.attentive.com/docs/create-and-manage-webhooks) | [`attentive-webhooks`](skills/attentive-webhooks/) | Verify Attentive webhook signatures (`x-attentive-hmac-sha256`, HMAC-SHA256 hex), handle SMS and email subscriber events |
 | [Auth0](https://auth0.com/docs/customize/log-streams/custom-log-streams) | [`auth0-webhooks`](skills/auth0-webhooks/) | Authenticate Auth0 Custom Log Stream deliveries (Authorization token), handle batched login and signup log events |
