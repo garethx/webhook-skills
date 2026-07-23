@@ -1462,6 +1462,27 @@
       ]
     },
     {
+      "name": "retell-webhooks",
+      "description": "Receive and verify Retell AI webhooks. Use when setting up Retell webhook handlers, debugging X-Retell-Signature verification, or handling voice call events like call_started, call_ended, call_analyzed, and transcript_updated.",
+      "source": "./skills/retell-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/retell-webhooks",
+      "keywords": [
+        "webhooks",
+        "retell"
+      ]
+    },
+    {
       "name": "revolut-webhooks",
       "description": "Receive and verify Revolut Merchant webhooks. Use when setting up Revolut webhook handlers, debugging Revolut-Signature verification, or handling order and payment events like ORDER_COMPLETED, ORDER_AUTHORISED, or ORDER_PAYMENT_DECLINED.",
       "source": "./skills/revolut-webhooks",
