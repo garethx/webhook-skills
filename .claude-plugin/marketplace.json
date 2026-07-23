@@ -1700,6 +1700,27 @@
       ]
     },
     {
+      "name": "shipbob-webhooks",
+      "description": "Receive and verify ShipBob webhooks. Use when setting up ShipBob webhook handlers, debugging signature verification, or handling fulfillment events like order.shipped, order.shipment.delivered, order.shipment.tracking.updated, return.created, wro.created, or billing.charge.created.",
+      "source": "./skills/shipbob-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/shipbob-webhooks",
+      "keywords": [
+        "webhooks",
+        "shipbob"
+      ]
+    },
+    {
       "name": "shipstation-webhooks",
       "description": "Receive and verify ShipStation webhooks. Use when setting up ShipStation webhook handlers, securing endpoints that have no signature (secret token in the URL), fetching the thin resource_url payload with Basic auth, or handling ORDER_NOTIFY, ITEM_ORDER_NOTIFY, SHIP_NOTIFY, ITEM_SHIP_NOTIFY, FULFILLMENT_SHIPPED, and FULFILLMENT_REJECTED events.",
       "source": "./skills/shipstation-webhooks",
