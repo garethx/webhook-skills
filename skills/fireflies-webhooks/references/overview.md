@@ -12,10 +12,31 @@ configured endpoint with the meeting's ID. Your handler verifies the signature,
 then typically calls the Fireflies GraphQL API to fetch the full transcript,
 summary, or action items for that meeting.
 
+## Webhooks V1 vs V2
+
+Fireflies has two webhook generations. **This skill documents V1**, the scheme
+the Hookdeck Fireflies source maps to. V2 exists and differs in ways that will
+break a V1 handler, so identify which one your account sends before debugging:
+
+| | V1 (this skill) | V2 |
+|---|---|---|
+| Signature header | `x-hub-signature` (lowercase) | `X-Hub-Signature` |
+| Header value | bare hex digest, no prefix | `sha256=<hex>` — prefixed |
+| Event field | `eventType` | `event` |
+| Event names | `Transcription completed` | `meeting.transcribed`, `meeting.summarized`, `meeting.bot_joined` |
+| Meeting ID field | `meetingId` | `meeting_id` |
+| Response deadline | not documented | 2xx within 10s |
+
+The verification algorithm is the same in both (HMAC-SHA256, hex, timing-safe
+compare). Only the header casing, the `sha256=` prefix, and the payload field
+names change. A V2 receiver splits the prefix off the header value and then
+verifies the hex part exactly as shown in
+[verification.md](verification.md).
+
 ## Common Event Types
 
 Fireflies delivers the event name inside the JSON body as `eventType` — there is
-**no** event-type header. Only one event is documented today:
+**no** event-type header. In V1, only one event is documented today:
 
 | `eventType` value | Triggered When | Common Use Cases |
 |-------------------|----------------|------------------|

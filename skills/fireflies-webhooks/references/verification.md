@@ -19,6 +19,18 @@ HMAC-SHA256(raw_request_body, webhook_secret) → hex encoded
 Compare the computed digest against the header value directly, using a
 timing-safe comparison.
 
+> **Unconfirmed: raw bytes vs `JSON.stringify`.** The header name, the algorithm,
+> the hex encoding, and the absence of a prefix are documented. The exact body
+> form that goes into the HMAC is **not** stated in prose — the docs point at an
+> external Replit code sample that could not be read, so "raw request body" here
+> is the safest reading rather than a quoted fact. Keep raw body as your default:
+> when the provider signs a re-serialized string that happens to be byte-identical
+> to what it sent, raw body still verifies. But if verification fails
+> consistently — right secret, right header, right encoding — try
+> `JSON.stringify(JSON.parse(rawBody))` (Python: `json.dumps(json.loads(raw_body),
+> separators=(",", ":"))`) as the HMAC input before concluding the secret is
+> wrong. Log the raw body on your first few deliveries so you can compare.
+
 > **No official SDK:** Fireflies does not publish a webhook SDK for Node.js or
 > Python, so verification is implemented manually in every framework. The core
 > is a standard HMAC-SHA256 hex digest, which the language standard libraries
@@ -32,7 +44,8 @@ timing-safe comparison.
 const crypto = require('crypto');
 
 function verifyFirefliesWebhook(rawBody, signatureHeader, secret) {
-  if (!signatureHeader) {
+  // Fail closed: no header or no configured secret means we cannot verify
+  if (!signatureHeader || !secret) {
     return false;
   }
 
@@ -75,7 +88,8 @@ import hmac
 import hashlib
 
 def verify_fireflies_webhook(raw_body: bytes, signature_header: str, secret: str) -> bool:
-    if not signature_header:
+    # Fail closed: no header or no configured secret means we cannot verify
+    if not signature_header or not secret:
         return False
 
     # Compute expected signature over the raw body (hex, no prefix)
@@ -91,10 +105,15 @@ def verify_fireflies_webhook(raw_body: bytes, signature_header: str, secret: str
 
 ## Common Gotchas
 
-### 1. No `sha256=` Prefix
+### 1. No `sha256=` Prefix (V1 only)
 
-Fireflies sends the digest as a bare hex string. Do **not** strip a `sha256=`
-prefix (there isn't one) and do not expect one — compare the whole header value.
+In V1, Fireflies sends the digest as a bare hex string. Do **not** strip a
+`sha256=` prefix (there isn't one) and do not expect one — compare the whole
+header value.
+
+Webhooks V2 is the opposite: it sends `X-Hub-Signature: sha256=<hex>`, so a V2
+receiver *must* split off the prefix. Check an actual delivery before picking a
+side — see [overview.md](overview.md#webhooks-v1-vs-v2).
 
 ```javascript
 // WRONG - there is no prefix to strip; this mangles the signature
@@ -104,31 +123,41 @@ const signature = signatureHeader.replace('sha256=', '');
 crypto.timingSafeEqual(Buffer.from(signatureHeader, 'hex'), Buffer.from(expected, 'hex'));
 ```
 
-### 2. Raw Body Requirement
+### 2. Raw Body (Recommended Default, Not a Confirmed Fact)
 
-The signature is computed over the raw request body bytes. Parsing JSON first and
-re-serializing will change the bytes and break verification.
+Treat the signature as computed over the raw request body bytes. Parsing JSON
+first and re-serializing can change the bytes — key order, whitespace, unicode
+escaping — and that breaks verification whenever the provider signed the original
+bytes.
 
 **Express:**
 
 ```javascript
-// WRONG - body is already parsed and re-serialized
+// RISKY - body is already parsed and re-serialized; the bytes may no longer match
 app.use(express.json());
 app.post('/webhooks/fireflies', (req, res) => {
-  verifyFirefliesWebhook(JSON.stringify(req.body), ...); // Fails!
+  verifyFirefliesWebhook(JSON.stringify(req.body), ...);
 });
 
-// CORRECT - use the raw body
+// RECOMMENDED - use the raw body
 app.post('/webhooks/fireflies',
   express.raw({ type: 'application/json' }),
   (req, res) => {
-    verifyFirefliesWebhook(req.body, ...); // Works!
+    verifyFirefliesWebhook(req.body, ...);
   }
 );
 ```
 
 In Next.js App Router, read `await request.text()` and verify that string. In
 FastAPI, use `await request.body()` to get the raw bytes.
+
+**The caveat:** as noted above, Fireflies' docs never state which form they sign,
+and their worked example is behind an unreadable Replit link. Raw body is the
+recommended default because it is correct in the widest set of cases, but it is
+not confirmed against official docs. If raw body fails consistently, the
+`JSON.stringify(parsedBody)` form is the next thing to try — capture the raw body
+in your logs on the first deliveries so you can test both against the received
+header.
 
 ### 3. Hex Encoding, Not Base64
 

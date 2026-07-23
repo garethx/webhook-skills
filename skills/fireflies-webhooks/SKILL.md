@@ -29,13 +29,25 @@ secret and sends the digest in the `x-hub-signature` header as a bare hex string
 timing-safe comparison. There is no official Fireflies SDK, so verification is
 manual in every framework.
 
+> **Unconfirmed detail — which bytes are signed.** The header name, HMAC-SHA256,
+> hex encoding, and the absence of a `sha256=` prefix are all documented. What
+> Fireflies' docs do **not** state in prose is whether the digest covers the raw
+> request bytes or a re-serialized `JSON.stringify(body)` — their code sample
+> links to an external Replit that could not be read. Raw body is the default
+> here because it is the safer choice (it works whenever the two forms are
+> byte-identical, and it never mutates what was sent). On your first deliveries,
+> log the raw body alongside the header. If verification fails consistently with
+> correct secret and header handling, try
+> `JSON.stringify(JSON.parse(rawBody))` as the HMAC input before assuming the
+> secret is wrong. See [references/verification.md](references/verification.md).
+
 Node:
 
 ```javascript
 const crypto = require('crypto');
 
 function verifyFirefliesWebhook(rawBody, signatureHeader, secret) {
-  if (!signatureHeader) return false;
+  if (!signatureHeader || !secret) return false; // fail closed on missing secret
   const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
   try {
     return crypto.timingSafeEqual(
@@ -54,7 +66,7 @@ Python:
 import hmac, hashlib
 
 def verify_fireflies_webhook(raw_body: bytes, signature_header: str, secret: str) -> bool:
-    if not signature_header:
+    if not signature_header or not secret:  # fail closed on missing secret
         return False
     expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(signature_header, expected)
@@ -95,6 +107,26 @@ event-type header. Only one event is documented:
 | Header | Description |
 |--------|-------------|
 | `x-hub-signature` | HMAC-SHA256 of the raw body, hex-encoded, **no** `sha256=` prefix |
+
+## Which API Version Are You On?
+
+This skill targets **Webhooks V1**, the scheme behind the Hookdeck Fireflies
+source. Fireflies also ships a **Webhooks V2** with a different header format and
+different event names, so check which one your account is sending before
+debugging a signature mismatch:
+
+| | V1 (this skill) | V2 |
+|---|---|---|
+| Header | `x-hub-signature` (lowercase) | `X-Hub-Signature` |
+| Header value | bare hex digest | `sha256=<hex>` — **prefixed** |
+| Event field | `eventType` | `event` |
+| Event names | `Transcription completed` | `meeting.transcribed`, `meeting.summarized`, `meeting.bot_joined` |
+| ID field | `meetingId` | `meeting_id` |
+
+If your header value starts with `sha256=`, you are on V2: split on the first `=`
+and HMAC-verify the hex part. Everything else in this skill (HMAC-SHA256, hex,
+timing-safe compare, raw body) still applies. The "do not strip a `sha256=`
+prefix" guidance below is a V1-only rule.
 
 ## Environment Variables
 

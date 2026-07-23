@@ -21,7 +21,8 @@ def verify_fireflies_webhook(raw_body: bytes, signature_header: str, secret: str
     secret and sends the digest in the ``x-hub-signature`` header as a bare hex
     string (no ``sha256=`` prefix). Compare against the header value directly.
     """
-    if not signature_header:
+    # Fail closed: no header or no configured secret means we cannot verify
+    if not signature_header or not secret:
         return False
 
     # Compute expected signature over the raw body (hex-encoded, no prefix)
@@ -40,6 +41,11 @@ async def fireflies_webhook(request: Request):
     # Get the raw body for signature verification
     raw_body = await request.body()
     signature_header = request.headers.get("x-hub-signature")
+
+    # Fail closed when the secret is missing rather than raising an opaque 500
+    if not fireflies_secret:
+        print("FIREFLIES_WEBHOOK_SECRET is not set - cannot verify webhooks")
+        raise HTTPException(status_code=401, detail="Invalid signature")
 
     # Verify webhook signature
     if not verify_fireflies_webhook(raw_body, signature_header, fireflies_secret):

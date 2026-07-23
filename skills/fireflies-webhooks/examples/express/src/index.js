@@ -19,7 +19,8 @@ const app = express();
  * @returns {boolean} - Whether the signature is valid
  */
 function verifyFirefliesWebhook(rawBody, signatureHeader, secret) {
-  if (!signatureHeader) {
+  // Fail closed: no header or no configured secret means we cannot verify
+  if (!signatureHeader || !secret) {
     return false;
   }
 
@@ -46,9 +47,16 @@ app.post('/webhooks/fireflies',
   express.raw({ type: 'application/json' }),
   async (req, res) => {
     const signature = req.headers['x-hub-signature'];
+    const secret = process.env.FIREFLIES_WEBHOOK_SECRET;
+
+    // Fail closed when the secret is missing rather than throwing an opaque 500
+    if (!secret) {
+      console.error('FIREFLIES_WEBHOOK_SECRET is not set - cannot verify webhooks');
+      return res.status(401).send('Invalid signature');
+    }
 
     // Verify webhook signature
-    if (!verifyFirefliesWebhook(req.body, signature, process.env.FIREFLIES_WEBHOOK_SECRET)) {
+    if (!verifyFirefliesWebhook(req.body, signature, secret)) {
       console.error('Webhook signature verification failed');
       return res.status(401).send('Invalid signature');
     }

@@ -10,8 +10,9 @@ import crypto from 'crypto';
  * secret and sends the digest in the `x-hub-signature` header as a bare hex
  * string (no `sha256=` prefix). Compare against the header value directly.
  */
-function verifyFirefliesWebhook(rawBody: string, signatureHeader: string | null, secret: string): boolean {
-  if (!signatureHeader) {
+function verifyFirefliesWebhook(rawBody: string, signatureHeader: string | null, secret: string | undefined): boolean {
+  // Fail closed: no header or no configured secret means we cannot verify
+  if (!signatureHeader || !secret) {
     return false;
   }
 
@@ -37,9 +38,16 @@ export async function POST(request: NextRequest) {
   // Get the raw body for signature verification
   const body = await request.text();
   const signature = request.headers.get('x-hub-signature');
+  const secret = process.env.FIREFLIES_WEBHOOK_SECRET;
+
+  // Fail closed when the secret is missing rather than throwing an opaque 500
+  if (!secret) {
+    console.error('FIREFLIES_WEBHOOK_SECRET is not set - cannot verify webhooks');
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  }
 
   // Verify webhook signature
-  if (!verifyFirefliesWebhook(body, signature, process.env.FIREFLIES_WEBHOOK_SECRET!)) {
+  if (!verifyFirefliesWebhook(body, signature, secret)) {
     console.error('Webhook signature verification failed');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
