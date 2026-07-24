@@ -83,6 +83,13 @@ def verify(object_payload, received_signature: str, secret: str) -> bool:
 > escaping, `\uXXXX` casing, or key order), verification fails. See
 > [references/verification.md](references/verification.md).
 
+> ⚠️ **Security: only `object_payload` is signed.** The envelope fields — `webhook`
+> (the event name), `webhook_id`, `object` and `object_id` — are **outside the signed
+> region** and stay untrusted even after verification succeeds. Use them for logging
+> and routing hints only, and **derive business state from the verified
+> `object_payload`** (re-fetch from Treezor's API for money-moving or KYC-gated
+> decisions). See [references/verification.md](references/verification.md).
+
 > **Response codes**: Return **200** on success. Return a **5xx** to trigger a retry
 > (Treezor retries every minute, up to 30 attempts). Deliveries are chronological but
 > **not order-guaranteed** and may be **duplicated** — dedupe on `webhook_id`.

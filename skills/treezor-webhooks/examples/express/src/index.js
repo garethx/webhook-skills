@@ -69,6 +69,11 @@ app.post('/webhooks/treezor',
 
     // Deliveries can be duplicated and arrive out of order.
     // Dedupe on webhook_id and compare webhook_created_at in real handlers.
+    //
+    // SECURITY: only object_payload is covered by object_payload_signature. The
+    // envelope fields below (webhook, webhook_id, object, object_id) are NOT
+    // signed, so treat them as untrusted routing/logging metadata. Derive any
+    // business state from the verified event.object_payload instead.
     const eventName = event.webhook;
     console.log(`Received ${eventName} (webhook_id=${event.webhook_id})`);
 

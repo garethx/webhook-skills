@@ -28,6 +28,31 @@ output:
 Then: `base64( HMAC-SHA256( webhook_secret, canonical_string ) )`, compared timing-safe
 against `object_payload_signature`.
 
+## Security: Only `object_payload` Is Signed
+
+`object_payload_signature` covers **`object_payload` and nothing else**. Every other
+field in the envelope — `webhook` (the event name), `webhook_id`, `object`,
+`object_id`, `webhook_created_at` — sits **outside the signed region**. A successful
+verification tells you the `object_payload` is authentic; it says nothing about the
+envelope around it.
+
+An attacker who replays a genuine delivery can rewrite those envelope fields freely
+and the signature will still check out. So:
+
+- **Treat the envelope as untrusted metadata.** Fine for logging, correlation, and
+  routing hints; never the basis of a money-moving or state-changing decision.
+- **Derive business state from the verified `object_payload`.** Read the resource id,
+  amounts, statuses, and user/wallet references out of `object_payload`, not out of
+  `object_id` or `webhook`.
+- **Cross-check before acting.** If you dispatch on `event.webhook`, confirm the
+  handler's assumptions hold against `object_payload` (e.g. that the payload really
+  does look like a card transaction) before mutating anything.
+- **Re-fetch when the stakes are high.** For balance or KYC-gated flows, use the
+  verified id from `object_payload` to re-read the object from Treezor's API.
+
+The same applies to `webhook_id` dedupe keys: they are useful for idempotency but are
+not authenticated, so they must not be the only guard on a non-idempotent action.
+
 ## Implementation
 
 There is no official Treezor SDK for webhook verification, so verify manually in every
@@ -113,6 +138,13 @@ is why the Node and Python code above re-create it explicitly.
   stringifying preserves the received order in both Node and Python.
 - **Timing-safe compare.** Use `crypto.timingSafeEqual` / `hmac.compare_digest`, and
   guard against length-mismatch exceptions.
+- **Only `object_payload` is signed.** `webhook`, `webhook_id`, `object` and
+  `object_id` are unauthenticated envelope fields — see the security note above.
+- **The canonical form is derived from PHP's `json_encode` behavior.** It is exactly
+  true for strings and integers; other types (notably non-string floats, where PHP's
+  serialization precision may differ from JavaScript's or Python's) could canonicalize
+  differently across languages. Worth confirming against a live delivery that contains
+  such a value before you rely on it in production.
 
 ## How to Debug Verification Failures
 

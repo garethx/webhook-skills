@@ -35,6 +35,12 @@ yourself). Every body includes an HMAC signature field so you can verify authent
 | `object_payload` | The object's data — **this is what the signature covers** |
 | `object_payload_signature` | Base64 HMAC-SHA256 of the canonicalized `object_payload` |
 
+> ⚠️ **Only `object_payload` is signed.** Everything else in this table —
+> `webhook`, `webhook_id`, `webhook_created_at`, `object`, `object_id` — is
+> outside the signed region and remains untrusted after verification. Use it for
+> logging and routing, and derive business state from `object_payload`. See
+> [verification.md](verification.md).
+
 ## Common Event Types
 
 Events are `object.action`. The `webhook` field carries the full string.
