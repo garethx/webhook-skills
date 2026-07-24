@@ -2,6 +2,7 @@ import os
 import json
 import hmac
 import hashlib
+import base64
 from fastapi.testclient import TestClient
 
 # Set test environment variables before importing app
@@ -12,16 +13,20 @@ from main import app, verify_clio_webhook
 client = TestClient(app)
 
 
-def generate_clio_signature(payload: str, secret: str) -> str:
+def generate_clio_signature(payload: str, secret: str, encoding: str = "hex") -> str:
     """Generate a valid Clio signature for testing.
 
-    Clio: hex-encoded HMAC-SHA256 of the raw body, keyed with the shared secret.
+    Clio: HMAC-SHA256 of the raw body, keyed with the shared secret. Clio's docs
+    do not specify hex vs base64, so the handler accepts either.
     """
-    return hmac.new(
+    digest = hmac.new(
         secret.encode("utf-8"),
         payload.encode("utf-8"),
         hashlib.sha256,
-    ).hexdigest()
+    ).digest()
+    if encoding == "base64":
+        return base64.b64encode(digest).decode("utf-8")
+    return digest.hex()
 
 
 class TestVerifyClioWebhook:
@@ -29,9 +34,15 @@ class TestVerifyClioWebhook:
 
     secret = os.environ["CLIO_WEBHOOK_SECRET"]
 
-    def test_valid_signature_returns_true(self):
+    def test_valid_hex_signature_returns_true(self):
         payload = b'{"meta":{"event":"created"}}'
-        signature = generate_clio_signature(payload.decode(), self.secret)
+        signature = generate_clio_signature(payload.decode(), self.secret, "hex")
+
+        assert verify_clio_webhook(payload, signature, self.secret) is True
+
+    def test_valid_base64_signature_returns_true(self):
+        payload = b'{"meta":{"event":"created"}}'
+        signature = generate_clio_signature(payload.decode(), self.secret, "base64")
 
         assert verify_clio_webhook(payload, signature, self.secret) is True
 
@@ -115,6 +126,20 @@ class TestClioWebhook:
         )
         assert response.status_code == 200
         assert response.json() == {"received": True}
+
+    def test_valid_base64_signature_returns_200(self):
+        payload = json.dumps({"data": {"id": 152}, "meta": {"event": "created", "webhook_id": 1234}})
+        signature = generate_clio_signature(payload, self.secret, "base64")
+
+        response = client.post(
+            "/webhooks/clio",
+            content=payload,
+            headers={
+                "Content-Type": "application/json",
+                "X-Hook-Signature": signature,
+            },
+        )
+        assert response.status_code == 200
 
     def test_handles_matter_closed_event(self):
         payload = json.dumps({"data": {"id": 77}, "meta": {"event": "matter_closed", "webhook_id": 1234}})

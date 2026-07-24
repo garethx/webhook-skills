@@ -6,8 +6,12 @@ import crypto from 'crypto';
 /**
  * Verify a Clio webhook signature.
  *
- * Clio sends the hex-encoded HMAC-SHA256 of the raw body (keyed with the shared
- * secret) in the `X-Hook-Signature` header. Verify against the RAW body.
+ * Clio sends the HMAC-SHA256 of the raw body (keyed with the shared secret) in
+ * the `X-Hook-Signature` header. Verify against the RAW body.
+ *
+ * Clio's docs do not say whether the digest is hex- or base64-encoded, so we
+ * compute it once and compare against both. Confirm which encoding your real
+ * deliveries use, then you can drop the other.
  */
 function verifyClioWebhook(
   rawBody: string,
@@ -18,20 +22,16 @@ function verifyClioWebhook(
     return false;
   }
 
-  const expectedSignature = crypto
-    .createHmac('sha256', secret)
-    .update(rawBody)
-    .digest('hex');
+  const digest = crypto.createHmac('sha256', secret).update(rawBody).digest();
 
-  // Timing-safe comparison; guards against wrong-length / malformed hex.
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signatureHeader, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
-    );
-  } catch {
-    return false;
-  }
+  // Accept hex or base64 (encoding unspecified) — timing-safe either way.
+  return [digest.toString('hex'), digest.toString('base64')].some((expected) => {
+    try {
+      return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+    } catch {
+      return false; // length mismatch → not a match
+    }
+  });
 }
 
 export async function POST(request: NextRequest) {

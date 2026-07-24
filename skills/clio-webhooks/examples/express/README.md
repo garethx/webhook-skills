@@ -1,7 +1,7 @@
 # Clio Webhooks - Express Example
 
 Minimal example of receiving Clio webhooks with the `X-Hook-Secret` activation
-handshake and `X-Hook-Signature` (HMAC-SHA256, hex) verification.
+handshake and `X-Hook-Signature` (HMAC-SHA256) verification.
 
 ## Prerequisites
 
@@ -58,7 +58,7 @@ inspect and replay them.
 - **Handshake** — A POST carrying an `X-Hook-Secret` header is Clio's activation
   request. The handler echoes the header back with `200 OK`; the webhook is not
   enabled until this succeeds.
-- **Events** — Signed POSTs carry `X-Hook-Signature`, the hex HMAC-SHA256 digest
+- **Events** — Signed POSTs carry `X-Hook-Signature`, the HMAC-SHA256 digest
   of the raw body. The handler verifies it before processing.
 
 ## Endpoint

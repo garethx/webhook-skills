@@ -3,6 +3,7 @@
 import os
 import hmac
 import hashlib
+import base64
 import json
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException, Response
@@ -17,20 +18,24 @@ clio_secret = os.environ.get("CLIO_WEBHOOK_SECRET")
 def verify_clio_webhook(raw_body: bytes, signature_header: str, secret: str) -> bool:
     """Verify a Clio webhook signature.
 
-    Clio sends the hex-encoded HMAC-SHA256 of the raw body (keyed with the shared
-    secret) in the ``X-Hook-Signature`` header. Verify against the RAW body.
+    Clio sends the HMAC-SHA256 of the raw body (keyed with the shared secret) in
+    the ``X-Hook-Signature`` header. Verify against the RAW body.
+
+    Clio's docs do not say whether the digest is hex- or base64-encoded, so we
+    compute it once and compare against both. Confirm which encoding your real
+    deliveries use, then you can drop the other.
     """
     if not signature_header:
         return False
 
-    expected_signature = hmac.new(
-        secret.encode("utf-8"),
-        raw_body,
-        hashlib.sha256,
-    ).hexdigest()
+    digest = hmac.new(secret.encode("utf-8"), raw_body, hashlib.sha256).digest()
 
-    # Timing-safe comparison.
-    return hmac.compare_digest(signature_header, expected_signature)
+    # Accept hex or base64 (encoding unspecified) — constant-time either way.
+    return hmac.compare_digest(
+        signature_header, digest.hex()
+    ) or hmac.compare_digest(
+        signature_header, base64.b64encode(digest).decode("utf-8")
+    )
 
 
 @app.post("/webhooks/clio")

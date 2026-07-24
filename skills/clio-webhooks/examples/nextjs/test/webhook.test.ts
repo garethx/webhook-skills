@@ -8,10 +8,15 @@ beforeAll(() => {
 
 /**
  * Generate a valid Clio signature for testing.
- * Clio: hex-encoded HMAC-SHA256 of the raw body, keyed with the shared secret.
+ * Clio: HMAC-SHA256 of the raw body, keyed with the shared secret. Clio's docs
+ * do not specify hex vs base64, so the handler accepts either.
  */
-function generateClioSignature(payload: string, secret: string): string {
-  return crypto.createHmac('sha256', secret).update(payload).digest('hex');
+function generateClioSignature(
+  payload: string,
+  secret: string,
+  encoding: 'hex' | 'base64' = 'hex'
+): string {
+  return crypto.createHmac('sha256', secret).update(payload).digest(encoding);
 }
 
 /**
@@ -26,30 +31,36 @@ function verifyClioWebhook(
     return false;
   }
 
-  const expectedSignature = crypto
-    .createHmac('sha256', secret)
-    .update(body)
-    .digest('hex');
+  const digest = crypto.createHmac('sha256', secret).update(body).digest();
 
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signatureHeader, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
-    );
-  } catch {
-    return false;
-  }
+  return [digest.toString('hex'), digest.toString('base64')].some((expected) => {
+    try {
+      return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+    } catch {
+      return false;
+    }
+  });
 }
 
 describe('Clio Signature Verification', () => {
   const webhookSecret = 'test_clio_shared_secret';
 
-  it('should validate a correct signature', () => {
+  it('should validate a correct hex signature', () => {
     const payload = JSON.stringify({
       data: { id: 152 },
       meta: { event: 'created', webhook_id: 1234 },
     });
-    const signature = generateClioSignature(payload, webhookSecret);
+    const signature = generateClioSignature(payload, webhookSecret, 'hex');
+
+    expect(verifyClioWebhook(payload, signature, webhookSecret)).toBe(true);
+  });
+
+  it('should validate a correct base64 signature', () => {
+    const payload = JSON.stringify({
+      data: { id: 152 },
+      meta: { event: 'created', webhook_id: 1234 },
+    });
+    const signature = generateClioSignature(payload, webhookSecret, 'base64');
 
     expect(verifyClioWebhook(payload, signature, webhookSecret)).toBe(true);
   });

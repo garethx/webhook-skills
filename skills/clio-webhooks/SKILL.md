@@ -33,8 +33,8 @@ Clio Manage delivers webhooks in two distinct kinds of POST request to your URL:
    header back with `200 OK`). **The webhook is not enabled until the handshake
    succeeds.** Store that secret — it is the key for verifying every later event.
 2. **Events** — Every subsequent delivery is signed. Clio computes
-   `HMAC-SHA256(shared_secret, raw_request_body)`, hex-encodes it, and puts it in
-   the `X-Hook-Signature` header. Verify it against the **raw** body.
+   `HMAC-SHA256(shared_secret, raw_request_body)` and puts the digest in the
+   `X-Hook-Signature` header. Verify it against the **raw** body.
 
 > Clio does **not** ask you to supply the secret when creating the webhook — Clio
 > generates it and hands it to you during the handshake. Save it (e.g. keyed by
@@ -42,9 +42,15 @@ Clio Manage delivers webhooks in two distinct kinds of POST request to your URL:
 
 ## Verification (core)
 
-`X-Hook-Signature` is the lowercase **hex** HMAC-SHA256 digest of the raw body,
-keyed with the shared secret. Pass the **raw** body (never re-serialized JSON)
-and compare timing-safe.
+`X-Hook-Signature` is the HMAC-SHA256 digest of the raw body, keyed with the
+shared secret. Pass the **raw** body (never re-serialized JSON) and compare
+timing-safe.
+
+Clio's docs state only that it "will compute an HMAC-SHA256 signature based on
+the shared secret and the request body" — they never say whether the digest is
+**hex** or **base64** encoded. The handlers below compute the digest once and
+compare against both encodings. **Confirm which one your real deliveries use**
+(log the header once) and you can drop the other.
 
 Node:
 
@@ -53,28 +59,32 @@ const crypto = require('crypto');
 
 function verifyClioWebhook(rawBody, signatureHeader, secret) {
   if (!signatureHeader) return false;
-  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signatureHeader, 'hex'),
-      Buffer.from(expected, 'hex')
-    );
-  } catch {
-    return false; // malformed/wrong-length hex
-  }
+  const digest = crypto.createHmac('sha256', secret).update(rawBody).digest();
+  // Encoding is unspecified in Clio's docs — accept hex or base64.
+  return [digest.toString('hex'), digest.toString('base64')].some((expected) => {
+    try {
+      return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+    } catch {
+      return false; // length mismatch → not a match
+    }
+  });
 }
 ```
 
 Python:
 
 ```python
-import hmac, hashlib
+import hmac, hashlib, base64
 
 def verify_clio_webhook(raw_body: bytes, signature_header: str, secret: str) -> bool:
     if not signature_header:
         return False
-    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(signature_header, expected)
+    digest = hmac.new(secret.encode(), raw_body, hashlib.sha256).digest()
+    # Encoding is unspecified in Clio's docs — accept hex or base64.
+    return (
+        hmac.compare_digest(signature_header, digest.hex())
+        or hmac.compare_digest(signature_header, base64.b64encode(digest).decode())
+    )
 ```
 
 Handle the handshake **before** signature verification — a request carrying an
@@ -121,7 +131,7 @@ Example event payload:
 
 | Header | Description |
 |--------|-------------|
-| `X-Hook-Signature` | HMAC-SHA256 **hex** digest of the raw body (verify this) |
+| `X-Hook-Signature` | HMAC-SHA256 digest of the raw body (verify this); Clio's docs do not specify hex vs base64 — accept either |
 | `X-Hook-Secret` | Shared secret sent during the handshake; echo it back to activate |
 
 ## Environment Variables

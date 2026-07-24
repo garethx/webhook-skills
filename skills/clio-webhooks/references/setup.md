@@ -84,7 +84,8 @@ curl -X PUT https://app.clio.com/api/v4/webhooks/1234/activate \
 ## Step 3: Verify Event Signatures
 
 Every event delivery includes an `X-Hook-Signature` header — the HMAC-SHA256
-**hex** digest of the raw body, keyed with the shared secret. See
+digest of the raw body, keyed with the shared secret. Clio's docs do not say
+whether that digest is hex- or base64-encoded, so accept both. See
 [verification.md](verification.md).
 
 ## Step 4: Renew Before Expiry

@@ -8,22 +8,30 @@ const { app, verifyClioWebhook } = require('../src/index');
 
 /**
  * Generate a valid Clio signature for testing.
- * Clio: hex-encoded HMAC-SHA256 of the raw body, keyed with the shared secret.
+ * Clio: HMAC-SHA256 of the raw body, keyed with the shared secret. Clio's docs
+ * do not specify hex vs base64, so the handler accepts either.
  */
-function generateClioSignature(payload, secret) {
+function generateClioSignature(payload, secret, encoding = 'hex') {
   return crypto
     .createHmac('sha256', secret)
     .update(payload)
-    .digest('hex');
+    .digest(encoding);
 }
 
 describe('Clio Webhook Endpoint', () => {
   const webhookSecret = process.env.CLIO_WEBHOOK_SECRET;
 
   describe('verifyClioWebhook', () => {
-    it('should return true for a valid signature', () => {
+    it('should return true for a valid hex signature', () => {
       const payload = Buffer.from('{"meta":{"event":"created"}}');
-      const signature = generateClioSignature(payload, webhookSecret);
+      const signature = generateClioSignature(payload, webhookSecret, 'hex');
+
+      expect(verifyClioWebhook(payload, signature, webhookSecret)).toBe(true);
+    });
+
+    it('should return true for a valid base64 signature', () => {
+      const payload = Buffer.from('{"meta":{"event":"created"}}');
+      const signature = generateClioSignature(payload, webhookSecret, 'base64');
 
       expect(verifyClioWebhook(payload, signature, webhookSecret)).toBe(true);
     });
@@ -94,6 +102,22 @@ describe('Clio Webhook Endpoint', () => {
         .send(payload);
 
       expect(response.status).toBe(401);
+    });
+
+    it('should return 200 for a valid base64-signed event', async () => {
+      const payload = JSON.stringify({
+        data: { id: 152 },
+        meta: { event: 'created', webhook_id: 1234 }
+      });
+      const signature = generateClioSignature(payload, webhookSecret, 'base64');
+
+      const response = await request(app)
+        .post('/webhooks/clio')
+        .set('Content-Type', 'application/json')
+        .set('X-Hook-Signature', signature)
+        .send(payload);
+
+      expect(response.status).toBe(200);
     });
 
     it('should return 200 for a valid created event', async () => {
