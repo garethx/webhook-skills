@@ -492,6 +492,27 @@
       ]
     },
     {
+      "name": "courier-webhooks",
+      "description": "Receive and verify Courier outbound webhooks. Use when setting up Courier webhook handlers, debugging courier-signature verification, or handling notification and audience events like message:updated, notification:submitted, or audiences:updated.",
+      "source": "./skills/courier-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/courier-webhooks",
+      "keywords": [
+        "webhooks",
+        "courier"
+      ]
+    },
+    {
       "name": "cursor-webhooks",
       "description": "Verify Cursor Cloud Agent webhook signatures (HMAC-SHA256), handle agent status events.",
       "source": "./skills/cursor-webhooks",
