@@ -7,14 +7,15 @@ const crypto = require('crypto');
 const app = express();
 
 /**
- * Verify Fireflies webhook signature.
+ * Verify a Fireflies Webhooks V2 signature.
  *
- * Fireflies signs the raw request body with HMAC-SHA256 keyed on your webhook
- * secret and sends the digest in the `x-hub-signature` header as a bare hex
- * string (no `sha256=` prefix). Compare against the header value directly.
+ * V2 signs the raw request body with HMAC-SHA256 keyed on the signing secret
+ * you configured at webhook setup, and sends the digest in the
+ * `X-Hub-Signature` header as `sha256=<hex>`. The `sha256=` prefix is required
+ * in V2 (V1 sent a bare hex digest with no prefix).
  *
  * @param {Buffer} rawBody - Raw request body
- * @param {string} signatureHeader - x-hub-signature header value
+ * @param {string} signatureHeader - X-Hub-Signature header value (`sha256=<hex>`)
  * @param {string} secret - Fireflies webhook signing secret
  * @returns {boolean} - Whether the signature is valid
  */
@@ -24,8 +25,16 @@ function verifyFirefliesWebhook(rawBody, signatureHeader, secret) {
     return false;
   }
 
-  // Compute expected signature over the raw body (hex-encoded, no prefix)
-  const expectedSignature = crypto
+  // V2 requires the `sha256=` prefix - reject anything else (including a bare
+  // V1-style hex digest) rather than guessing at the format
+  if (!signatureHeader.startsWith('sha256=')) {
+    return false;
+  }
+
+  const receivedHex = signatureHeader.slice('sha256='.length);
+
+  // Compute expected signature over the raw body (hex-encoded)
+  const expectedHex = crypto
     .createHmac('sha256', secret)
     .update(rawBody)
     .digest('hex');
@@ -33,8 +42,8 @@ function verifyFirefliesWebhook(rawBody, signatureHeader, secret) {
   // Use timing-safe comparison to prevent timing attacks
   try {
     return crypto.timingSafeEqual(
-      Buffer.from(signatureHeader, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
+      Buffer.from(receivedHex, 'hex'),
+      Buffer.from(expectedHex, 'hex')
     );
   } catch {
     // Different lengths / non-hex header means invalid
@@ -49,38 +58,51 @@ app.post('/webhooks/fireflies',
     const signature = req.headers['x-hub-signature'];
     const secret = process.env.FIREFLIES_WEBHOOK_SECRET;
 
-    // Fail closed when the secret is missing rather than throwing an opaque 500
+    // The V2 signing secret is optional at webhook setup. When it is unset,
+    // Fireflies sends no X-Hub-Signature header at all, so there is nothing to
+    // verify. This example accepts those deliveries with a loud warning so an
+    // unconfigured setup still works end to end - set a secret in production.
     if (!secret) {
-      console.error('FIREFLIES_WEBHOOK_SECRET is not set - cannot verify webhooks');
-      return res.status(401).send('Invalid signature');
-    }
-
-    // Verify webhook signature
-    if (!verifyFirefliesWebhook(req.body, signature, secret)) {
+      console.warn(
+        'FIREFLIES_WEBHOOK_SECRET is not set - accepting this delivery UNVERIFIED. ' +
+        'Configure a signing secret on the Fireflies Webhooks V2 page and set it here.'
+      );
+    } else if (!verifyFirefliesWebhook(req.body, signature, secret)) {
+      // A secret is configured, so every delivery must carry a valid signature
       console.error('Webhook signature verification failed');
       return res.status(401).send('Invalid signature');
     }
 
     // Parse the payload after verification
     const payload = JSON.parse(req.body.toString());
-    const { meetingId, eventType, clientReferenceId } = payload;
+    const { event, meeting_id: meetingId, client_reference_id: clientReferenceId, timestamp } = payload;
 
-    console.log(`Received "${eventType}" event for meeting ${meetingId}`);
+    console.log(`Received "${event}" event for meeting ${meetingId} (ts: ${timestamp})`);
 
     // Handle the event based on its type (Fireflies puts the type in the body)
-    switch (eventType) {
-      case 'Transcription completed':
+    switch (event) {
+      case 'meeting.transcribed':
         console.log(`Transcript ready for meeting ${meetingId}` +
           (clientReferenceId ? ` (ref: ${clientReferenceId})` : ''));
         // TODO: Fetch the transcript from the Fireflies GraphQL API using
-        // meetingId, then sync notes, post to Slack, update your CRM, etc.
+        // meeting_id, then sync notes, post to Slack, update your CRM, etc.
+        break;
+
+      case 'meeting.summarized':
+        console.log(`Summary ready for meeting ${meetingId}`);
+        // TODO: Fetch the AI summary / action items and route them onward.
+        break;
+
+      case 'meeting.bot_joined':
+        console.log(`Fred bot joined meeting ${meetingId}`);
+        // TODO: Mark the meeting as being recorded, notify participants, etc.
         break;
 
       default:
-        console.log(`Unhandled event type: ${eventType}`);
+        console.log(`Unhandled event type: ${event}`);
     }
 
-    // Return 200 to acknowledge receipt
+    // Return 200 to acknowledge receipt (Fireflies expects a 2xx within 10s)
     res.status(200).send('OK');
   }
 );
