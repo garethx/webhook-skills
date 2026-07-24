@@ -28,6 +28,11 @@ Rather than guess, compute the digest once and **timing-safe compare against
 both the base64 and hex encodings** — the correct one matches, the other never
 will.
 
+**Confirm which encoding your real deliveries use.** Log the raw
+`X-Shopline-Hmac-Sha256` value from one live delivery: a 44-character string
+ending in `=` is base64, 64 lowercase `[a-f0-9]` characters is hex. Once you
+know, you can narrow the check to that single encoding.
+
 ## Implementation
 
 ### Node.js
@@ -108,7 +113,8 @@ most frameworks lowercase them — read `x-shopline-hmac-sha256`.
 ### 3. Encoding assumptions
 
 Do not hardcode only base64 or only hex. Accept **either** encoding (base64
-documented, hex seen in a sample) so you are robust to whichever SHOPLINE sends.
+documented, hex seen in a sample) so you are robust to whichever SHOPLINE sends,
+then confirm which one your real deliveries actually carry.
 
 ### 4. Timing-safe comparison
 
@@ -116,13 +122,13 @@ Compare with `crypto.timingSafeEqual` / `hmac.compare_digest`, never `===`.
 Wrap `timingSafeEqual` in try/catch — it throws on length mismatch, which should
 just mean "invalid".
 
-### 5. Replay protection (optional)
+### 5. No timestamp header — dedupe instead of a replay window
 
-The docs suggest comparing a request timestamp against your system clock and
-rejecting requests older than ~10 minutes. If you enforce this, keep in mind
-SHOPLINE legitimately retries deliveries for up to 48 hours, so pair any replay
-window with idempotency on `X-Shopline-Webhook-Id` rather than rejecting retries
-outright.
+SHOPLINE sends **no timestamp header**, so the usual "reject anything older than
+N minutes" replay check is not available here. Use `X-Shopline-Webhook-Id`
+instead: it is stable across resends, so store it and treat a repeat as
+already-processed. That also handles the legitimate case — SHOPLINE retries a
+failed delivery up to 19 times over 48 hours, all carrying the same webhook id.
 
 ## Debugging Verification Failures
 

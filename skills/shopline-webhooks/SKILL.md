@@ -30,8 +30,10 @@ changes the bytes and breaks the signature — and compare timing-safe.
 
 > **Encoding:** SHOPLINE's docs show a **base64** digest (Shopify-style), but a
 > stray code sample shows **hex**. To be safe, accept either: compute both and
-> timing-safe compare against each. The topic is in `X-Shopline-Topic`; the shop
-> domain in `X-Shopline-Shop-Domain`.
+> timing-safe compare against each. Then **confirm which encoding your real
+> deliveries use** — log one live `X-Shopline-Hmac-Sha256` value (44 chars ending
+> in `=` is base64; 64 `[a-f0-9]` chars is hex) — and you can narrow the check.
+> The topic is in `X-Shopline-Topic`; the shop domain in `X-Shopline-Shop-Domain`.
 
 Node:
 
