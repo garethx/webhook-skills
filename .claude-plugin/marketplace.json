@@ -603,6 +603,29 @@
       ]
     },
     {
+      "name": "enode-webhooks",
+      "description": "Verify Enode webhook signatures (x-enode-signature, HMAC-SHA1 hex over the raw body), handle EV and energy events like user:vehicle:updated, user:charger:updated, and user:battery:updated.",
+      "source": "./skills/enode-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/enode-webhooks",
+      "keywords": [
+        "webhooks",
+        "enode",
+        "ev",
+        "energy"
+      ]
+    },
+    {
       "name": "exact-online-webhooks",
       "description": "Receive and verify Exact Online webhooks. Use when setting up Exact Online webhook handlers, debugging HashCode signature verification, subscribing to topics via the WebhookSubscriptions REST endpoint, or handling entity change events like Accounts, Items, StockPositions, FinancialTransactions, GoodsDeliveries, and Contacts. Note: Exact does NOT use Standard Webhooks — the signature is a HashCode field inside the JSON body (HMAC-SHA256 over the Content node, hex, uppercased), not an HTTP header.",
       "source": "./skills/exact-online-webhooks",
