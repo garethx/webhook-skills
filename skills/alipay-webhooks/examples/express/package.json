@@ -1,0 +1,19 @@
+{
+  "name": "alipay-webhooks-express",
+  "version": "1.0.0",
+  "description": "Receive and verify Alipay (Antom / Alipay+) webhooks with Express",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.0.0"
+  }
+}
