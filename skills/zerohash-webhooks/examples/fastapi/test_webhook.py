@@ -46,6 +46,23 @@ def trade_body(status: str = "terminated", trade_id: str = "trade_123") -> str:
     )
 
 
+def now_seconds() -> str:
+    return str(int(time.time()))
+
+
+def payment_body(status: str = "settled", payment_id: str = "payment_123") -> str:
+    """The payment_status_changed payload shape is not documented - this is a
+    plausible placeholder, not a verified schema."""
+    return json.dumps(
+        {
+            "payment_id": payment_id,
+            "status": status,
+            "asset": "USD",
+            "amount": "250.00",
+        }
+    )
+
+
 def balance_body(account_type: str = "available") -> str:
     return json.dumps(
         {
@@ -139,6 +156,60 @@ class TestZeroHashWebhook:
         assert response.status_code == 200
         assert response.json() == {"received": True}
 
+    def test_seconds_precision_timestamp_returns_200(self):
+        # Zero Hash does not document whether the timestamp is seconds or ms.
+        body = trade_body()
+        timestamp = now_seconds()
+        signature = sign_with_timestamp(body, timestamp, WEBHOOK_SECRET)
+
+        response = client.post(
+            "/webhooks/zerohash",
+            content=body,
+            headers={
+                "Content-Type": "application/json",
+                "x-zh-hook-payload-type": "trade_status_changed",
+                "x-zh-hook-timestamp": timestamp,
+                "x-zh-hook-signature": signature,
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"received": True}
+
+    def test_expired_seconds_precision_timestamp_returns_400(self):
+        body = trade_body()
+        # 10 minutes ago, in seconds - outside the ±5 minute tolerance.
+        timestamp = str(int(time.time()) - 10 * 60)
+        signature = sign_with_timestamp(body, timestamp, WEBHOOK_SECRET)
+
+        response = client.post(
+            "/webhooks/zerohash",
+            content=body,
+            headers={
+                "Content-Type": "application/json",
+                "x-zh-hook-payload-type": "trade_status_changed",
+                "x-zh-hook-timestamp": timestamp,
+                "x-zh-hook-signature": signature,
+            },
+        )
+        assert response.status_code == 400
+
+    def test_non_numeric_timestamp_returns_400(self):
+        body = trade_body()
+        timestamp = "not-a-timestamp"
+        signature = sign_with_timestamp(body, timestamp, WEBHOOK_SECRET)
+
+        response = client.post(
+            "/webhooks/zerohash",
+            content=body,
+            headers={
+                "Content-Type": "application/json",
+                "x-zh-hook-payload-type": "trade_status_changed",
+                "x-zh-hook-timestamp": timestamp,
+                "x-zh-hook-signature": signature,
+            },
+        )
+        assert response.status_code == 400
+
     def test_valid_legacy_signature_returns_200(self):
         body = balance_body()
         signature = sign_legacy(body, WEBHOOK_SECRET)
@@ -159,7 +230,10 @@ class TestZeroHashWebhook:
         cases = [
             ("trade_status_changed", trade_body("accepted")),
             ("trade_status_changed", trade_body("active")),
+            ("payment_status_changed", payment_body()),
+            # Both spellings of the (unconfirmed) balance event name.
             ("account_balance.changed", balance_body("collateral")),
+            ("account_balance_changed", balance_body("available")),
             ("unknown.type", trade_body()),
         ]
 

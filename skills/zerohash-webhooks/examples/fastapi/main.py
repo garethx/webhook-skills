@@ -19,6 +19,24 @@ webhook_secret = os.environ.get("ZEROHASH_WEBHOOK_SECRET", "")
 TOLERANCE_MS = 5 * 60 * 1000  # ±5 minutes
 
 
+def to_millis(timestamp: str):
+    """Normalize x-zh-hook-timestamp to milliseconds.
+
+    Zero Hash documents the ±5 minute replay window but NOT whether the
+    timestamp is in seconds or milliseconds. Assuming the wrong unit rejects
+    every delivery, so detect it from the magnitude: a ~10-digit value is
+    seconds, a ~13-digit value is already milliseconds. Only the staleness check
+    needs this - the HMAC always covers the timestamp string as received.
+
+    Returns None if the value is not an integer.
+    """
+    try:
+        value = int(timestamp)
+    except ValueError:
+        return None
+    return value * 1000 if abs(value) < 100_000_000_000 else value
+
+
 def verify_zerohash(raw_body: bytes, headers, secret: str) -> bool:
     """Verify a Zero Hash webhook signature.
 
@@ -26,7 +44,7 @@ def verify_zerohash(raw_body: bytes, headers, secret: str) -> bool:
     request body with HMAC-SHA256 and sends a HEX digest. Two schemes exist:
 
     - Recommended: `x-zh-hook-signature` = to_hex(hmac_sha256(payload + timestamp, secret))
-      with `x-zh-hook-timestamp` (UNIX milliseconds). Reject stale timestamps.
+      with `x-zh-hook-timestamp`. Reject stale timestamps.
     - Legacy: `x-zh-hook-signature-256` = to_hex(hmac_sha256(payload, secret)).
 
     `payload + timestamp` is a plain concatenation with NO delimiter.
@@ -35,17 +53,20 @@ def verify_zerohash(raw_body: bytes, headers, secret: str) -> bool:
     timestamp = headers.get("x-zh-hook-timestamp")
 
     if signature and timestamp:
-        # Replay guard: x-zh-hook-timestamp is UNIX milliseconds.
-        try:
-            if abs(int(time.time() * 1000) - int(timestamp)) > TOLERANCE_MS:
-                return False
-        except ValueError:
+        # Replay guard: accept a seconds or milliseconds timestamp (unit undocumented).
+        timestamp_ms = to_millis(timestamp)
+        if timestamp_ms is None:
+            return False
+        if abs(int(time.time() * 1000) - timestamp_ms) > TOLERANCE_MS:
             return False
         signed = raw_body + timestamp.encode("utf-8")
         expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
         return hmac.compare_digest(expected, signature)
 
     # Fall back to the legacy scheme (payload only, no timestamp).
+    # NOTE: the legacy scheme has NO replay window - a captured request stays
+    # valid forever. If your Zero Hash rep has put you on the new
+    # x-zh-hook-signature + x-zh-hook-timestamp scheme, DELETE this branch.
     legacy = headers.get("x-zh-hook-signature-256")
     if legacy:
         expected = hmac.new(
@@ -72,16 +93,28 @@ async def zerohash_webhook(request: Request):
         raise HTTPException(status_code=400, detail="Invalid signature")
 
     # Signature verified - safe to parse. The event type is in a header.
+    # Zero Hash's docs are inconsistent about the exact payload-type strings
+    # (underscore vs dot forms) - confirm them with your Zero Hash rep and let
+    # the else branch log anything unexpected.
     payload_type = request.headers.get("x-zh-hook-payload-type")
+    # Unconfirmed header - .get() returns None when absent, so fall back to an
+    # id in the body or a hash of the payload for idempotency.
     notification_id = request.headers.get("x-zh-hook-notification-id")  # noqa: F841
     data = json.loads(raw_body)
 
-    # TODO: use notification_id to deduplicate (idempotency).
+    # TODO: use notification_id (when present) to deduplicate (idempotency).
     if payload_type == "trade_status_changed":
         print(f"Trade {data['trade_id']} status: {data['status']}")
         # TODO: update order/settlement state (accepted | active | terminated).
 
-    elif payload_type == "account_balance.changed":
+    elif payload_type == "payment_status_changed":
+        print(f"Payment {data.get('payment_id')} status: {data.get('status')}")
+        # TODO: update payment state. The payload shape is not documented -
+        # log a real delivery before branching on specific status values.
+
+    # Balance event name is unconfirmed - Zero Hash's docs show a dot form, so
+    # accept the underscore spelling too.
+    elif payload_type in ("account_balance.changed", "account_balance_changed"):
         print(
             f"Balance changed: {data['asset']} {data['account_type']} = {data['balance']}"
         )

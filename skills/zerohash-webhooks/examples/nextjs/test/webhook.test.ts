@@ -33,6 +33,17 @@ function tradeBody(status = 'terminated', tradeId = 'trade_123'): string {
   });
 }
 
+// The payment_status_changed payload shape is not documented — this is a
+// plausible placeholder, not a verified schema.
+function paymentBody(status = 'settled', paymentId = 'payment_123'): string {
+  return JSON.stringify({
+    payment_id: paymentId,
+    status,
+    asset: 'USD',
+    amount: '250.00',
+  });
+}
+
 function balanceBody(accountType = 'available'): string {
   return JSON.stringify({
     account_group: '00SCXM',
@@ -119,6 +130,53 @@ describe('POST /webhooks/zerohash', () => {
     expect(await res.json()).toEqual({ received: true });
   });
 
+  it('returns 200 for a seconds-precision timestamp (unit is undocumented)', async () => {
+    const { POST } = await import('../app/webhooks/zerohash/route');
+    const body = tradeBody();
+    // Zero Hash does not document whether the timestamp is seconds or ms.
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const signature = signWithTimestamp(body, timestamp, webhookSecret);
+    const res = await POST(
+      makeRequest(body, {
+        'x-zh-hook-payload-type': 'trade_status_changed',
+        'x-zh-hook-timestamp': timestamp,
+        'x-zh-hook-signature': signature,
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ received: true });
+  });
+
+  it('returns 400 for an expired seconds-precision timestamp', async () => {
+    const { POST } = await import('../app/webhooks/zerohash/route');
+    const body = tradeBody();
+    const timestamp = String(Math.floor(Date.now() / 1000) - 10 * 60); // 10 min ago
+    const signature = signWithTimestamp(body, timestamp, webhookSecret);
+    const res = await POST(
+      makeRequest(body, {
+        'x-zh-hook-payload-type': 'trade_status_changed',
+        'x-zh-hook-timestamp': timestamp,
+        'x-zh-hook-signature': signature,
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for a non-numeric timestamp', async () => {
+    const { POST } = await import('../app/webhooks/zerohash/route');
+    const body = tradeBody();
+    const timestamp = 'not-a-timestamp';
+    const signature = signWithTimestamp(body, timestamp, webhookSecret);
+    const res = await POST(
+      makeRequest(body, {
+        'x-zh-hook-payload-type': 'trade_status_changed',
+        'x-zh-hook-timestamp': timestamp,
+        'x-zh-hook-signature': signature,
+      })
+    );
+    expect(res.status).toBe(400);
+  });
+
   it('returns 200 for a valid legacy signature (payload only)', async () => {
     const { POST } = await import('../app/webhooks/zerohash/route');
     const body = balanceBody();
@@ -138,7 +196,10 @@ describe('POST /webhooks/zerohash', () => {
     const cases = [
       { type: 'trade_status_changed', body: tradeBody('accepted') },
       { type: 'trade_status_changed', body: tradeBody('active') },
+      { type: 'payment_status_changed', body: paymentBody() },
+      // Both spellings of the (unconfirmed) balance event name.
       { type: 'account_balance.changed', body: balanceBody('collateral') },
+      { type: 'account_balance_changed', body: balanceBody('available') },
       { type: 'unknown.type', body: tradeBody() },
     ];
 

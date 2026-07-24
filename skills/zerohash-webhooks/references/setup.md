@@ -12,7 +12,9 @@ a dashboard by you. Instead:
 
 1. **Reach out to your Zero Hash representative** and tell them which
    destination URL should receive webhooks and which notifications you want
-   (`trade_status_changed`, `account_balance.changed`, or both).
+   (trade status, payment status, account balance updates). Ask them to confirm
+   the exact `x-zh-hook-payload-type` string for each one — Zero Hash's docs are
+   inconsistent about these names (see [overview.md](overview.md)).
 2. Your rep configures your Platform to deliver to that URL.
 3. Your rep provisions the signing material:
    - an **HMAC shared secret** (used with `x-zh-hook-signature` /
@@ -49,16 +51,16 @@ separate scheme** and does *not* use that format:
 Do not try to reuse REST API auth code to verify webhooks. See
 [verification.md](verification.md).
 
-## Environment (source IP allowlist)
+## Source IP allowlisting
 
-Zero Hash delivers webhooks from a fixed set of source IPs. If your
-infrastructure enforces IP allowlisting, allow:
+Zero Hash does not publish webhook source IP ranges, and this skill deliberately
+does not list any. If your infrastructure enforces IP allowlisting, **ask your
+Zero Hash representative** — the same person who provisions your destination URL
+and signing material — for the current source addresses, and treat whatever they
+give you as subject to change.
 
-- `18.189.25.175/32`
-- `3.18.218.32/32`
-- `3.22.145.85/32`
-
-Confirm the current list with your Zero Hash rep, as it may change.
+Do not copy IP ranges from third-party write-ups. Signature verification, not an
+allowlist, is the control that actually proves a request came from Zero Hash.
 
 ## Test Mode vs Live Mode
 
