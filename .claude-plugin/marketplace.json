@@ -2484,6 +2484,30 @@
       ]
     },
     {
+      "name": "zerohash-webhooks",
+      "description": "Verify Zero Hash webhook signatures (x-zh-hook-signature, HMAC-SHA256 hex over payload + timestamp with replay protection; legacy x-zh-hook-signature-256), and handle trade_status_changed and account_balance.changed events.",
+      "source": "./skills/zerohash-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/zerohash-webhooks",
+      "keywords": [
+        "webhooks",
+        "zerohash",
+        "crypto",
+        "settlement",
+        "payments"
+      ]
+    },
+    {
       "name": "webhook-handler-patterns",
       "description": "Framework-agnostic webhook handler patterns: idempotency, error handling, retry logic, async processing for Express, Next.js, and FastAPI.",
       "source": "./skills/webhook-handler-patterns",
