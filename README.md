@@ -154,6 +154,7 @@ Skills for receiving and verifying webhooks from specific providers. Each includ
 | [WorkOS](https://workos.com/docs/events/data-syncing/webhooks) | [`workos-webhooks`](skills/workos-webhooks/) | Verify WorkOS webhook signatures (`WorkOS-Signature`, HMAC-SHA256 with timestamp), handle Directory Sync and auth events |
 | [Xero](https://developer.xero.com/documentation/guides/webhooks/overview/) | [`xero-webhooks`](skills/xero-webhooks/) | Verify Xero webhook signatures (`x-xero-signature`, HMAC-SHA256 base64), pass Intent to Receive (ITR) with 200/401, handle CONTACT, INVOICE, CREDITNOTE, and SUBSCRIPTION events |
 | [Zendesk](https://developer.zendesk.com/documentation/webhooks/creating-and-monitoring-webhooks/) | [`zendesk-webhooks`](skills/zendesk-webhooks/) | Verify Zendesk webhook signatures (`X-Zendesk-Webhook-Signature`, HMAC-SHA256 with timestamp), handle event subscriptions and trigger-based webhooks |
+| [Zero Hash](https://docs.zerohash.com/changelog/webhooks-tradestatus-balanceupdates) | [`zerohash-webhooks`](skills/zerohash-webhooks/) | Verify Zero Hash webhook signatures (`x-zh-hook-signature`, HMAC-SHA256 hex over `payload + timestamp` with replay protection; legacy `x-zh-hook-signature-256`), handle `trade_status_changed` and `account_balance.changed` events |
 | [Zoom](https://developers.zoom.us/docs/api/webhooks/) | [`zoom-webhooks`](skills/zoom-webhooks/) | Verify Zoom webhook signatures (`x-zm-signature`), complete the URL validation handshake, handle meeting and recording events |
 
 ### Webhook Handler Pattern Skills
