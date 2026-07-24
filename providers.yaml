@@ -1844,6 +1844,31 @@ providers:
         - orders/create
         - orders/paid
 
+  - name: shopline
+    displayName: SHOPLINE
+    docs:
+      webhooks: https://developer.shopline.com/docs/apps/api-instructions-for-use/webhooks/overview/
+      verification: https://developer.shopline.com/docs/apps/api-instructions-for-use/generate-and-verify-signatures/
+    notes: >
+      E-commerce platform. The SHOPLINE Open Platform (developer.shopline.com, English) is a
+      Shopify clone. Webhooks are signed with HMAC-SHA256 of the RAW request body keyed by the
+      app secret (Developer Center > App credentials); the signature is in the
+      X-Shopline-Hmac-Sha256 header. Encoding is base64 (the docs' header example is base64,
+      Shopify-style — though a stray code sample shows hex; treat as base64 and fall back to hex
+      if needed). Constant-time compare against the raw un-parsed body. This is NOT the Standard
+      Webhooks spec. Other headers: X-Shopline-Topic, X-Shopline-Shop-Domain, X-Shopline-Shop-Id,
+      X-Shopline-Merchant-Id, X-Shopline-API-Version, X-Shopline-Webhook-Id (stable across resends,
+      use for idempotency). Topics use Shopify-style slash format (orders/create, products/update,
+      collect/delete). Subscribe via the Admin REST API
+      POST https://{handle}.myshopline.com/admin/openapi/{version}/webhooks.json with
+      {topic, address, api_version}. Gotchas: 5s response timeout; up to 19 retries over 48h then
+      the subscription is auto-removed. No official published SDK — verify manually.
+    testScenario:
+      events:
+        - orders/create
+        - products/update
+        - collect/delete
+
   - name: slack
     displayName: Slack
     docs:

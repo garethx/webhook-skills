@@ -2001,6 +2001,27 @@
       ]
     },
     {
+      "name": "shopline-webhooks",
+      "description": "Receive and verify SHOPLINE webhooks. Use when setting up SHOPLINE webhook handlers, debugging X-Shopline-Hmac-Sha256 signature verification, or handling store events like orders/create, products/update, or collect/delete.",
+      "source": "./skills/shopline-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/shopline-webhooks",
+      "keywords": [
+        "webhooks",
+        "shopline"
+      ]
+    },
+    {
       "name": "slack-webhooks",
       "description": "Verify Slack Events API signatures (HMAC-SHA256 over v0:ts:body), handle message, app_mention, and reaction events.",
       "source": "./skills/slack-webhooks",
