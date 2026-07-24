@@ -1913,6 +1913,27 @@
       ]
     },
     {
+      "name": "shiphero-webhooks",
+      "description": "Receive and verify ShipHero webhooks. Use when setting up ShipHero webhook handlers, debugging signature verification (x-shiphero-hmac-sha256), or handling fulfillment events like Order Allocated, Shipment Update, Inventory Update, Order Canceled, and Return Update.",
+      "source": "./skills/shiphero-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/shiphero-webhooks",
+      "keywords": [
+        "webhooks",
+        "shiphero"
+      ]
+    },
+    {
       "name": "shipstation-webhooks",
       "description": "Receive and verify ShipStation webhooks. Use when setting up ShipStation webhook handlers, securing endpoints that have no signature (secret token in the URL), fetching the thin resource_url payload with Basic auth, or handling ORDER_NOTIFY, ITEM_ORDER_NOTIFY, SHIP_NOTIFY, ITEM_SHIP_NOTIFY, FULFILLMENT_SHIPPED, and FULFILLMENT_REJECTED events.",
       "source": "./skills/shipstation-webhooks",
