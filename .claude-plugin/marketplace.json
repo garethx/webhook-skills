@@ -2089,6 +2089,27 @@
       ]
     },
     {
+      "name": "treezor-webhooks",
+      "description": "Receive and verify Treezor webhooks. Use when setting up Treezor webhook handlers, debugging signature verification, or handling BaaS banking events like payin.create, payout.update, cardtransaction.create, wallet.create, or user.kycreview.",
+      "source": "./skills/treezor-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/treezor-webhooks",
+      "keywords": [
+        "webhooks",
+        "treezor"
+      ]
+    },
+    {
       "name": "trello-webhooks",
       "description": "Receive and verify Trello webhooks. Use when setting up Trello webhook handlers, debugging x-trello-webhook signature verification, or handling board and card events like createCard, updateCard, commentCard, or addMemberToBoard.",
       "source": "./skills/trello-webhooks",
