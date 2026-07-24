@@ -54,6 +54,41 @@ describe('verifyCourierWebhook', () => {
     const header = generateCourierSignature(payload, webhookSecret, staleTs);
     expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(false);
   });
+
+  it('accepts a seconds-precision timestamp (unit is undocumented)', () => {
+    const payload = JSON.stringify({ type: 'message:updated', data: { id: 'm1' } });
+    const seconds = Math.floor(Date.now() / 1000);
+    const header = generateCourierSignature(payload, webhookSecret, seconds);
+    expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(true);
+  });
+
+  it('rejects a stale seconds-precision timestamp', () => {
+    const payload = JSON.stringify({ type: 'message:updated', data: {} });
+    const staleSeconds = Math.floor(Date.now() / 1000) - 10 * 60; // 10 minutes ago
+    const header = generateCourierSignature(payload, webhookSecret, staleSeconds);
+    expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(false);
+  });
+
+  it('rejects a non-numeric timestamp', () => {
+    const payload = JSON.stringify({ type: 'message:updated', data: {} });
+    const header = generateCourierSignature(payload, webhookSecret, 'not-a-timestamp');
+    expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(false);
+  });
+
+  it('matches Courier\'s documented JSON.stringify(body) form for an unmodified body', () => {
+    // Courier documents the signed content as `${t}.${JSON.stringify(body)}`;
+    // this skill signs `${t}.${rawBody}`. For a delivery we have not modified
+    // the two inputs are byte-identical, so both produce the same digest.
+    const body = { type: 'message:updated', data: { id: 'm1', status: 'DELIVERED' } };
+    const rawBody = JSON.stringify(body);
+    const timestamp = Date.now();
+    const docsDigest = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(`${timestamp}.${JSON.stringify(JSON.parse(rawBody))}`)
+      .digest('hex');
+    const header = `t=${timestamp},signature=${docsDigest}`;
+    expect(verifyCourierWebhook(rawBody, header, webhookSecret)).toBe(true);
+  });
 });
 
 describe('POST /webhooks/courier', () => {

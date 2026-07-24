@@ -16,6 +16,24 @@ app = FastAPI()
 WEBHOOK_SECRET = os.environ.get("COURIER_WEBHOOK_SECRET", "")
 
 
+def to_millis(timestamp: str):
+    """Normalize the `t` value from courier-signature to milliseconds.
+
+    Courier does not document whether `t` is epoch seconds or milliseconds.
+    Assuming the wrong unit rejects every delivery, so detect it from the
+    magnitude: a ~10-digit value is seconds, a ~13-digit value is already
+    milliseconds. Only the staleness check needs this - the HMAC always covers
+    the `t` string exactly as received.
+
+    Returns None if the value is not an integer.
+    """
+    try:
+        value = int(timestamp)
+    except ValueError:
+        return None
+    return value * 1000 if abs(value) < 100_000_000_000 else value
+
+
 def verify_courier_signature(
     raw_body: bytes,
     signature_header: str | None,
@@ -25,13 +43,20 @@ def verify_courier_signature(
     """Verify a Courier outbound webhook signature.
 
     Courier signs each webhook with HMAC-SHA256. The `courier-signature` header
-    looks like `t=<epoch_ms>,signature=<hex_digest>`, and the signed content is
+    looks like `t=<timestamp>,signature=<hex_digest>`, and the signed content is
     `<timestamp>.<raw_body>` (timestamp + "." + the raw request body).
+
+    Courier's docs write the signed content as `${t}.${JSON.stringify(body)}`;
+    we use the raw body instead. The two are byte-identical for a delivery you
+    have not modified, and the raw body avoids re-serialization drift.
+
+    `tolerance_ms` defaults to 5 minutes - our choice, not a window Courier
+    publishes.
     """
     if not signature_header:
         return False
 
-    # Parse "t=<ms>,signature=<hex>"
+    # Parse "t=<timestamp>,signature=<hex>"
     parts: dict[str, str] = {}
     for segment in signature_header.split(","):
         key, _, value = segment.partition("=")
@@ -42,10 +67,9 @@ def verify_courier_signature(
     if not timestamp or not signature:
         return False
 
-    # Courier timestamps are epoch milliseconds — reject stale deliveries
-    try:
-        ts = int(timestamp)
-    except ValueError:
+    # Reject stale deliveries (accepts a seconds or milliseconds timestamp)
+    ts = to_millis(timestamp)
+    if ts is None:
         return False
     if abs(int(time.time() * 1000) - ts) > tolerance_ms:
         return False
@@ -74,7 +98,9 @@ async def courier_webhook(request: Request):
     data = event.get("data", {})
 
     if event_type == "message:updated":
-        # Courier does NOT emit per-status events — status lives in `data`
+        # Courier does NOT emit per-status events - status lives in `data`.
+        # The set of status values is not documented; log what you receive
+        # before branching on specific ones.
         print(f"Message updated: {data.get('id')} status={data.get('status')}")
         # TODO: Sync delivery status, retry, analytics, etc.
 

@@ -16,18 +16,18 @@ client = TestClient(app)
 WEBHOOK_SECRET = os.environ["COURIER_WEBHOOK_SECRET"]
 
 
-def generate_courier_signature(payload: str, secret: str, timestamp_ms: int | None = None) -> str:
+def generate_courier_signature(payload: str, secret: str, timestamp=None) -> str:
     """Generate a valid Courier signature header for testing.
 
-    Signed content is `<timestamp_ms>.<payload>`, HMAC-SHA256 hex.
+    Signed content is `<timestamp>.<payload>`, HMAC-SHA256 hex.
     """
-    if timestamp_ms is None:
-        timestamp_ms = int(time.time() * 1000)
-    signed_payload = f"{timestamp_ms}.{payload}"
+    if timestamp is None:
+        timestamp = int(time.time() * 1000)
+    signed_payload = f"{timestamp}.{payload}"
     signature = hmac.new(
         secret.encode("utf-8"), signed_payload.encode("utf-8"), hashlib.sha256
     ).hexdigest()
-    return f"t={timestamp_ms},signature={signature}"
+    return f"t={timestamp},signature={signature}"
 
 
 class TestVerifyCourierSignature:
@@ -58,6 +58,38 @@ class TestVerifyCourierSignature:
         stale_ts = int(time.time() * 1000) - 10 * 60 * 1000  # 10 minutes ago
         header = generate_courier_signature(payload, WEBHOOK_SECRET, stale_ts)
         assert verify_courier_signature(payload.encode(), header, WEBHOOK_SECRET) is False
+
+    def test_accepts_seconds_precision_timestamp(self):
+        # Courier does not document whether `t` is seconds or milliseconds.
+        payload = json.dumps({"type": "message:updated", "data": {"id": "m1"}})
+        header = generate_courier_signature(payload, WEBHOOK_SECRET, int(time.time()))
+        assert verify_courier_signature(payload.encode(), header, WEBHOOK_SECRET) is True
+
+    def test_rejects_stale_seconds_precision_timestamp(self):
+        payload = json.dumps({"type": "message:updated", "data": {}})
+        stale_s = int(time.time()) - 10 * 60  # 10 minutes ago
+        header = generate_courier_signature(payload, WEBHOOK_SECRET, stale_s)
+        assert verify_courier_signature(payload.encode(), header, WEBHOOK_SECRET) is False
+
+    def test_rejects_non_numeric_timestamp(self):
+        payload = json.dumps({"type": "message:updated", "data": {}})
+        header = generate_courier_signature(payload, WEBHOOK_SECRET, "not-a-timestamp")
+        assert verify_courier_signature(payload.encode(), header, WEBHOOK_SECRET) is False
+
+    def test_matches_documented_json_dumps_form_for_unmodified_body(self):
+        # Courier documents the signed content as `${t}.${JSON.stringify(body)}`;
+        # this skill signs `${t}.${raw_body}`. For a delivery we have not
+        # modified the two inputs are byte-identical, so the digests match.
+        raw_body = json.dumps(
+            {"type": "message:updated", "data": {"id": "m1", "status": "DELIVERED"}}
+        )
+        timestamp = int(time.time() * 1000)
+        docs_payload = f"{timestamp}.{json.dumps(json.loads(raw_body))}"
+        docs_digest = hmac.new(
+            WEBHOOK_SECRET.encode("utf-8"), docs_payload.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
+        header = f"t={timestamp},signature={docs_digest}"
+        assert verify_courier_signature(raw_body.encode(), header, WEBHOOK_SECRET) is True
 
 
 class TestCourierWebhookEndpoint:

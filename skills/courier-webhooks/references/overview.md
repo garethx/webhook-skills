@@ -9,7 +9,10 @@ their lifecycle and as audiences change — so you can sync delivery status, tri
 downstream automation, or feed analytics without polling the Courier API.
 
 Every outbound webhook is a `POST` request with a JSON body and a `courier-signature`
-header you use to verify the request is genuinely from Courier.
+header you use to verify the request is genuinely from Courier. The header carries a
+timestamp (`t`) whose unit Courier does not document, and Courier publishes no replay
+tolerance — the 5-minute window in this skill's examples is a chosen default. See
+[verification.md](verification.md).
 
 ## Event Payload Structure
 
@@ -48,7 +51,13 @@ Courier does **not** emit separate events for each delivery status. There is no
 `message:delivered`, `message:opened`, or `message:clicked` event. Instead, a single
 `message:updated` event fires whenever a message's status changes, and the current
 `status` plus relevant timestamps are carried inside `data`. Inspect `data.status`
-(e.g. `DELIVERED`, `OPENED`, `CLICKED`, `UNDELIVERABLE`) to react to specific states.
+to react to specific states.
+
+> The status values often cited for Courier messages — `DELIVERED`, `OPENED`,
+> `CLICKED`, `UNDELIVERABLE` — are **illustrative only**. This skill was not built
+> from a verified enumeration of `data.status`, so log the values your workspace
+> actually sends before you branch on them, and keep a fallback branch for values
+> you do not recognize.
 
 ## Environment Scoping
 

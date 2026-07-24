@@ -54,7 +54,7 @@ Then set the printed URL as your webhook endpoint in the Courier dashboard
 
 - Reads the **raw body** with `await request.text()` before parsing, so the signature can
   be verified against the exact bytes Courier signed.
-- Verifies the `courier-signature` header (`t=<epoch_ms>,signature=<hex>`) by recomputing
+- Verifies the `courier-signature` header (`t=<timestamp>,signature=<hex>`) by recomputing
   HMAC-SHA256 over `<timestamp>.<rawBody>` and comparing in constant time.
 - Returns `400` for invalid signatures and `200` for valid events.
 

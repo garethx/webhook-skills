@@ -10,9 +10,13 @@ const webhookSecret = 'courier_test_secret';
 
 /**
  * Generate a valid Courier signature header for testing.
- * Signed content is `<timestamp_ms>.<rawBody>`, HMAC-SHA256 hex.
+ * Signed content is `<timestamp>.<rawBody>`, HMAC-SHA256 hex.
  */
-function generateCourierSignature(payload: string, secret: string, timestamp = Date.now()): string {
+function generateCourierSignature(
+  payload: string,
+  secret: string,
+  timestamp: number | string = Date.now()
+): string {
   const signature = crypto
     .createHmac('sha256', secret)
     .update(`${timestamp}.${payload}`)
@@ -53,6 +57,44 @@ describe('verifyCourierWebhook', () => {
     const staleTs = Date.now() - 10 * 60 * 1000; // 10 minutes ago
     const header = generateCourierSignature(payload, webhookSecret, staleTs);
     expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(false);
+  });
+
+  it('accepts a seconds-precision timestamp (unit is undocumented)', () => {
+    const payload = JSON.stringify({ type: 'message:updated', data: { id: 'm1' } });
+    const seconds = Math.floor(Date.now() / 1000);
+    const header = generateCourierSignature(payload, webhookSecret, seconds);
+    expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(true);
+  });
+
+  it('rejects a stale seconds-precision timestamp', () => {
+    const payload = JSON.stringify({ type: 'message:updated', data: {} });
+    const staleSeconds = Math.floor(Date.now() / 1000) - 10 * 60; // 10 minutes ago
+    const header = generateCourierSignature(payload, webhookSecret, staleSeconds);
+    expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(false);
+  });
+
+  it('rejects a non-numeric timestamp', () => {
+    const payload = JSON.stringify({ type: 'message:updated', data: {} });
+    const header = generateCourierSignature(payload, webhookSecret, 'not-a-timestamp');
+    expect(verifyCourierWebhook(payload, header, webhookSecret)).toBe(false);
+  });
+
+  it("matches Courier's documented JSON.stringify(body) form for an unmodified body", () => {
+    // Courier documents the signed content as `${t}.${JSON.stringify(body)}`;
+    // this skill signs `${t}.${rawBody}`. For a delivery we have not modified
+    // the two inputs are byte-identical, so both produce the same digest.
+    const rawBody = JSON.stringify({
+      type: 'message:updated',
+      data: { id: 'm1', status: 'DELIVERED' },
+    });
+    const timestamp = Date.now();
+    const docsDigest = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(`${timestamp}.${JSON.stringify(JSON.parse(rawBody))}`)
+      .digest('hex');
+    expect(
+      verifyCourierWebhook(rawBody, `t=${timestamp},signature=${docsDigest}`, webhookSecret)
+    ).toBe(true);
   });
 
   it('accepts all Courier event types with a valid signature', () => {

@@ -28,8 +28,20 @@ The signed content is `` `${timestamp}.${rawBody}` `` — the timestamp, a liter
 then the **raw** request body (do not `JSON.parse` before verifying). Courier has no
 webhook-verification SDK, so verify manually and compare in constant time.
 
+Courier does not document whether `t` is in seconds or milliseconds, so normalize it
+before the staleness comparison instead of assuming a unit. The 5-minute tolerance
+below is this skill's default, not a window Courier publishes — tune it to your needs.
+
 ```javascript
 const crypto = require('crypto');
+
+// The unit of `t` is not documented. A ~10-digit value is seconds, a ~13-digit
+// value is milliseconds — normalize to ms either way.
+function toMillis(timestamp) {
+  const value = Number(timestamp);
+  if (!Number.isFinite(value)) return NaN;
+  return Math.abs(value) < 1e11 ? value * 1000 : value;
+}
 
 function verifyCourierWebhook(rawBody, signatureHeader, secret, toleranceMs = 5 * 60 * 1000) {
   if (!signatureHeader) return false;
@@ -41,14 +53,14 @@ function verifyCourierWebhook(rawBody, signatureHeader, secret, toleranceMs = 5 
   const { t: timestamp, signature } = parts;
   if (!timestamp || !signature) return false;
 
-  // Courier timestamps are epoch milliseconds — reject stale deliveries
-  const ts = Number(timestamp);
+  // Reject stale deliveries (accepts a seconds or milliseconds timestamp)
+  const ts = toMillis(timestamp);
   if (!Number.isFinite(ts) || Math.abs(Date.now() - ts) > toleranceMs) return false;
 
   const expected = crypto
     .createHmac('sha256', secret)
     .update(`${timestamp}.${rawBody}`)      // timestamp + "." + raw body
-    .digest('hex');
+    .digest('hex');                          // raw body, not JSON.stringify — see references/verification.md
   try {
     return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'));
   } catch {

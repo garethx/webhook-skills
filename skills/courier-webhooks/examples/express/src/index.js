@@ -7,22 +7,45 @@ const crypto = require('crypto');
 const app = express();
 
 /**
+ * Normalize the `t` value from courier-signature to milliseconds.
+ *
+ * Courier does not document whether `t` is epoch seconds or milliseconds.
+ * Assuming the wrong unit rejects every delivery, so detect it from the
+ * magnitude: a ~10-digit value is seconds, a ~13-digit value is already
+ * milliseconds. Only the staleness check needs this - the HMAC always covers
+ * the `t` string exactly as received.
+ *
+ * @param {string} timestamp - The raw `t` value from the header
+ * @returns {number} The timestamp in milliseconds, or NaN if not numeric
+ */
+function toMillis(timestamp) {
+  const value = Number(timestamp);
+  if (!Number.isFinite(value)) return NaN;
+  return Math.abs(value) < 1e11 ? value * 1000 : value;
+}
+
+/**
  * Verify a Courier outbound webhook signature.
  *
  * Courier signs each webhook with HMAC-SHA256. The `courier-signature` header
- * looks like `t=<epoch_ms>,signature=<hex_digest>`, and the signed content is
+ * looks like `t=<timestamp>,signature=<hex_digest>`, and the signed content is
  * `<timestamp>.<rawBody>` (timestamp + "." + the raw request body).
+ *
+ * Courier's docs write the signed content as `${t}.${JSON.stringify(body)}`;
+ * we use the raw body instead. The two are byte-identical for a delivery you
+ * have not modified, and the raw body avoids re-serialization drift.
  *
  * @param {Buffer|string} rawBody - Raw request body (NOT parsed JSON)
  * @param {string} signatureHeader - The `courier-signature` header value
  * @param {string} secret - Your Courier webhook signing secret
- * @param {number} toleranceMs - Max allowed clock skew (default 5 minutes)
+ * @param {number} toleranceMs - Max allowed clock skew. Courier publishes no
+ *   replay window; 5 minutes is our default, not a documented value.
  * @returns {boolean} Whether the signature is valid
  */
 function verifyCourierWebhook(rawBody, signatureHeader, secret, toleranceMs = 5 * 60 * 1000) {
   if (!signatureHeader) return false;
 
-  // Parse "t=<ms>,signature=<hex>"
+  // Parse "t=<timestamp>,signature=<hex>"
   const parts = {};
   for (const segment of signatureHeader.split(',')) {
     const i = segment.indexOf('=');
@@ -32,8 +55,8 @@ function verifyCourierWebhook(rawBody, signatureHeader, secret, toleranceMs = 5 
   const signature = parts.signature;
   if (!timestamp || !signature) return false;
 
-  // Courier timestamps are epoch milliseconds — reject stale deliveries
-  const ts = Number(timestamp);
+  // Reject stale deliveries (accepts a seconds or milliseconds timestamp)
+  const ts = toMillis(timestamp);
   if (!Number.isFinite(ts) || Math.abs(Date.now() - ts) > toleranceMs) return false;
 
   // Recompute HMAC over "<timestamp>.<rawBody>"
@@ -71,7 +94,9 @@ app.post(
     // Handle the event based on its type (envelope: { type, data })
     switch (type) {
       case 'message:updated':
-        // Courier does NOT emit per-status events — status lives in `data`
+        // Courier does NOT emit per-status events — status lives in `data`.
+        // The set of status values is not documented; log what you receive
+        // before branching on specific ones.
         console.log(`Message updated: ${data?.id} status=${data?.status}`);
         // TODO: Sync delivery status, retry, analytics, etc.
         break;

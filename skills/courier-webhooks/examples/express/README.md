@@ -53,7 +53,7 @@ test notification so a `message:updated` event fires.
 ## How It Works
 
 - Uses `express.raw()` so the **raw body** is available for signature verification.
-- Verifies the `courier-signature` header (`t=<epoch_ms>,signature=<hex>`) by recomputing
+- Verifies the `courier-signature` header (`t=<timestamp>,signature=<hex>`) by recomputing
   HMAC-SHA256 over `<timestamp>.<rawBody>` and comparing in constant time.
 - Rejects invalid or stale signatures with `400`, and acknowledges valid events with `200`.
 

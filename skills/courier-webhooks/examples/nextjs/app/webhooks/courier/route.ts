@@ -4,11 +4,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 /**
+ * Normalize the `t` value from courier-signature to milliseconds.
+ *
+ * Courier does not document whether `t` is epoch seconds or milliseconds.
+ * Assuming the wrong unit rejects every delivery, so detect it from the
+ * magnitude: a ~10-digit value is seconds, a ~13-digit value is already
+ * milliseconds. Only the staleness check needs this — the HMAC always covers
+ * the `t` string exactly as received.
+ */
+function toMillis(timestamp: string): number {
+  const value = Number(timestamp);
+  if (!Number.isFinite(value)) return NaN;
+  return Math.abs(value) < 1e11 ? value * 1000 : value;
+}
+
+/**
  * Verify a Courier outbound webhook signature.
  *
  * Courier signs each webhook with HMAC-SHA256. The `courier-signature` header
- * looks like `t=<epoch_ms>,signature=<hex_digest>`, and the signed content is
+ * looks like `t=<timestamp>,signature=<hex_digest>`, and the signed content is
  * `<timestamp>.<rawBody>` (timestamp + "." + the raw request body).
+ *
+ * Courier's docs write the signed content as `${t}.${JSON.stringify(body)}`;
+ * we use the raw body instead. The two are byte-identical for a delivery you
+ * have not modified, and the raw body avoids re-serialization drift.
+ *
+ * `toleranceMs` defaults to 5 minutes — our choice, not a window Courier
+ * publishes.
  */
 export function verifyCourierWebhook(
   rawBody: string,
@@ -18,7 +40,7 @@ export function verifyCourierWebhook(
 ): boolean {
   if (!signatureHeader) return false;
 
-  // Parse "t=<ms>,signature=<hex>"
+  // Parse "t=<timestamp>,signature=<hex>"
   const parts: Record<string, string> = {};
   for (const segment of signatureHeader.split(',')) {
     const i = segment.indexOf('=');
@@ -28,8 +50,8 @@ export function verifyCourierWebhook(
   const signature = parts.signature;
   if (!timestamp || !signature) return false;
 
-  // Courier timestamps are epoch milliseconds — reject stale deliveries
-  const ts = Number(timestamp);
+  // Reject stale deliveries (accepts a seconds or milliseconds timestamp)
+  const ts = toMillis(timestamp);
   if (!Number.isFinite(ts) || Math.abs(Date.now() - ts) > toleranceMs) return false;
 
   // Recompute HMAC over "<timestamp>.<rawBody>"
@@ -62,7 +84,9 @@ export async function POST(request: NextRequest) {
 
   switch (type) {
     case 'message:updated':
-      // Courier does NOT emit per-status events — status lives in `data`
+      // Courier does NOT emit per-status events — status lives in `data`.
+      // The set of status values is not documented; log what you receive
+      // before branching on specific ones.
       console.log(`Message updated: ${data?.id} status=${data?.status}`);
       // TODO: Sync delivery status, retry, analytics, etc.
       break;
