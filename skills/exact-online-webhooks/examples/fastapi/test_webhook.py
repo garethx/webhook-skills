@@ -117,3 +117,13 @@ class TestHealth:
         response = client.get("/health")
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
+
+def test_empty_post_is_acknowledged():
+    """Exact validates the callback URL on subscription creation with an empty
+    POST. Rejecting it can leave the subscription unvalidated."""
+    response = client.post(
+        "/webhooks/exact-online",
+        content=b"",
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 200

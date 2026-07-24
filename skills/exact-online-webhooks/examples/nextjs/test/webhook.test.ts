@@ -108,3 +108,14 @@ describe('POST /webhooks/exact-online', () => {
     expect(res.status).toBe(200);
   });
 });
+
+describe('Exact callback validation (empty POST)', () => {
+  it('acknowledges an empty body with 200 instead of 401', async () => {
+    // Exact validates the callback URL on subscription creation by POSTing an
+    // empty body. Rejecting it can leave the subscription unvalidated.
+    const { POST } = await routeModulePromise;
+    const res = await POST(makeRequest('') as never);
+    expect(res.status).toBe(200);
+  });
+});
+
