@@ -2046,6 +2046,27 @@
       ]
     },
     {
+      "name": "tebex-webhooks",
+      "description": "Receive and verify Tebex webhooks. Use when setting up Tebex webhook handlers, debugging X-Signature verification, completing the validation.webhook handshake, or handling events like payment.completed, payment.refunded, and recurring-payment.renewed.",
+      "source": "./skills/tebex-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/tebex-webhooks",
+      "keywords": [
+        "webhooks",
+        "tebex"
+      ]
+    },
+    {
       "name": "telnyx-webhooks",
       "description": "Receive and verify Telnyx webhooks. Use when setting up Telnyx webhook handlers, debugging Ed25519 signature verification with the telnyx-signature-ed25519 and telnyx-timestamp headers, or handling messaging events like message.received, message.sent, or message.finalized.",
       "source": "./skills/telnyx-webhooks",
