@@ -36,6 +36,22 @@ The signed `body` is the raw request bytes (the ciphertext envelope), so **verif
 ```javascript
 const crypto = require('crypto');
 
+// 0. Select the platform public key by Wechatpay-Serial. WeChat publishes new
+//    certificates ~24h before signing with them, so an unpinned rotation must
+//    fail with its own error, not a generic "invalid signature".
+const PLATFORM_KEYS = JSON.parse(process.env.WECHAT_PAY_PLATFORM_KEYS || '{}');
+
+function selectPlatformKey(serial) {
+  const key = PLATFORM_KEYS[serial];
+  if (!key) {
+    throw new Error(
+      `No platform key configured for serial ${serial} — ` +
+      'fetch the current certs via GET /v3/certificates and add it'
+    );
+  }
+  return key;
+}
+
 // 1. Verify the RSA-SHA256 signature over "{timestamp}\n{nonce}\n{body}\n"
 function verifySignature(timestamp, nonce, rawBody, signatureB64, platformPublicKey) {
   const message = `${timestamp}\n${nonce}\n${rawBody}\n`;
@@ -88,15 +104,17 @@ On any failure (bad signature, processing error) return a non-2xx status. WeChat
 ## Environment Variables
 
 ```bash
-# WeChat Pay platform public key (PEM), selected by the Wechatpay-Serial header
-WECHAT_PAY_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+# Recommended: platform public keys (PEM) keyed by certificate serial, as JSON
+WECHAT_PAY_PLATFORM_KEYS='{"serial_a":"-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"}'
 # 32-character APIv3 key used to decrypt resource.ciphertext (AES-256-GCM)
 WECHAT_PAY_API_V3_KEY=your_32_character_apiv3_key_here
-# Optional: expected platform certificate serial (match against Wechatpay-Serial)
+
+# Single-key alternative — folded into the map above when both are set
+WECHAT_PAY_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 WECHAT_PAY_PLATFORM_SERIAL=your_platform_cert_serial
 ```
 
-The platform public key / certificate is downloaded and rotated by serial number via `GET /v3/certificates` (itself AES-GCM encrypted). WeChat publishes new certificates ~24h ahead of use — key your store by `Wechatpay-Serial` so a rotation doesn't break verification. See [references/setup.md](references/setup.md).
+The platform public key / certificate is downloaded and rotated by serial number via `GET /v3/certificates` (itself AES-GCM encrypted). WeChat publishes new certificates ~24h ahead of use, so a single pinned key rejects every notification the moment a rotation lands — key your store by `Wechatpay-Serial` and refresh it (e.g. every 12h). See [references/setup.md](references/setup.md).
 
 ## Local Development
 

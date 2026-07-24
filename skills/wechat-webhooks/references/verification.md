@@ -31,6 +31,26 @@ Reconstruct the message exactly, **each line terminated by `\n`** (including a t
 
 Then Base64-decode `Wechatpay-Signature` and verify it against the platform public key (matched by `Wechatpay-Serial`) with SHA256withRSA.
 
+### Selecting the key by serial
+
+WeChat Pay publishes new platform certificates roughly **24 hours before** it starts signing with them. A single pinned key therefore stops matching the moment a rotation lands, and every notification is rejected until you redeploy. Store the platform public keys **keyed by serial** and look up `Wechatpay-Serial` on each request:
+
+```javascript
+// {"<serial>": "<PEM>", ...} — refresh from GET /v3/certificates (e.g. every 12h)
+const PLATFORM_KEYS = JSON.parse(process.env.WECHAT_PAY_PLATFORM_KEYS || '{}');
+
+const publicKey = PLATFORM_KEYS[serial];
+if (!publicKey) {
+  // A rotation you have not picked up yet — not a signature failure.
+  throw new Error(
+    `No platform key configured for serial ${serial} — ` +
+    'fetch the current certs via GET /v3/certificates and add it'
+  );
+}
+```
+
+Reject an unknown serial with its own explicit error. Folding it into a generic "invalid signature" response makes a routine rotation look like an attack and hides the one-line fix. Keep both the outgoing and incoming serials in the store through a rotation window — the examples in this skill do exactly this, with the older single-key `WECHAT_PAY_PUBLIC_KEY` + `WECHAT_PAY_PLATFORM_SERIAL` pair folded in as a one-entry map.
+
 ### Replay protection
 
 Reject notifications whose `Wechatpay-Timestamp` is more than **5 minutes** (300 seconds) away from the current time.
@@ -94,7 +114,7 @@ function decryptResource({ ciphertext, nonce, associated_data }, apiV3Key) {
 ### Python (manual — recommended for FastAPI)
 
 ```python
-import base64, time
+import base64, json, time
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -115,7 +135,7 @@ def decrypt_resource(resource, apiv3_key):
     data = base64.b64decode(resource["ciphertext"])
     aad = resource.get("associated_data") or ""
     plaintext = aesgcm.decrypt(resource["nonce"].encode("utf-8"), data, aad.encode("utf-8"))
-    return plaintext.decode("utf-8")
+    return json.loads(plaintext.decode("utf-8"))
 ```
 
 ## SDK Alternatives
@@ -141,6 +161,7 @@ These are useful when you also make outbound API calls and want automatic certif
 | Symptom | Likely Cause |
 |---------|--------------|
 | Always invalid | Body was parsed/re-serialized; missing trailing `\n`; wrong (merchant vs platform) key |
-| Worked, then broke | Platform certificate rotated — refresh `GET /v3/certificates` and match `Wechatpay-Serial` |
+| Worked, then broke | Platform certificate rotated — refresh `GET /v3/certificates` and add the new serial to your key store |
+| "No platform key configured for serial …" | A rotation landed on a serial you have not fetched yet — refresh the store |
 | Decryption throws | Wrong APIv3 key, wrong nonce, or auth tag not split from ciphertext |
 | Intermittent 401-style rejects | Timestamp outside the 5-minute tolerance (clock skew) |

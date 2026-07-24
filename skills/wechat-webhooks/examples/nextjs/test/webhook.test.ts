@@ -4,18 +4,26 @@ import crypto from 'crypto';
 // A 32-character APIv3 key (AES-256 needs 32 bytes).
 const API_V3_KEY = 'abcdefghijklmnopqrstuvwxyz012345';
 const SERIAL = 'PLATFORM_CERT_SERIAL_123';
+// A second serial, as published ~24h ahead of a certificate rotation.
+const ROTATED_SERIAL = 'PLATFORM_CERT_SERIAL_456';
 
-// Generate an RSA keypair to stand in for WeChat Pay's platform key.
-const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-  modulusLength: 2048,
-  publicKeyEncoding: { type: 'spki', format: 'pem' },
-  privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-});
+function generateKeyPair() {
+  return crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
+}
+
+// Generate RSA keypairs to stand in for WeChat Pay's platform keys.
+const { publicKey, privateKey } = generateKeyPair();
+const { publicKey: rotatedPublicKey, privateKey: rotatedPrivateKey } = generateKeyPair();
 
 beforeAll(() => {
   process.env.WECHAT_PAY_PUBLIC_KEY = publicKey;
   process.env.WECHAT_PAY_API_V3_KEY = API_V3_KEY;
   process.env.WECHAT_PAY_PLATFORM_SERIAL = SERIAL;
+  process.env.WECHAT_PAY_PLATFORM_KEYS = JSON.stringify({ [ROTATED_SERIAL]: rotatedPublicKey });
 });
 
 /** Encrypt a plaintext object into a WeChat Pay `resource` (AEAD_AES_256_GCM). */
@@ -36,6 +44,7 @@ interface Overrides {
   nonce?: string;
   signature?: string;
   serial?: string;
+  privateKey?: string;
 }
 
 /** Build a signed WeChat Pay notification request. */
@@ -54,7 +63,9 @@ function buildRequest(eventType: string, resourceObj: object, overrides: Overrid
   const message = `${timestamp}\n${nonce}\n${body}\n`;
   const signature =
     overrides.signature ||
-    crypto.sign('RSA-SHA256', Buffer.from(message, 'utf8'), privateKey).toString('base64');
+    crypto
+      .sign('RSA-SHA256', Buffer.from(message, 'utf8'), overrides.privateKey || privateKey)
+      .toString('base64');
 
   return new Request('http://localhost/webhooks/wechat', {
     method: 'POST',
@@ -110,11 +121,37 @@ describe('WeChat Pay Webhook Route', () => {
     expect(res.status).toBe(400);
   });
 
-  it('should return 400 for an unknown platform serial', async () => {
+  it('should reject an unknown platform serial with an actionable message', async () => {
     const { POST } = await import('../app/webhooks/wechat/route');
     const req = buildRequest('TRANSACTION.SUCCESS', transaction, { serial: 'SOME_OTHER_SERIAL' });
     const res = await POST(req as any);
     expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.message).toContain('No platform key configured for serial SOME_OTHER_SERIAL');
+    expect(json.message).toContain('/v3/certificates');
+  });
+
+  it('should verify against the key matching Wechatpay-Serial after a rotation', async () => {
+    const { POST } = await import('../app/webhooks/wechat/route');
+    const req = buildRequest('TRANSACTION.SUCCESS', transaction, {
+      serial: ROTATED_SERIAL,
+      privateKey: rotatedPrivateKey,
+      nonce: 'rotated-nonce',
+    });
+    const res = await POST(req as any);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ code: 'SUCCESS', message: 'OK' });
+  });
+
+  it('should not verify a notification signed by the wrong key for its serial', async () => {
+    // Signed with the old key but announcing the rotated serial.
+    const { POST } = await import('../app/webhooks/wechat/route');
+    const req = buildRequest('TRANSACTION.SUCCESS', transaction, {
+      serial: ROTATED_SERIAL,
+      nonce: 'mismatched-nonce',
+    });
+    const res = await POST(req as any);
+    expect(res.status).toBe(401);
   });
 
   it('should return 200 and SUCCESS for a valid TRANSACTION.SUCCESS', async () => {

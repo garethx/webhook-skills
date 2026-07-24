@@ -11,18 +11,28 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 # A 32-character APIv3 key (AES-256 needs 32 bytes).
 API_V3_KEY = "abcdefghijklmnopqrstuvwxyz012345"
 SERIAL = "PLATFORM_CERT_SERIAL_123"
+# A second serial, as published ~24h ahead of a certificate rotation.
+ROTATED_SERIAL = "PLATFORM_CERT_SERIAL_456"
 
-# Generate an RSA keypair to stand in for WeChat Pay's platform key.
-_private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-_public_key_pem = _private_key.public_key().public_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PublicFormat.SubjectPublicKeyInfo,
-).decode("utf-8")
+
+def _generate_key_pair():
+    """Generate an RSA keypair to stand in for a WeChat Pay platform key."""
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_key_pem = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode("utf-8")
+    return private_key, public_key_pem
+
+
+_private_key, _public_key_pem = _generate_key_pair()
+_rotated_private_key, _rotated_public_key_pem = _generate_key_pair()
 
 # Set environment before importing the app.
 os.environ["WECHAT_PAY_PUBLIC_KEY"] = _public_key_pem
 os.environ["WECHAT_PAY_API_V3_KEY"] = API_V3_KEY
 os.environ["WECHAT_PAY_PLATFORM_SERIAL"] = SERIAL
+os.environ["WECHAT_PAY_PLATFORM_KEYS"] = json.dumps({ROTATED_SERIAL: _rotated_public_key_pem})
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -62,10 +72,11 @@ def build_notification(event_type: str, resource_obj: dict, **overrides):
     timestamp = overrides.get("timestamp", str(int(time.time())))
     nonce = overrides.get("nonce", "test-nonce")
     message = f"{timestamp}\n{nonce}\n{body}\n".encode("utf-8")
+    signing_key = overrides.get("private_key", _private_key)
     signature = overrides.get(
         "signature",
         base64.b64encode(
-            _private_key.sign(message, padding.PKCS1v15(), hashes.SHA256())
+            signing_key.sign(message, padding.PKCS1v15(), hashes.SHA256())
         ).decode("ascii"),
     )
     headers = {
@@ -112,11 +123,31 @@ class TestWeChatWebhook:
         response = client.post("/webhooks/wechat", content=body, headers=headers)
         assert response.status_code == 400
 
-    def test_unknown_serial_returns_400(self):
+    def test_unknown_serial_returns_actionable_400(self):
         body, headers = build_notification("TRANSACTION.SUCCESS", TRANSACTION,
                                            serial="SOME_OTHER_SERIAL")
         response = client.post("/webhooks/wechat", content=body, headers=headers)
         assert response.status_code == 400
+        message = response.json()["message"]
+        assert "No platform key configured for serial SOME_OTHER_SERIAL" in message
+        assert "/v3/certificates" in message
+
+    def test_rotated_serial_selects_matching_key(self):
+        body, headers = build_notification("TRANSACTION.SUCCESS", TRANSACTION,
+                                           serial=ROTATED_SERIAL,
+                                           private_key=_rotated_private_key,
+                                           nonce="rotated-nonce")
+        response = client.post("/webhooks/wechat", content=body, headers=headers)
+        assert response.status_code == 200
+        assert response.json() == {"code": "SUCCESS", "message": "OK"}
+
+    def test_wrong_key_for_serial_returns_401(self):
+        # Signed with the old key but announcing the rotated serial.
+        body, headers = build_notification("TRANSACTION.SUCCESS", TRANSACTION,
+                                           serial=ROTATED_SERIAL,
+                                           nonce="mismatched-nonce")
+        response = client.post("/webhooks/wechat", content=body, headers=headers)
+        assert response.status_code == 401
 
     def test_valid_transaction_returns_200(self):
         body, headers = build_notification("TRANSACTION.SUCCESS", TRANSACTION)

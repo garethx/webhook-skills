@@ -3,14 +3,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-// WeChat Pay platform public key (PEM) — selected by the Wechatpay-Serial header.
-const PLATFORM_PUBLIC_KEY = process.env.WECHAT_PAY_PUBLIC_KEY!;
 // 32-character APIv3 key used to decrypt resource.ciphertext.
 const API_V3_KEY = process.env.WECHAT_PAY_API_V3_KEY!;
-// Optional: assert the notification was signed by the expected platform cert.
-const PLATFORM_SERIAL = process.env.WECHAT_PAY_PLATFORM_SERIAL;
 
 const TIMESTAMP_TOLERANCE_SECONDS = 300; // 5 minutes
+
+/**
+ * Build the serial -> platform public key (PEM) map used to verify signatures.
+ * WECHAT_PAY_PLATFORM_KEYS is a JSON object of {"<serial>": "<PEM>"} entries —
+ * refresh it from GET /v3/certificates (e.g. every 12h) so new serials are
+ * present before WeChat Pay starts signing with them.
+ * The single-key WECHAT_PAY_PUBLIC_KEY + WECHAT_PAY_PLATFORM_SERIAL pair is
+ * folded in as a one-entry map for backwards compatibility.
+ */
+function loadPlatformKeys(): Record<string, string> {
+  const keys: Record<string, string> = {};
+  if (process.env.WECHAT_PAY_PLATFORM_KEYS) {
+    Object.assign(keys, JSON.parse(process.env.WECHAT_PAY_PLATFORM_KEYS));
+  }
+  if (process.env.WECHAT_PAY_PUBLIC_KEY && process.env.WECHAT_PAY_PLATFORM_SERIAL) {
+    keys[process.env.WECHAT_PAY_PLATFORM_SERIAL] = process.env.WECHAT_PAY_PUBLIC_KEY;
+  }
+  return keys;
+}
+
+const PLATFORM_KEYS = loadPlatformKeys();
+// Legacy fallback: a key configured without a serial is used for every serial.
+// Not rotation-safe — prefer WECHAT_PAY_PLATFORM_KEYS in production.
+const FALLBACK_PUBLIC_KEY = process.env.WECHAT_PAY_PLATFORM_SERIAL
+  ? undefined
+  : process.env.WECHAT_PAY_PUBLIC_KEY;
 
 interface EncryptedResource {
   algorithm: string;
@@ -76,14 +98,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ code: 'FAIL', message: 'Timestamp outside tolerance' }, { status: 400 });
   }
 
-  // Optionally assert the signing certificate serial.
-  if (PLATFORM_SERIAL && serial !== PLATFORM_SERIAL) {
-    return NextResponse.json({ code: 'FAIL', message: 'Unknown platform serial' }, { status: 400 });
+  // Select the platform public key by serial. WeChat Pay publishes new platform
+  // certificates ~24h before it starts signing with them, so a rotation you have
+  // not picked up yet arrives as an unknown serial — fail loudly here instead of
+  // as a stream of indistinguishable "invalid signature" rejections.
+  const publicKey = PLATFORM_KEYS[serial] || FALLBACK_PUBLIC_KEY;
+  if (!publicKey) {
+    const message =
+      `No platform key configured for serial ${serial} — ` +
+      'fetch the current certs via GET /v3/certificates and add it';
+    console.error(message);
+    return NextResponse.json({ code: 'FAIL', message }, { status: 400 });
   }
 
   // Read the RAW body for signature verification (never parse before verifying).
   const rawBody = await request.text();
-  if (!verifySignature(timestamp, nonce, rawBody, signature, PLATFORM_PUBLIC_KEY)) {
+  if (!verifySignature(timestamp, nonce, rawBody, signature, publicKey)) {
     return NextResponse.json({ code: 'FAIL', message: 'Invalid signature' }, { status: 401 });
   }
 

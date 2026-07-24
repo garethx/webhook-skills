@@ -45,16 +45,23 @@ The response is itself AES-GCM encrypted with your APIv3 key. Each certificate h
 - Store platform public keys keyed by serial number
 - On each notification, select the key matching `Wechatpay-Serial`
 - Refresh `GET /v3/certificates` periodically (e.g. every 12h) so new serials are available before they are used
+- Keep both the outgoing and incoming serials in the store for the duration of the rotation window
 
-Extract the public key PEM from the platform certificate and provide it as `WECHAT_PAY_PUBLIC_KEY` (optionally with `WECHAT_PAY_PLATFORM_SERIAL` to assert the expected serial).
+Extract the public key PEM from each platform certificate and provide the whole set as `WECHAT_PAY_PLATFORM_KEYS`, a JSON object keyed by serial. A notification whose `Wechatpay-Serial` is not in the map should be rejected with an explicit "no key for this serial" error — that names the fix (refresh the certs) instead of hiding a rotation behind a generic signature failure.
 
 ## 4. Environment Variables
 
 ```bash
-WECHAT_PAY_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+# Recommended: platform public keys keyed by certificate serial
+WECHAT_PAY_PLATFORM_KEYS='{"serial_a":"-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----","serial_b":"-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"}'
 WECHAT_PAY_API_V3_KEY=your_32_character_apiv3_key_here
-WECHAT_PAY_PLATFORM_SERIAL=your_platform_cert_serial   # optional
+
+# Single-key alternative — folded into the map above when both are set
+WECHAT_PAY_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+WECHAT_PAY_PLATFORM_SERIAL=your_platform_cert_serial
 ```
+
+The single-key pair is fine for a first deployment, but only the serial-keyed map survives a rotation without a redeploy.
 
 ## 5. Acknowledge Correctly
 

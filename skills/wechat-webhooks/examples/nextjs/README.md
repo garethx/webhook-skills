@@ -19,7 +19,7 @@ Minimal example of receiving WeChat Pay (APIv3) notifications in a Next.js App R
    cp .env.example .env.local
    ```
 
-3. Add your WeChat Pay platform public key (`WECHAT_PAY_PUBLIC_KEY`) and 32-character APIv3 key (`WECHAT_PAY_API_V3_KEY`). Optionally set `WECHAT_PAY_PLATFORM_SERIAL`.
+3. Add your platform public keys keyed by certificate serial (`WECHAT_PAY_PLATFORM_KEYS`, a JSON object) and your 32-character APIv3 key (`WECHAT_PAY_API_V3_KEY`). A single `WECHAT_PAY_PUBLIC_KEY` + `WECHAT_PAY_PLATFORM_SERIAL` pair also works, but only the map survives a certificate rotation without a redeploy.
 
 ## Run
 

@@ -16,14 +16,39 @@ load_dotenv()
 
 app = FastAPI()
 
-# WeChat Pay platform public key (PEM) — selected by the Wechatpay-Serial header.
-PLATFORM_PUBLIC_KEY = os.environ.get("WECHAT_PAY_PUBLIC_KEY", "")
 # 32-character APIv3 key used to decrypt resource.ciphertext.
 API_V3_KEY = os.environ.get("WECHAT_PAY_API_V3_KEY", "")
-# Optional: assert the notification was signed by the expected platform cert.
-PLATFORM_SERIAL = os.environ.get("WECHAT_PAY_PLATFORM_SERIAL")
 
 TIMESTAMP_TOLERANCE_SECONDS = 300  # 5 minutes
+
+
+def _load_platform_keys() -> dict:
+    """Build the serial -> platform public key (PEM) map used to verify signatures.
+
+    WECHAT_PAY_PLATFORM_KEYS is a JSON object of {"<serial>": "<PEM>"} entries —
+    refresh it from GET /v3/certificates (e.g. every 12h) so new serials are
+    present before WeChat Pay starts signing with them. The single-key
+    WECHAT_PAY_PUBLIC_KEY + WECHAT_PAY_PLATFORM_SERIAL pair is folded in as a
+    one-entry map for backwards compatibility.
+    """
+    keys = {}
+    raw_map = os.environ.get("WECHAT_PAY_PLATFORM_KEYS")
+    if raw_map:
+        keys.update(json.loads(raw_map))
+    public_key = os.environ.get("WECHAT_PAY_PUBLIC_KEY")
+    serial = os.environ.get("WECHAT_PAY_PLATFORM_SERIAL")
+    if public_key and serial:
+        keys[serial] = public_key
+    return keys
+
+
+PLATFORM_KEYS = _load_platform_keys()
+# Legacy fallback: a key configured without a serial is used for every serial.
+# Not rotation-safe — prefer WECHAT_PAY_PLATFORM_KEYS in production.
+FALLBACK_PUBLIC_KEY = (
+    None if os.environ.get("WECHAT_PAY_PLATFORM_SERIAL")
+    else os.environ.get("WECHAT_PAY_PUBLIC_KEY")
+)
 
 
 def verify_signature(timestamp: str, nonce: str, raw_body: str,
@@ -82,13 +107,22 @@ async def wechat_webhook(request: Request):
     if abs(int(time.time()) - int(timestamp)) > TIMESTAMP_TOLERANCE_SECONDS:
         return _fail("Timestamp outside tolerance", 400)
 
-    # Optionally assert the signing certificate serial.
-    if PLATFORM_SERIAL and serial != PLATFORM_SERIAL:
-        return _fail("Unknown platform serial", 400)
+    # Select the platform public key by serial. WeChat Pay publishes new platform
+    # certificates ~24h before it starts signing with them, so a rotation you have
+    # not picked up yet arrives as an unknown serial — fail loudly here instead of
+    # as a stream of indistinguishable "invalid signature" rejections.
+    public_key = PLATFORM_KEYS.get(serial) or FALLBACK_PUBLIC_KEY
+    if not public_key:
+        message = (
+            f"No platform key configured for serial {serial} — "
+            "fetch the current certs via GET /v3/certificates and add it"
+        )
+        print(message)
+        return _fail(message, 400)
 
     # Read the RAW body for signature verification (never parse before verifying).
     raw_body = (await request.body()).decode("utf-8")
-    if not verify_signature(timestamp, nonce, raw_body, signature, PLATFORM_PUBLIC_KEY):
+    if not verify_signature(timestamp, nonce, raw_body, signature, public_key):
         return _fail("Invalid signature", 401)
 
     try:
