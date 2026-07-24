@@ -38,6 +38,34 @@
 #   3. Update README.md Provider Skills table
 
 providers:
+  - name: akeneo
+    displayName: Akeneo
+    docs:
+      webhooks: https://api.akeneo.com/events-documentation/overview.html
+      verification: https://api.akeneo.com/events-documentation/security.html
+    notes: >
+      Product Information Management (PIM) system. This is Akeneo PIM's "Events API"
+      (marked Deprecated in favor of the newer CloudEvents-based Event Platform, but
+      still the webhook scheme Hookdeck targets; available on PIM 5.0+ / SaaS). Enable
+      per connection in Connect > Connection settings > Event subscription: ONE single
+      Request URL receives ALL event types, so route/dispatch server-side by the
+      `action` field. Signature = hex HMAC-SHA256 of (timestamp + "." + raw_body) using
+      the connection secret: hash_hmac('sha256', timestamp . '.' . body, secret). Sent
+      in headers x-akeneo-request-signature and x-akeneo-request-timestamp (unix
+      seconds). Verify with a timing-safe compare against the RAW body; reject if
+      time() - timestamp > 300 (5 min) for replay protection. NOT Standard Webhooks.
+      Payloads are BATCHED as an "events" array (up to 10 per request); each item has
+      action, event_id, event_datetime, author, author_type, pim_source, data.resource.
+      Ack fast (<500ms, 2xx) and process async — no retries, events dropped after ~2h,
+      up to ~40k events/hr, delivery order not guaranteed. Only product and
+      product-model events exist here (product.created/updated/removed,
+      product_model.created/updated/removed); category events are NOT in this API (only
+      in the newer Event Platform). No official SDK — verify manually. Set
+      AKENEO_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - product.created
+        - product_model.updated
   - name: ashby
     displayName: Ashby
     docs:
@@ -62,6 +90,37 @@ providers:
       events:
         - applicationSubmit
         - candidateHire
+  - name: airwallex
+    displayName: Airwallex
+    docs:
+      webhooks: https://www.airwallex.com/docs/developer-tools/webhooks/webhooks-overview
+      verification: https://www.airwallex.com/docs/developer-tools/webhooks/listen-for-webhook-events
+      events: https://www.airwallex.com/docs/developer-tools/webhooks/listen-for-webhook-events/online-payments
+    notes: >
+      Payments / financial platform. Custom HMAC scheme (NOT Standard Webhooks / Svix).
+      Two headers: x-timestamp (Unix ms) and x-signature (HMAC-SHA256 hex digest).
+      Compute HMAC-SHA256 over value_to_digest = x-timestamp + raw_request_body
+      (timestamp string concatenated with the RAW, unmodified JSON body, in that order),
+      keyed with the endpoint's unique secret, and constant-time compare the hex against
+      x-signature. Verify BEFORE parsing. Each webhook URL has its OWN secret (Web app >
+      Settings > Developer > Webhooks); for test events the secret arrives in the
+      client-secret-key header. Compare x-timestamp to now for replay protection (docs
+      describe the check but give no fixed window; 5 min is a sensible default — remember
+      it's MILLISECONDS). Endpoints must be HTTPS; Airwallex publishes source IPs to
+      allowlist (don't rely on IP for auth). Payload envelope: { id, name, account_id,
+      data: { object }, created_at } — the event type is in `name` (NOT `type`), the
+      resource in data.object. Event types are dot-namespaced: payment_intent.*,
+      payment_attempt.*, refund.*, payment_consent.*, payment_dispute.*. Note: refund
+      events are refund.received/accepted/settled/failed (NO refund.processed); disputes
+      use payment_dispute.* (NOT dispute.*). Retries with exponential back-off over ~3
+      days on any non-2xx/timeout; same event `id` on retry — dedupe on it. The
+      @airwallex/node-sdk has NO webhook-verification helper (only API resources /
+      webhook management), so verify manually in every framework. Set
+      AIRWALLEX_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - payment_intent.succeeded
+        - refund.settled
   - name: bridge-xyz
     displayName: Bridge
     docs:
@@ -310,6 +369,31 @@ providers:
         - user.created
         - session.created
 
+  - name: clio
+    displayName: Clio
+    docs:
+      webhooks: https://docs.developers.clio.com/api-reference/#tag/Webhooks
+      verification: https://docs.developers.clio.com/api-reference/#tag/Webhooks
+    notes: >
+      Legal practice management (Clio Manage). Plain REST API, no official server
+      SDK. Two-step security: (1) On creation or URL change, Clio POSTs an
+      activation handshake carrying an X-Hook-Secret header with a generated
+      shared secret; the endpoint must echo the same X-Hook-Secret back with 200
+      (or PUT /api/v4/webhooks/:id/activate). The webhook is disabled until the
+      handshake succeeds. (2) Each event delivery is signed: Clio computes
+      HMAC-SHA256(shared_secret, raw_body), HEX-encodes it (no prefix), and sends
+      it in the X-Hook-Signature header. Verify against the RAW body with a
+      constant-time compare. Event name is in the payload at meta.event (plus
+      meta.webhook_id); models are activity, bill, calendar_entry,
+      clio_payments_payment, communication, contact, document, folder, matter,
+      task. IMPORTANT: webhooks EXPIRE — 3 days by default, max 31 days via
+      expires_at; renew before expiry. HTTPS-only URLs. Regional base URLs
+      (app.clio.com, eu/au/ca variants).
+    testScenario:
+      events:
+        - created
+        - matter_closed
+
   - name: cursor
     displayName: Cursor
     docs:
@@ -453,6 +537,42 @@ providers:
       events:
         - voice.generation.completed
         - voice.clone.completed
+
+  - name: enode
+    displayName: Enode
+    docs:
+      webhooks: https://developers.enode.com/docs/webhooks
+      verification: https://developers.enode.com/docs/webhooks
+      events: https://developers.enode.com/api/reference#webhooks
+    notes: >
+      Unified API for EVs, chargers, home batteries, HVAC, solar inverters and smart meters.
+      Signs each delivery with HMAC-SHA1 (NOT SHA256) — the signature is in the x-enode-signature
+      header formatted "sha1=<hex-digest>" (lowercase hex) computed over the RAW UTF-8 JSON body
+      keyed with the per-webhook secret. Does NOT follow the Standard Webhooks (Svix) spec — no
+      webhook-id/webhook-timestamp headers, no timestamp in the signed content. IMPORTANT: the
+      secret is a pseudorandom value of at least 128 bits that YOU generate and supply in the
+      `secret` field when creating the webhook (POST /webhooks with url, secret, events array,
+      optional authentication headerName/headerValue) — Enode never returns it. The request body is
+      a JSON ARRAY of event objects, each with `event`, `createdAt`, and `version` — iterate the
+      array rather than treating it as a single object. Event names are colon-delimited
+      (user:vehicle:updated, user:charger:updated, user:battery:updated, user:vehicle:discovered,
+      user:credentials:invalidated, system:heartbeat, enode:webhook:test, ...). The x-enode-delivery
+      header carries a unique delivery ID. Gotchas: MUST verify against the raw body (parsing breaks
+      the HMAC); deliveries time out after 5s; production retries over 24h with increasing intervals
+      then deletes pending events and marks the webhook inactive; sandbox marks inactive after ~5 min
+      of failures. Reactivate via the Test (POST /webhooks/{id}/test) or Update (PUT /webhooks/{id})
+      endpoints. No official SDKs — verify manually. Set ENODE_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - user:vehicle:updated
+        - user:charger:updated
+      prompt: >
+        Create a {framework} webhook handler for Enode. Verify the x-enode-signature header by
+        computing HMAC-SHA1 (not SHA256) over the RAW request body with the per-webhook secret,
+        hex-encoded, and comparing the value after the "sha1=" prefix using a timing-safe comparison.
+        The body is a JSON array of events — iterate it and dispatch on each event's colon-delimited
+        `event` name (e.g. user:vehicle:updated, user:charger:updated), returning 200 quickly. If you
+        use any skills to help with this, add a comment noting which skill(s) you referenced.
 
   - name: exact-online
     displayName: Exact Online
@@ -614,6 +734,31 @@ providers:
     testScenario:
       events:
         - Transcription completed
+
+  - name: fastspring
+    displayName: FastSpring
+    docs:
+      webhooks: https://developer.fastspring.com/reference/webhooks-overview
+      verification: https://developer.fastspring.com/reference/message-security
+    notes: >
+      Ecommerce / subscription commerce platform. Signs webhooks with HMAC-SHA256 over
+      the EXACT raw request body, base64-encoded, delivered in the X-FS-Signature header.
+      The signing key is the per-webhook "HMAC SHA256 Secret" set in the dashboard
+      (Developer Tools > Webhooks > Configuration); signing is only active when that secret
+      is set (no secret => no X-FS-Signature header). Verify by recomputing
+      base64(HMAC-SHA256(raw_body, secret)) and constant-time comparing — do NOT
+      parse/re-serialize the body first. NOT the Standard Webhooks spec. Each POST is a JSON
+      object with an "events" array that BATCHES multiple events per request, so iterate
+      events[] and verify the signature ONCE against the whole raw body. Each event has id,
+      type, live, processed, created, data. Automatic retries reuse the same event id (dedupe
+      on it); manual retries get new ids. FastSpring auto-retries until the endpoint returns
+      HTTP 200 (HTTPS required). Optional source IP 107.23.30.83. No official webhook SDK —
+      verify HMAC manually in every framework. Set FASTSPRING_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - order.completed
+        - subscription.activated
+        - subscription.charge.completed
 
   - name: fusionauth
     displayName: FusionAuth
@@ -959,6 +1104,44 @@ providers:
     sdks:
       npm: ["@microsoft/microsoft-graph-client"]
       pip: ["msgraph-sdk"]
+
+  - name: microsoft-sharepoint
+    displayName: Microsoft SharePoint
+    docs:
+      webhooks: https://learn.microsoft.com/en-us/sharepoint/dev/apis/webhooks/overview-sharepoint-webhooks
+      verification: https://learn.microsoft.com/en-us/sharepoint/dev/apis/webhooks/lists/create-subscription
+      events: https://learn.microsoft.com/en-us/sharepoint/dev/apis/webhooks/lists/overview-sharepoint-list-webhooks
+    notes: >
+      No HMAC / no request signatures and NOT Standard Webhooks. Two-part model:
+      (a) Validation handshake — when a subscription is created (or its notificationUrl
+      changes), SharePoint POSTs ?validationtoken={token} with an empty body; the endpoint
+      must echo that exact token back as an HTTP 200 text/plain body within ~5 seconds or
+      creation fails. (b) Optional clientState — a string set at subscription time that
+      SharePoint echoes in the clientState field of every notification; compare timing-safe
+      as a shared-secret sanity check (the only per-message identity signal, not a signature).
+      Notifications are THIN and batched under a "value" array: subscriptionId, clientState,
+      expirationDateTime, resource (list GUID), tenantId, siteUrl, webId — NO change details.
+      Call the list GetChanges API with a stored change token to learn what changed
+      (ChangeType: Add/Update/DeleteObject/Rename/Restore/Move, i.e. ItemAdded/ItemUpdated/etc.).
+      Create via POST /_api/web/lists('{list-guid}')/subscriptions with { resource,
+      notificationUrl, expirationDateTime, clientState? }; expiration max 180 days, renew via
+      PATCH before it lapses. Scope is list-item / document-library events only. SharePoint
+      retries 5x at 5-min intervals on non-2xx. SDKs (@pnp/sp, PnP) manage subscriptions and
+      GetChanges only — there is no inbound verification helper, so verify manually.
+    testScenario:
+      events:
+        - ItemAdded
+        - ItemUpdated
+      prompt: >
+        Create a {framework} webhook handler for Microsoft SharePoint list webhooks. There is
+        NO signature — first answer the validation handshake by echoing the validationtoken
+        query-string parameter back as an HTTP 200 text/plain body (before any body parsing,
+        within ~5 seconds). Then parse the thin batched notification payload (value array) and
+        timing-safe compare each notification's clientState to your stored SHAREPOINT_CLIENT_STATE
+        secret, rejecting mismatches with 400. Notifications carry no change details, so note that
+        you would call the list GetChanges API with a stored change token to resolve ItemAdded/
+        ItemUpdated/ItemDeleted changes. Do NOT use HMAC or Standard Webhooks. If you use any
+        skills to help with this, add a comment noting which skill(s) you referenced.
 
   - name: notion
     displayName: Notion
@@ -1469,6 +1652,41 @@ providers:
         - Bounce
         - Delivery
 
+  - name: pylon
+    displayName: Pylon
+    docs:
+      webhooks: https://getpylon.com/developers/guides/using-webhooks/
+      verification: https://getpylon.com/developers/guides/using-webhooks/#event-signatures
+    notes: >
+      B2B customer support platform. No official SDK — verify manually. Signs each delivery
+      with HMAC-SHA256: the Pylon-Webhook-Signature header is "hs256=<hex-digest>" where the
+      digest is HMAC-SHA256 over concat(Pylon-Webhook-Timestamp, ".", raw body), keyed with the
+      destination's signing secret (shown ONCE at destination creation). Companion headers:
+      Pylon-Webhook-Timestamp (unix seconds) and Pylon-Webhook-Version (e.g. 2021-07). Verify
+      against the RAW body — do not re-serialize; include the "timestamp." prefix in the signed
+      content; keep/compare the "hs256=" prefix; compare timing-safe. NOT Standard Webhooks
+      (custom hs256= prefix and Pylon-Webhook-* headers). A legacy support-article scheme uses
+      X-Pylon-Signature (hex HMAC-SHA256 of the raw body only, no timestamp) — mention as legacy,
+      do not implement as the main path. Retries: up to 5 attempts with exponential backoff, final
+      ~31h after event creation; a destination flips to "inactive" after 7 days with no successful
+      deliveries — process idempotently. IMPORTANT: event-type names are UNCONFIRMED — the canonical
+      list is auth-gated at app.getpylon.com/docs/api#event-types. issue.created / issue.updated are
+      known to exist but the token format is not publicly verified; present event names as
+      illustrative and tell readers to confirm against their own destination configuration.
+    testScenario:
+      events:
+        - issue.created
+        - issue.updated
+      prompt: >
+        Create a {framework} webhook handler for Pylon. Verify the Pylon-Webhook-Signature header:
+        compute "hs256=" + hex HMAC-SHA256 over Pylon-Webhook-Timestamp + "." + the raw request body
+        using the destination signing secret, and compare timing-safe. Verify against the raw body
+        (do not parse first). Return 400 for a missing/invalid signature and 200 once verified, then
+        dispatch on the payload's event-type field (e.g. issue.created, issue.updated) — treat the
+        event names as illustrative and note they must be confirmed against the Pylon destination
+        configuration. If you use any skills to help with this, add a comment noting which skill(s)
+        you referenced.
+
   - name: revolut
     displayName: Revolut
     docs:
@@ -1616,6 +1834,35 @@ providers:
       events:
         - order.shipped
         - order.shipment.delivered
+  - name: shiphero
+    displayName: ShipHero
+    docs:
+      webhooks: https://developer.shiphero.com/webhooks/
+      verification: https://developer.shiphero.com/webhooks/#webhook_verification
+    notes: >
+      Warehouse management / fulfillment platform. Signs each webhook with
+      HMAC-SHA256 over the RAW JSON request body, base64-encoded, sent in the
+      x-shiphero-hmac-sha256 header. The key is the app's shared_signature_secret,
+      returned ONCE by the webhook_create GraphQL mutation. Verify by recomputing
+      base64(HMAC-SHA256(rawBody, secret)) and constant-time comparing (plain HMAC
+      of the raw body — NOT payload-concatenated-with-account-id). NOT Standard
+      Webhooks compliant (no webhook-id/webhook-timestamp/webhook-signature). There
+      is no topic header — dispatch on the payload's webhook_type field. Register
+      one webhook per event type via webhook_create (name = exact Title Case
+      webhook type string, url, shop_name); ShipHero does NOT queue events while a
+      webhook is disabled (they are discarded). Delivery: ~10s timeout (20s for
+      Generate Label), up to 5 retries per trigger, no delivery SLA; also sends
+      X-Shiphero-Message-ID for dedup. Expects a 2xx with body
+      {"code":"200","Status":"Success"}. Webhook type names (Title Case): Order
+      Allocated, Shipment Update, Inventory Update, Inventory Change, Order
+      Canceled, Order Deallocated, Order Packed Out, PO Update, Return Update, Tote
+      Complete, Tote Cleared, Package Added, Capture Payment, Generate Label, Print
+      Barcode, Automation Rules, Shipment ASN, Work Order Status Update. No official
+      SDKs — verify manually in every framework.
+    testScenario:
+      events:
+        - Order Allocated
+        - Shipment Update
   - name: shipstation
     displayName: ShipStation
     docs:
@@ -1656,6 +1903,31 @@ providers:
       events:
         - orders/create
         - orders/paid
+
+  - name: shopline
+    displayName: SHOPLINE
+    docs:
+      webhooks: https://developer.shopline.com/docs/apps/api-instructions-for-use/webhooks/overview/
+      verification: https://developer.shopline.com/docs/apps/api-instructions-for-use/generate-and-verify-signatures/
+    notes: >
+      E-commerce platform. The SHOPLINE Open Platform (developer.shopline.com, English) is a
+      Shopify clone. Webhooks are signed with HMAC-SHA256 of the RAW request body keyed by the
+      app secret (Developer Center > App credentials); the signature is in the
+      X-Shopline-Hmac-Sha256 header. Encoding is base64 (the docs' header example is base64,
+      Shopify-style — though a stray code sample shows hex; treat as base64 and fall back to hex
+      if needed). Constant-time compare against the raw un-parsed body. This is NOT the Standard
+      Webhooks spec. Other headers: X-Shopline-Topic, X-Shopline-Shop-Domain, X-Shopline-Shop-Id,
+      X-Shopline-Merchant-Id, X-Shopline-API-Version, X-Shopline-Webhook-Id (stable across resends,
+      use for idempotency). Topics use Shopify-style slash format (orders/create, products/update,
+      collect/delete). Subscribe via the Admin REST API
+      POST https://{handle}.myshopline.com/admin/openapi/{version}/webhooks.json with
+      {topic, address, api_version}. Gotchas: 5s response timeout; up to 19 retries over 48h then
+      the subscription is auto-removed. No official published SDK — verify manually.
+    testScenario:
+      events:
+        - orders/create
+        - products/update
+        - collect/delete
 
   - name: slack
     displayName: Slack
@@ -1811,6 +2083,40 @@ providers:
       events:
         - message.sent
         - message.finalized
+  - name: treezor
+    displayName: Treezor
+    docs:
+      webhooks: https://docs.treezor.com/guide/webhooks/introduction.html
+      verification: https://docs.treezor.com/guide/webhooks/integrity-checks.html
+    notes: >
+      European Banking-as-a-Service (BaaS) platform with a heavy SCA/KYC event surface.
+      Custom HMAC scheme — NOT Standard Webhooks (Svix) — and the signature is a BODY
+      FIELD, not an HTTP header. Each webhook JSON body carries object_payload plus
+      object_payload_signature. Verify by computing HMAC-SHA256 over the CANONICALIZED
+      object_payload using the Treezor-provided webhook_secret, then base64-encoding,
+      and comparing (timing-safe) to object_payload_signature. GOTCHA: the payload must
+      be canonicalized first to match PHP's default json_encode — compact separators,
+      forward slashes escaped (/ -> \/), and non-ASCII escaped to lowercase \uXXXX
+      (é -> é). This is signed over the re-serialized object_payload, NOT the raw
+      request body. Webhooks are delivered with a text/plain MIME type (JSON parsers
+      keyed on application/json will skip them — read raw text and JSON.parse yourself).
+      Return 200 on success; return a 5xx to trigger retries (every minute, up to 30
+      attempts). Delivery is chronological but NOT order-guaranteed, and duplicates are
+      possible (same webhook_id) — dedupe on webhook_id, compare webhook_created_at.
+      Subscribe via API on a DIFFERENT host: POST /settings/hooks on
+      https://webhook.api.treezor.co (prod) / https://webhook.sandbox.treezor.co
+      (sandbox); manage events via /settings/hooks/{uuid}/events. Subscriptions start
+      PENDING and may require Treezor activation. The webhook_secret is provided by the
+      Treezor Account Manager (no self-service dashboard); Sandbox and Production use
+      different secrets. Event names are object.action (payin.create, payout.update,
+      cardtransaction.create, wallet.create, user.kycreview, ...; some camelCase /
+      multi-segment objects like sca.wallet.create, qes.created). No official SDKs —
+      verify manually. Set TREEZOR_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - payin.create
+        - cardtransaction.create
+        - user.kycreview
   - name: trello
     displayName: Trello
     docs:
@@ -2124,6 +2430,47 @@ providers:
         - form_submission
         - ecomm_new_order
 
+  - name: wechat
+    displayName: WeChat Pay
+    docs:
+      webhooks: https://pay.weixin.qq.com/doc/global/v3/en/4012356564
+      verification: https://pay.weixin.qq.com/doc/global/v3/en/4012357149
+    notes: >
+      WeChat Pay APIv3 (Global/English endpoint). Notifications are signed asymmetrically
+      (SHA256withRSA), NOT HMAC and NOT Standard Webhooks. Verify with the WeChat Pay platform
+      public key selected by the Wechatpay-Serial header, over the message
+      "{timestamp}\n{nonce}\n{body}\n" (each line terminated by \n, body = raw bytes); the
+      signature (Wechatpay-Signature) is Base64. Headers: Wechatpay-Signature, Wechatpay-Timestamp,
+      Wechatpay-Nonce, Wechatpay-Serial. Enforce a 5-minute timestamp tolerance. The notification
+      "resource" is SEPARATELY encrypted: resource_type "encrypt-resource",
+      algorithm AEAD_AES_256_GCM, with ciphertext (Base64, 16-byte auth tag appended), nonce
+      (12-byte IV), and associated_data. Decrypt resource.ciphertext with the 32-byte APIv3 key
+      using AES-256-GCM to recover the transaction/refund JSON — the SIGNED body is the ciphertext
+      envelope, so verify first, then decrypt. Config: notify_url is set per API request (not a
+      dashboard); the platform cert/public key is downloaded and rotated by serial via
+      GET /v3/certificates (itself AES-GCM encrypted), with new certs published ~24h ahead — key
+      your store by Wechatpay-Serial. Acknowledge with HTTP 200/204 and body
+      {"code":"SUCCESS","message":"OK"}; retries run ~15s..6h over ~24h, so handle idempotently and
+      re-verify the order amount before fulfilling. The Global endpoint defines ONLY
+      TRANSACTION.SUCCESS, REFUND.SUCCESS, and REFUND.CLOSED — do NOT document the mainland-China-only
+      REFUND.ABNORMAL. Official SDKs (wechatpay-node-v3, wechatpay-axios-plugin, wechatpayv3) exist,
+      but manual verification with standard crypto libraries is used in the examples for transparency
+      and testability.
+    testScenario:
+      events:
+        - TRANSACTION.SUCCESS
+        - REFUND.SUCCESS
+      prompt: >
+        Create a {framework} webhook handler for WeChat Pay (APIv3, Global/English endpoint). Verify
+        the Wechatpay-Signature header: reconstruct the message "{timestamp}\n{nonce}\n{body}\n" from
+        Wechatpay-Timestamp, Wechatpay-Nonce, and the RAW body, Base64-decode the signature, and
+        verify SHA256withRSA against the WeChat Pay platform public key matched by Wechatpay-Serial.
+        Enforce a 5-minute timestamp tolerance. Then decrypt the encrypted resource
+        (AEAD_AES_256_GCM) with the 32-byte APIv3 key to recover the JSON, dispatch on event_type
+        (TRANSACTION.SUCCESS, REFUND.SUCCESS, REFUND.CLOSED), and acknowledge with HTTP 200 and body
+        {"code":"SUCCESS","message":"OK"}. Do NOT use HMAC or the Standard Webhooks spec. If you use
+        any skills to help with this, add a comment noting which skill(s) you referenced.
+
   - name: whatsapp
     displayName: WhatsApp
     docs:
@@ -2283,6 +2630,37 @@ providers:
       events:
         - AUTHORISATION
         - REFUND
+
+  - name: alipay
+    displayName: Alipay
+    docs:
+      webhooks: https://docs.antom.com/ac/cashierpay/notifications
+      verification: https://docs.alipayplus.com/alipayplus/alipayplus/api_acq_tile/signature
+    notes: >
+      Alipay's global products — Antom (Cashier Payment / AMS) and Alipay+ — deliver
+      asynchronous notifications signed with an asymmetric RSA256 (SHA256withRSA) scheme,
+      NOT HMAC and NOT Standard Webhooks. Each request carries Signature
+      ("algorithm=RSA256,keyVersion=<n>,signature=<sig>"), Client-Id, and Request-Time headers.
+      The signed content is exactly two lines: "<HTTP-METHOD> <URI>\n<Client-Id>.<Request-Time>.<RawBody>"
+      (method + path on line one; client id, request time, and the raw body joined by single
+      periods on line two). Verify with SHA256withRSA against Antom/Alipay+'s public key from the
+      Dashboard. Encoding gotcha: the signature is base64URL encoded (URL-safe alphabet) and is
+      often additionally percent-encoded on the wire — URL-decode, normalize, then base64-decode.
+      Unusually, the acknowledgement is itself signed: respond HTTP 200 with body
+      {"result":{"resultCode":"SUCCESS","resultStatus":"S","resultMessage":"Success"}} plus
+      Client-Id, Response-Time, and a Signature built the same way over
+      "<HTTP-METHOD> <URI>\n<Client-Id>.<Response-Time>.<Body>" using YOUR merchant private key.
+      Use the raw unparsed body throughout. Notify URL is set per-call via
+      paymentNotifyUrl / refundNotifyUrl. On a missing/invalid ack Antom retries ~8 times over 24h.
+      Notifications distinguish via a notifyType field (PAYMENT_RESULT, CAPTURE_RESULT, REFUND_RESULT,
+      AUTHORIZATION_RESULT, DISPUTE_CREATED/DISPUTE_JUDGED) plus result.resultStatus (S/F/U) — there is
+      no "type" field. The legacy openapi/MAPI scheme (openapi.alipay.com, global.alipay.com:
+      form-encoded params with sign & sign_type=RSA2, reply "success") is a distinct older vintage
+      and is not what this skill implements.
+    testScenario:
+      events:
+        - PAYMENT_RESULT
+        - REFUND_RESULT
 
   - name: alchemy
     displayName: Alchemy
@@ -2803,3 +3181,33 @@ providers:
       events:
         - message:updated
         - notification:submitted
+  - name: tebex
+    displayName: Tebex
+    docs:
+      webhooks: https://docs.tebex.io/developers/webhooks/overview
+      verification: https://docs.tebex.io/developers/webhooks/overview#verifying-webhook-authenticity
+    notes: >
+      Monetization platform for game servers. Verify the hex X-Signature header with a TWO-STEP
+      construction: first SHA-256 hash the RAW request body, THEN HMAC-SHA256 that hex hash using
+      your webhook secret as the key — i.e. hash_hmac('sha256', hash('sha256', body), secret). This
+      is NOT a plain HMAC of the body, and NOT Standard Webhooks. Use the raw unparsed body (JSON
+      body-parsers break the signature). The secret is on Creator Panel > Developers > Webhooks >
+      Endpoints; event types are selected per endpoint there. On setup Tebex sends a
+      validation.webhook ping — the endpoint MUST respond 200 with JSON {"id": "<webhook id>"}
+      echoing the id back, or it never activates. Always return 2XX; any other status triggers
+      retries. Tebex sends only from source IPs 18.209.80.3 and 54.87.231.232 (docs suggest 404 for
+      others). No official SDKs — verify manually. Event types: validation.webhook,
+      payment.completed, payment.declined, payment.refunded, payment.dispute.opened/won/lost/closed,
+      recurring-payment.started/renewed/ended, recurring-payment.cancellation.requested/aborted.
+    testScenario:
+      events:
+        - payment.completed
+        - recurring-payment.renewed
+      prompt: >
+        Create a {framework} webhook handler for Tebex. Verify the hex X-Signature header using the
+        two-step construction — SHA-256 the raw request body, then HMAC-SHA256 that hex hash keyed
+        with the webhook secret — with a timing-safe comparison over the raw body. Respond to the
+        validation.webhook setup event with HTTP 200 and JSON {"id": "<the received id>"}, then
+        dispatch on event types like payment.completed and recurring-payment.renewed, always
+        returning 2XX. If you use any skills to help with this, add a comment noting which skill(s)
+        you referenced.
