@@ -30,8 +30,11 @@ Clio Manage delivers webhooks in two distinct kinds of POST request to your URL:
 1. **Handshake** — Immediately after a webhook is created (or its URL changes),
    Clio sends a POST containing an `X-Hook-Secret` header with a freshly
    generated **shared secret**. Your endpoint must confirm it (echo the same
-   header back with `200 OK`). **The webhook is not enabled until the handshake
-   succeeds.** Store that secret — it is the key for verifying every later event.
+   header back with `200 OK`). **Clio's docs say the webhook is not enabled until the handshake
+   succeeds** — though in one observed EU test the webhook auto-enabled and began
+   delivering without any handshake request arriving (see
+   [references/setup.md](references/setup.md)). Implement the echo regardless: it is
+   how you obtain the secret, and it is the key for verifying every later event.
 2. **Events** — Every subsequent delivery is signed. Clio computes
    `HMAC-SHA256(shared_secret, raw_request_body)` and puts the digest in the
    `X-Hook-Signature` header. Verify it against the **raw** body.
@@ -48,9 +51,13 @@ timing-safe.
 
 Clio's docs state only that it "will compute an HMAC-SHA256 signature based on
 the shared secret and the request body" — they never say whether the digest is
-**hex** or **base64** encoded. The handlers below compute the digest once and
-compare against both encodings. **Confirm which one your real deliveries use**
-(log the header once) and you can drop the other.
+hex or base64 encoded.
+
+**Verified against a live delivery: it is lowercase hex** (64 characters). This
+was confirmed by recomputing HMAC-SHA256 over the raw body with the webhook's
+`shared_secret` and matching the header exactly. The handlers below still compute
+the digest once and accept either encoding, so they keep working if Clio ever
+differs by region or changes it — but hex is what you should expect.
 
 Node:
 
@@ -131,7 +138,7 @@ Example event payload:
 
 | Header | Description |
 |--------|-------------|
-| `X-Hook-Signature` | HMAC-SHA256 digest of the raw body (verify this); Clio's docs do not specify hex vs base64 — accept either |
+| `X-Hook-Signature` | HMAC-SHA256 digest of the raw body (verify this). Observed as lowercase hex; the examples accept base64 too as a safety net |
 | `X-Hook-Secret` | Shared secret sent during the handshake; echo it back to activate |
 
 ## Environment Variables

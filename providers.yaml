@@ -387,8 +387,23 @@ providers:
       meta.webhook_id); models are activity, bill, calendar_entry,
       clio_payments_payment, communication, contact, document, folder, matter,
       task. IMPORTANT: webhooks EXPIRE — 3 days by default, max 31 days via
-      expires_at; renew before expiry. HTTPS-only URLs. Regional base URLs
-      (app.clio.com, eu/au/ca variants).
+      expires_at; renew before expiry. HTTPS-only URLs.
+      *** VERIFIED against a live EU delivery (Jul 2026): X-Hook-Signature is
+      lowercase hex, 64 chars — confirmed by recomputing HMAC-SHA256 over the raw
+      body with the webhook's shared_secret and matching the header exactly. Clio's
+      docs never state the encoding, so handlers may accept base64 as a safety net,
+      but hex is what real deliveries use. ***
+      *** REGIONAL HOSTS ARE MANDATORY: an app exists only in its registration
+      region, and calling /oauth/token on the wrong host returns invalid_client,
+      which masquerades as a bad client secret and sends you hunting in the wrong
+      place. An app created at eu.developers.clio.com must use eu.app.clio.com for
+      OAuth AND API; likewise ca./au. ***
+      *** HANDSHAKE MAY AUTO-COMPLETE: the docs say a webhook stays disabled until
+      the X-Hook-Secret handshake succeeds, but an EU test saw it flip pending ->
+      enabled within ~90s and begin delivering with no handshake request ever
+      arriving. Implement the echo (it is the documented path and how you receive
+      the secret) but do not block on it; shared_secret can also be read back via
+      GET /api/v4/webhooks/:id.json?fields=shared_secret. ***
     testScenario:
       events:
         - created

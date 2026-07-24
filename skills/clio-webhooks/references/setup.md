@@ -23,6 +23,13 @@ Use the base URL for the account's region:
 
 Examples below use `app.clio.com`.
 
+> **Get this right first — the failure is misleading.** A Clio app exists only in
+> the region it was registered in. Calling `/oauth/token` on the wrong host returns
+> `invalid_client` ("the client failed to authenticate"), which reads like a wrong
+> client secret and sends you hunting in the wrong place. If your app was created at
+> `eu.developers.clio.com`, every OAuth **and** API call must use `eu.app.clio.com`.
+> Tokens issued in one region are not valid against another.
+
 ## Step 1: Create the Webhook
 
 `POST /api/v4/webhooks.json` with a `data` object. Required fields: `url`,
@@ -52,8 +59,16 @@ curl -X POST https://app.clio.com/api/v4/webhooks.json \
 
 Immediately after creation (and whenever the `url` changes), Clio POSTs your
 endpoint with an `X-Hook-Secret` header containing a generated **shared secret**.
-**The webhook stays disabled until you confirm this handshake.** There are two
-ways to confirm:
+**Clio's docs state the webhook stays disabled until you confirm this handshake.**
+There are two ways to confirm:
+
+> **Observed deviation.** In an EU test (July 2026) a newly created webhook moved
+> from `pending` to `enabled` on its own within ~90 seconds and began delivering
+> events, without any `X-Hook-Secret` request ever reaching the endpoint. Do not
+> block your integration on receiving a handshake you may never get — but do
+> implement the echo, since it is the documented path and the only way Clio hands
+> you the secret in that flow. You can also read `shared_secret` back from
+> `GET /api/v4/webhooks/:id.json?fields=shared_secret`.
 
 ### Option 1 — Immediate (recommended)
 
