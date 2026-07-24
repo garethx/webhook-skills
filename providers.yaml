@@ -607,6 +607,20 @@ providers:
       only Topic, Action (Create/Update/Delete), Key (entity GUID), Division, ClientId — so
       call the REST API to fetch the full record. Return 2xx quickly; Exact retries failures.
       GoodsDeliveries supports near-instant delivery via the IsInstant flag. No official SDK.
+      *** SIGNING SCHEME VERIFIED (Jul 2026, live Accounts/Update delivery): HMAC-SHA256 over
+      the raw substring between {"Content": and ,"HashCode":, hex, UPPERCASED, reproduced the
+      delivered HashCode exactly. Lowercase hex and base64 both failed, so uppercasing is
+      required. Caveat: Exact sends compact JSON, so raw-substring and re-serialized-compact
+      forms were byte-identical for that delivery and both matched — keep the raw substring,
+      it is the only form that survives whitespace or key reordering. ***
+      *** CALLBACK VALIDATION: ~1s after the subscription is created Exact sends an EMPTY POST
+      (content-length: 0) to the callback. Handlers MUST acknowledge it with 2xx rather than
+      running verification and 401ing, or the subscription can be left unvalidated. ***
+      *** DELIVERY IS BATCHED: subscriptions default to IsInstant false and a change observed
+      with EventCreatedOn 17:20:55 arrived several minutes later. Drive freshness logic off
+      Content.EventCreatedOn, not receipt time. ***
+      Content also carries ExactOnlineEndpoint (a ready-made API URL for the changed record —
+      use it instead of hand-building the fetch URL) and EventCreatedOn.
       Confirmed topics: Accounts, Items, StockPositions, FinancialTransactions,
       GoodsDeliveries, Contacts (docs list ~30 topics).
     testScenario:

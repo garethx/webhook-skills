@@ -62,6 +62,15 @@ export async function POST(request: NextRequest) {
   // Read the raw body — required for signature verification.
   const rawBody = await request.text();
 
+  // Exact validates the callback URL when the subscription is created by
+  // sending an EMPTY POST (content-length: 0). There is no Content to hash,
+  // so acknowledge it instead of failing verification — returning 401 here
+  // can leave the subscription unvalidated.
+  if (!rawBody) {
+    console.log('Empty POST — Exact callback validation, acknowledging');
+    return NextResponse.json({ status: 'ok' }, { status: 200 });
+  }
+
   // Verify before parsing.
   if (!verifyExactWebhook(rawBody, process.env.EXACT_WEBHOOK_SECRET!)) {
     console.error('Webhook signature verification failed');

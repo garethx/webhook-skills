@@ -24,10 +24,12 @@ Every delivery has the same envelope:
 {
   "Content": {
     "Topic": "Accounts",
+    "ClientId": "0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+    "Division": 123456,
     "Action": "Update",
     "Key": "d4d4c8b6-1a2b-4c3d-9e8f-1234567890ab",
-    "Division": 123456,
-    "ClientId": "0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d"
+    "ExactOnlineEndpoint": "https://start.exactonline.co.uk/api/v1/123456/crm/Accounts(guid'd4d4c8b6-1a2b-4c3d-9e8f-1234567890ab')",
+    "EventCreatedOn": "2026-07-24T17:20:55.543"
   },
   "HashCode": "5A3F9C2E7B1D8A46F0C3E9B2D7A15C8E4F6091A2B3C4D5E6F7089ABCDEF01234"
 }
@@ -40,10 +42,27 @@ Every delivery has the same envelope:
 | `Content.Key` | GUID of the changed entity — use it to fetch the full record |
 | `Content.Division` | The division (company) the change belongs to |
 | `Content.ClientId` | Your app's client id |
+| `Content.ExactOnlineEndpoint` | Ready-made API URL for the changed record — use this instead of hand-building the fetch URL |
+| `Content.EventCreatedOn` | When the change occurred (note this can be minutes before delivery — see below) |
 | `HashCode` | Uppercase hex HMAC-SHA256 of the raw `Content` JSON (the signature) |
 
 `GoodsDeliveries` deliveries can additionally arrive near-instantly when the
 subscription is created with the `IsInstant` flag.
+
+## Delivery Behaviour (observed)
+
+- **Subscriptions default to `IsInstant: false` and deliveries are batched.** In a
+  July 2026 test an `Accounts` change with `EventCreatedOn` 17:20:55 arrived a few
+  minutes later — do not expect real-time delivery, and drive any freshness logic
+  off `EventCreatedOn` rather than receipt time.
+- **The callback URL is validated on subscription creation.** Roughly a second
+  after `POST .../webhooks/WebhookSubscriptions` returns, Exact sends an **empty
+  POST** (`content-length: 0`) to the callback. Your handler must tolerate an empty
+  body rather than erroring — verification should be skipped for it, since there is
+  no `Content` to hash.
+- Deliveries carry no signature header; `HashCode` inside the body is the only
+  signature. Other headers seen in practice are Azure-style tracing fields
+  (`request-id`, `request-context`), which are not part of any contract.
 
 ## Common Topics
 

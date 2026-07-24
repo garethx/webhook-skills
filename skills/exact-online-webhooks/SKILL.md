@@ -70,12 +70,20 @@ included). Key it with your app's **Webhook secret** (from the Exact App Center)
 hex-encode, **uppercase**, and compare to `HashCode`. Do **not** re-serialize the
 parsed `Content` object — key order/whitespace would differ and break the hash.
 
-> **Verify this against a real delivery before relying on it.** Exact's KB pages
-> are JS-rendered and don't state the signed substring in prose; the exact
-> boundaries used here match well-established community implementations (e.g.
-> picqer's PHP client) rather than a quotable official spec. Log the raw body on
-> your first deliveries and confirm the digest matches — see
-> [references/verification.md](references/verification.md) for the failure modes.
+> **Verified against a real delivery (July 2026).** An `Accounts/Update` webhook
+> was reproduced exactly: HMAC-SHA256 over the raw substring between `{"Content":`
+> and `,"HashCode":`, hex-encoded and uppercased, matched the delivered `HashCode`.
+> Lowercase hex and base64 both failed, so the uppercasing is required.
+>
+> Exact's KB pages are JS-rendered and never state the signed substring in prose —
+> these boundaries originally came from community implementations (picqer's PHP
+> client) and are now confirmed by evidence.
+>
+> One caveat: Exact sends **compact JSON**, so for that delivery the raw substring
+> and a re-serialized compact `Content` were byte-identical and both matched. The
+> test therefore cannot distinguish them. Keep using the raw substring — it is the
+> only form that stays correct if Exact ever emits whitespace or reorders keys.
+> See [references/verification.md](references/verification.md) for the failure modes.
 
 ```javascript
 const crypto = require('crypto');

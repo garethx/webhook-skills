@@ -72,6 +72,15 @@ app.post(
   '/webhooks/exact-online',
   express.raw({ type: '*/*' }),
   async (req, res) => {
+    // Exact validates the callback URL when the subscription is created by
+    // sending an EMPTY POST (content-length: 0). There is no Content to hash,
+    // so acknowledge it instead of failing verification — returning 401 here
+    // can leave the subscription unvalidated.
+    if (!req.body || req.body.length === 0) {
+      console.log('Empty POST — Exact callback validation, acknowledging');
+      return res.status(200).send('OK');
+    }
+
     // Verify before parsing.
     if (!verifyExactWebhook(req.body, process.env.EXACT_WEBHOOK_SECRET)) {
       console.error('Webhook signature verification failed');

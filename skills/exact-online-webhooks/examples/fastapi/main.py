@@ -61,6 +61,14 @@ async def exact_webhook(request: Request):
     # Read the raw body — required for signature verification.
     raw_body = await request.body()
 
+    # Exact validates the callback URL when the subscription is created by
+    # sending an EMPTY POST (content-length: 0). There is no Content to hash,
+    # so acknowledge it instead of failing verification — returning 401 here
+    # can leave the subscription unvalidated.
+    if not raw_body:
+        print("Empty POST — Exact callback validation, acknowledging")
+        return {"status": "ok"}
+
     # Verify before parsing.
     if not verify_exact_webhook(raw_body, exact_secret):
         raise HTTPException(status_code=401, detail="Invalid signature")
