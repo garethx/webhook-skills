@@ -1,0 +1,21 @@
+{
+  "name": "alipay-webhooks-nextjs",
+  "version": "1.0.0",
+  "description": "Receive and verify Alipay (Antom / Alipay+) webhooks with Next.js",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "^16.2.11",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
