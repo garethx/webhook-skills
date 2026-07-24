@@ -54,6 +54,27 @@
       ]
     },
     {
+      "name": "airwallex-webhooks",
+      "description": "Receive and verify Airwallex webhooks. Use when setting up Airwallex webhook handlers, debugging x-signature / x-timestamp signature verification, or handling payment events like payment_intent.succeeded, payment_attempt.paid, refund.settled, payment_consent.verified, or payment_dispute.requires_response.",
+      "source": "./skills/airwallex-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/airwallex-webhooks",
+      "keywords": [
+        "webhooks",
+        "airwallex"
+      ]
+    },
+    {
       "name": "alchemy-webhooks",
       "description": "Receive and verify Alchemy Notify webhooks. Use when setting up Alchemy webhook handlers, debugging X-Alchemy-Signature verification, or handling onchain events like ADDRESS_ACTIVITY, MINED_TRANSACTION, DROPPED_TRANSACTION, NFT_ACTIVITY, NFT_METADATA_UPDATE, or GRAPHQL (Custom Webhook).",
       "source": "./skills/alchemy-webhooks",
