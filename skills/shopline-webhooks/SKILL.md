@@ -28,11 +28,18 @@ secret** (Developer Center → App credentials) and sends the digest in the
 `X-Shopline-Hmac-Sha256` header. Use the **raw** body — parsing JSON first
 changes the bytes and breaks the signature — and compare timing-safe.
 
-> **Encoding:** SHOPLINE's docs show a **base64** digest (Shopify-style), but a
-> stray code sample shows **hex**. To be safe, accept either: compute both and
-> timing-safe compare against each. Then **confirm which encoding your real
-> deliveries use** — log one live `X-Shopline-Hmac-Sha256` value (44 chars ending
-> in `=` is base64; 64 `[a-f0-9]` chars is hex) — and you can narrow the check.
+> **Encoding — verified as lowercase hex.** SHOPLINE's docs show a **base64**
+> digest in the header example (Shopify-style), while a code sample shows **hex**.
+> A live delivery settles it: the code sample is right. Confirmed against a real
+> `products/create` webhook (API version `v20240601`) by recomputing
+> HMAC-SHA256 over the raw body with the app secret — the header was 64 lowercase
+> hex characters and matched exactly.
+>
+> The handlers below still accept either encoding, since the documented example
+> disagrees with observed behaviour and SHOPLINE could differ by version or
+> region — but expect hex. To check your own: 64 `[a-f0-9]` chars is hex; 44
+> chars ending `=` is base64.
+>
 > The topic is in `X-Shopline-Topic`; the shop domain in `X-Shopline-Shop-Domain`.
 
 Node:
@@ -43,8 +50,8 @@ const crypto = require('crypto');
 function verifyShoplineWebhook(rawBody, hmacHeader, secret) {
   if (!hmacHeader) return false;
   const digest = crypto.createHmac('sha256', secret).update(rawBody).digest();
-  // Accept base64 (documented) or hex (stray sample) — timing-safe either way.
-  return [digest.toString('base64'), digest.toString('hex')].some((expected) => {
+  // Verified hex in practice; base64 kept as a fallback. Timing-safe either way.
+  return [digest.toString('hex'), digest.toString('base64')].some((expected) => {
     try {
       return crypto.timingSafeEqual(Buffer.from(hmacHeader), Buffer.from(expected));
     } catch {
@@ -63,7 +70,7 @@ def verify_shopline_webhook(raw_body: bytes, hmac_header: str, secret: str) -> b
     if not hmac_header:
         return False
     digest = hmac.new(secret.encode(), raw_body, hashlib.sha256).digest()
-    # Accept base64 (documented) or hex (stray sample).
+    # Verified hex in practice; base64 kept as a fallback.
     return (
         hmac.compare_digest(hmac_header, base64.b64encode(digest).decode())
         or hmac.compare_digest(hmac_header, digest.hex())

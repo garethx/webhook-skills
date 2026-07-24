@@ -43,6 +43,10 @@ curl -X POST \
   }'
 ```
 
+> **`api_version` is required in the create body.** Omitting it returns
+> `400 body.webhook:The required property 'api_version' is missing from the object`.
+> Deliveries then echo it back in the `X-Shopline-Api-Version` header.
+
 Repeat for each topic you want (`orders/create`, `products/update`,
 `collect/delete`, etc.). See
 [Subscribe to a Webhook](https://developer.shopline.com/docs/apps/api-instructions-for-use/webhooks/overview/)
