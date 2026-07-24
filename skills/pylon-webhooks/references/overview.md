@@ -25,7 +25,7 @@ URL, signed with HMAC-SHA256 so you can verify it came from Pylon.
 |----------------------|----------------|------------------|
 | `issue.created` | A new support issue/ticket is opened | Mirror tickets into your DB, alert on-call, create a linked task |
 | `issue.updated` | An issue's status, assignee, or fields change | Keep an external mirror in sync, trigger SLA automations |
-| `issue.closed` | An issue is resolved/closed | Send CSAT surveys, update reporting, close linked tasks |
+| `issue.closed` **(example shape only — not confirmed to exist)** | An issue is resolved/closed | Send CSAT surveys, update reporting, close linked tasks |
 
 ## Event Payload Structure
 
@@ -52,8 +52,8 @@ your destination actually sends.
 
 ## Delivery, Retries, and Inactive Destinations
 
-- Pylon times out a delivery attempt after ~10 seconds — acknowledge fast and do
-  heavy work asynchronously.
+- Respond quickly — Pylon does not document a delivery timeout, so acknowledge as
+  soon as the signature verifies and do heavy work asynchronously.
 - Failed deliveries are retried with exponential backoff, up to **5 total
   attempts**, with the final attempt roughly **31 hours** after the event was
   created.

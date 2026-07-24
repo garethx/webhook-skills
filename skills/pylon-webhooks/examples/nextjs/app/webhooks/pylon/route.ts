@@ -74,6 +74,8 @@ export async function POST(request: NextRequest) {
       // TODO: Sync fields, trigger SLA automations, etc.
       break;
 
+    // Example shape only — a close event is NOT confirmed to exist under this
+    // (or any) name. Replace with the real types from your destination.
     case 'issue.closed':
       console.log('Issue closed:', data.id);
       // TODO: Send CSAT survey, update reporting, close linked tasks, etc.
@@ -83,6 +85,6 @@ export async function POST(request: NextRequest) {
       console.log(`Unhandled event type: ${eventType}`);
   }
 
-  // Return 2xx quickly to acknowledge receipt (Pylon times out after ~10s)
+  // Return 2xx quickly to acknowledge receipt (Pylon documents no timeout)
   return NextResponse.json({ received: true });
 }

@@ -4,7 +4,8 @@ description: >
   Receive and verify Pylon webhooks. Use when setting up Pylon webhook
   handlers, debugging Pylon signature verification (Pylon-Webhook-Signature,
   hs256= HMAC-SHA256 over timestamp.body), or handling B2B support events
-  like issue.created and issue.updated.
+  such as issue lifecycle changes (Pylon's event-type catalog is not public —
+  confirm the exact names in your own destination configuration).
 license: MIT
 metadata:
   author: hookdeck
@@ -91,7 +92,7 @@ def verify_pylon_webhook(raw_body: bytes, timestamp: str, signature_header: str,
 |----------------------|------------|
 | `issue.created` | A new support issue/ticket is opened |
 | `issue.updated` | An issue's fields, status, or assignee change |
-| `issue.closed` | An issue is resolved/closed |
+| `issue.closed` | An issue is resolved/closed — **example shape only**, not confirmed to exist |
 
 Handlers in this skill read the event type from a payload field
 (`event_type` / `type`) and fall back to logging unknown types — adapt the field

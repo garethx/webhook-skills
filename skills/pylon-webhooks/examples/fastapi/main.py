@@ -66,6 +66,8 @@ async def pylon_webhook(request: Request):
         print(f"Issue updated: {data.get('id')} {data.get('state')}")
         # TODO: Sync fields, trigger SLA automations, etc.
 
+    # Example shape only — a close event is NOT confirmed to exist under this
+    # (or any) name. Replace with the real types from your destination.
     elif event_type == "issue.closed":
         print(f"Issue closed: {data.get('id')}")
         # TODO: Send CSAT survey, update reporting, close linked tasks, etc.
@@ -73,7 +75,7 @@ async def pylon_webhook(request: Request):
     else:
         print(f"Unhandled event type: {event_type}")
 
-    # Return 2xx quickly to acknowledge receipt (Pylon times out after ~10s)
+    # Return 2xx quickly to acknowledge receipt (Pylon documents no timeout)
     return {"received": True}
 
 

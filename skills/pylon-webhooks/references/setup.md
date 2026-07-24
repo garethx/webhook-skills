@@ -45,12 +45,12 @@ Every delivery includes:
 | `Pylon-Webhook-Timestamp` | `1624235417` | Unix seconds; part of the signed content |
 | `Pylon-Webhook-Version` | `2021-07` | Payload schema version |
 | `Content-Type` | `application/json` | |
-| `User-Agent` | `Pylon Webhooks` | |
 
 ## Verify Deliveries
 
-Your endpoint should return a `2xx` quickly (within ~10s) once the signature is
-verified. Verify against the **raw** request body — see
+Your endpoint should return a `2xx` quickly once the signature is verified —
+Pylon does not document a delivery timeout, so do not rely on a generous one.
+Verify against the **raw** request body — see
 [verification.md](verification.md).
 
 ## Test Mode / Local Development
