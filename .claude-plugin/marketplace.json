@@ -1519,6 +1519,27 @@
       ]
     },
     {
+      "name": "pylon-webhooks",
+      "description": "Receive and verify Pylon webhooks. Use when setting up Pylon webhook handlers, debugging Pylon signature verification (Pylon-Webhook-Signature, hs256= HMAC-SHA256 over timestamp.body), or handling B2B support events like issue.created and issue.updated.",
+      "source": "./skills/pylon-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/pylon-webhooks",
+      "keywords": [
+        "webhooks",
+        "pylon"
+      ]
+    },
+    {
       "name": "razorpay-webhooks",
       "description": "Verify Razorpay webhook signatures (X-Razorpay-Signature, HMAC-SHA256), handle payment, order, and refund events.",
       "source": "./skills/razorpay-webhooks",
