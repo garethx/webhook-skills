@@ -116,8 +116,9 @@ later `SUCCESS`). The raw ISO 20022 bank status is in `bankPaymentStatus` — us
 
 ```bash
 # Your member's Ed25519 PUBLIC key (base64url, no padding) from the Token
-# Dashboard → Settings → Member Information. NOT a shared secret.
-TOKEN_WEBHOOK_PUBLIC_KEY=MCowBQYDK2Vw...your-base64url-public-key
+# Dashboard → Settings → Member Information. NOT a shared secret, and NOT a
+# PEM/DER-wrapped key — this is the raw 32-byte key as ~43 base64url chars.
+TOKEN_WEBHOOK_PUBLIC_KEY=L3OIceAp0ZGy7xUrkeY6Lk4fB2DvtAsm0m7Wa1DSdvo
 ```
 
 ## Local Development
