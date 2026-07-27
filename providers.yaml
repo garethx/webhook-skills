@@ -38,6 +38,33 @@
 #   3. Update README.md Provider Skills table
 
 providers:
+  - name: aiprise
+    displayName: AiPrise
+    docs:
+      webhooks: https://docs.aiprise.com/docs/callbacks-authentication
+      verification: https://docs.aiprise.com/docs/callbacks-authentication
+    notes: >
+      Identity verification platform (KYC/KYB). Notifies your server via signed
+      "callbacks". Signature = lowercase hex HMAC-SHA256 of the RAW request body,
+      sent in the X-HMAC-SIGNATURE header. The HMAC key is your AiPrise API private
+      key DIRECTLY (e.g. abcdef12-pqrs-...) — there is NO separate signing/endpoint
+      secret. NOT Standard Webhooks (no webhook-id/timestamp/signature headers).
+      Verify against the exact raw body bytes (unparsed UTF-8); re-serializing the
+      JSON breaks the signature. Callback URLs are set at the template level
+      (Dashboard > View Templates > {TemplateID}) or overridden per request via
+      callback_url (verification result) and events_callback_url (business-profile
+      change events); request-level wins. There is no rich typed-event system — the
+      outcome IS aiprise_summary.verification_result = APPROVED | DECLINED | REVIEW
+      | UNKNOWN, plus a process status (COMPLETED, PENDING, FAILED, ...). Correlate
+      via verification_session_id and optional client_reference_id. Official SDKs
+      (aiprise-web-sdk, aiprise-types, aiprise-react-native-sdk) are client-side /
+      mobile only — no server verification SDK, so verify manually. Retry behaviour
+      is not documented; make handlers idempotent on verification_session_id.
+    testScenario:
+      events:
+        - APPROVED
+        - DECLINED
+
   - name: akeneo
     displayName: Akeneo
     docs:
@@ -121,6 +148,34 @@ providers:
       events:
         - payment_intent.succeeded
         - refund.settled
+  - name: bridge-api
+    displayName: Bridge API
+    docs:
+      webhooks: https://docs.bridgeapi.io/docs/webhooks
+      verification: https://docs.bridgeapi.io/docs/secure-your-webhooks
+    notes: >
+      Bridge API (bridgeapi.io) — the open-banking / account-aggregation platform by
+      Bridge (formerly Bankin'), NOT bridge.xyz. Webhooks are signed with HMAC-SHA256,
+      NOT Standard Webhooks. The BridgeApi-Signature header carries one or more
+      comma-separated, scheme-prefixed values "v1=<UPPERCASE_HEX>". Verify by extracting
+      the v1= signature(s) (ignore other schemes to prevent downgrade attacks), computing
+      HMAC-SHA256 over the RAW request body with the webhook's signing secret as key, and
+      constant-time comparing (hex decode is case-insensitive). The secret is auto-generated
+      per webhook and shown once at creation/rotation; after a rotation the old secret stays
+      valid 24h, so up to 2 active v1 signatures can appear — accept if ANY matches. Configure
+      in the Bridge dashboard (admins only): callback URL, name, events; max 10 webhooks per
+      app; a "Send a test" button emits TEST_EVENT. Event names are lowercase resource.action
+      carried in the body `type` field (no event header): user.deleted, item.created,
+      item.refreshed, item.account.created/updated/deleted, payment.transaction.created/updated,
+      payment.link.updated. Retries for 1-2 days with exponential backoff on non-200/slow.
+      Expect webhooks for already-deleted users/items — handle defensively. Fixed source IPs
+      63.32.31.5, 52.215.247.62, 34.249.92.209 (use X-Forwarded-For behind a proxy); keep
+      response bodies under 10 KB. No official SDK — verify manually in every framework. Set
+      BRIDGE_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - item.refreshed
+        - payment.transaction.updated
   - name: bridge-xyz
     displayName: Bridge
     docs:
@@ -1439,6 +1494,34 @@ providers:
         - subscription.created
         - transaction.completed
 
+  - name: paymob
+    displayName: Paymob
+    docs:
+      webhooks: https://developers.paymob.com/paymob-docs/developers/webhook-callbacks-and-hmac
+      verification: https://developers.paymob.com/paymob-docs/developers/webhook-callbacks-and-hmac/hmac/hmac-transaction-callback
+    notes: >
+      MENA payments platform. NOT Standard Webhooks and NOT signed over the raw body.
+      Paymob computes HMAC-SHA512 over a fixed, ordered concatenation of 20 selected
+      transaction fields (no separators), hex-encoded, delivered as the `hmac` QUERY
+      parameter (?hmac=<hex>) — there is no signature header. Field order:
+      amount_cents, created_at, currency, error_occured, has_parent_transaction,
+      obj.id, integration_id, is_3d_secure, is_auth, is_capture, is_refunded,
+      is_standalone_payment, is_voided, order.id, owner, pending, source_data.pan,
+      source_data.sub_type, source_data.type, success. Booleans concatenate as
+      lowercase "true"/"false". HMAC secret comes from Dashboard → Settings →
+      Account Info → HMAC. Two callback kinds per integration: Transaction Processed
+      Callback (server-to-server POST, JSON, nested keys obj.id/order.id/source_data.*)
+      and Transaction Response Callback (client redirect GET, flattened query params
+      id/order_id/source_data_pan/...). Single callback `type` value "TRANSACTION" —
+      no discrete event names; read state from booleans success/error_occured/pending/
+      is_refunded/is_voided/is_capture/is_auth. No usable first-party SDK verifier;
+      roll your own HMAC. Gotchas: SHA512 (not 256), hex (not base64), exact field
+      ordering, POST vs GET key-path differences.
+    testScenario:
+      events:
+        - TRANSACTION.success
+        - TRANSACTION.refunded
+
   - name: paypal
     displayName: PayPal
     docs:
@@ -2350,6 +2433,33 @@ providers:
         - orders.notification
         - orders.cancel
         - store.provisioned
+  - name: utila
+    displayName: Utila
+    docs:
+      webhooks: https://docs.utila.io/reference/webhooks
+      verification: https://docs.utila.io/reference/webhooks
+      events: https://docs.utila.io/reference/webhooks
+    notes: >
+      Utila is a digital-asset operations platform. Webhooks are configured per vault
+      in the Console (Vault Settings -> Webhooks). Verification is ASYMMETRIC, not HMAC:
+      Utila signs each delivery with an RSA-4096 PRIVATE key using SHA-512 + PSS padding,
+      base64-encoded, sent in the x-utila-signature header. Verify with Utila's PEM-encoded
+      RSA-4096 PUBLIC key from the Console — there is NO shared secret. Verify over the RAW
+      body. NOT Standard Webhooks (no webhook-id/webhook-timestamp). No timestamp header, so
+      no built-in replay protection — dedupe on the event id. Endpoint must return HTTP 200;
+      failed deliveries retry with exponential back-off for up to 24h then are discarded.
+      Payloads are THIN (id, vault, type, resourceType, resource, optional details) — fetch
+      full detail via the Utila API/Stream using the resource path. Event names are
+      SCREAMING_SNAKE_CASE, exactly five: TRANSACTION_CREATED, TRANSACTION_STATE_UPDATED,
+      WALLET_CREATED, WALLET_ADDRESS_CREATED, TRANSACTION_AML_SCREENING_RESULT_READY. The
+      npm @utila/api package is documented but does not currently resolve on the public
+      registry (documented-but-not-installable); no pip SDK — verify manually with platform
+      crypto (Node crypto, Python cryptography).
+    testScenario:
+      events:
+        - TRANSACTION_CREATED
+        - TRANSACTION_STATE_UPDATED
+        - WALLET_ADDRESS_CREATED
   - name: twitch
     displayName: Twitch
     docs:
@@ -3203,6 +3313,41 @@ providers:
         base64url(rawBody))), and verify against the raw body. Enforce a timestamp tolerance, then
         dispatch on X-Neon-Event-Type (e.g. user.created) and return 2xx. Do NOT use svix or HMAC.
         If you use any skills to help with this, add a comment noting which skill(s) you referenced.
+  - name: nmi
+    displayName: NMI
+    docs:
+      webhooks: https://docs.nmi.com/reference/overview
+      verification: https://docs.nmi.com/reference/overview
+    notes: >
+      NMI (Network Merchants) payment gateway. Does NOT use Standard Webhooks. Each delivery
+      carries a single header, Webhook-Signature, of the form "t=<nonce>,s=<signature>"
+      (comma-separated). *** CRITICAL: the t= value is a NONCE, not a Unix timestamp — do NOT
+      parse it as a time or enforce any replay/age window; NMI documents none. *** Verify by
+      computing HMAC-SHA256 over "<nonce>.<raw_request_body>" (nonce + literal "." + raw body)
+      keyed with the webhooks signing key, hex-encode (lowercase), and compare timing-safe to the
+      s= value. You MUST use the raw, unparsed body — re-serializing the JSON breaks the HMAC.
+      The signing key comes from the Merchant Control Panel under Settings > Webhooks (distinct
+      from the gateway API/security key). Parse the header by splitting each segment at the first
+      "=" (don't rely on order). Payload envelope is {event_id, event_type, event_body}; event_id
+      supports idempotency. Event names are dotted lowercase transaction.<action>.<result> where
+      action is one of sale/auth/capture/void/refund/credit/validate and result is
+      success/failure/unknown. The documented catalog is transaction-lifecycle only — there are NO
+      distinct chargeback event names. NMI retries non-2xx deliveries, so respond 200 quickly.
+      Source IPs are 104.192.32.81–104.192.32.87 and 104.192.36.81–104.192.36.87 (defence in depth
+      only; the HMAC is authoritative). No official npm/pip SDK — verify manually in every framework.
+    testScenario:
+      events:
+        - transaction.sale.success
+        - transaction.refund.success
+        - transaction.void.success
+      prompt: >
+        Create a {framework} webhook handler for NMI (Network Merchants). Verify the
+        Webhook-Signature header ("t=<nonce>,s=<hex>") by computing HMAC-SHA256 over
+        "<nonce>.<raw_body>" with the NMI webhooks signing key and comparing timing-safe (hex) to
+        the s= value. The t= value is a NONCE, not a timestamp — do not enforce a replay window.
+        Use the raw, unparsed body. Then dispatch on the dotted event_type
+        (transaction.<action>.<result>) and return 2xx quickly. If you use any skills to help with
+        this, add a comment noting which skill(s) you referenced.
   - name: xero
     displayName: Xero
     docs:
