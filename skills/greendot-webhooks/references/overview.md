@@ -1,0 +1,105 @@
+# Green Dot Webhooks Overview
+
+## What Are Green Dot Webhooks?
+
+Green Dot's Embedded Finance platform (Banking-as-a-Service, BaaS) sends
+**webhooks** to a partner-hosted HTTPS endpoint whenever something happens on an
+account, card, or transfer in your program. Green Dot POSTs a JSON body to the
+callback URL your Green Dot representative registers for you.
+
+Unlike most providers, Green Dot uses **push authentication**: Green Dot
+authenticates *itself* to your endpoint (see below), rather than you verifying a
+single HMAC signature over the body. This is the same class of security model as
+Auth0 Custom Log Streams — the trust is established by the credentials on the
+incoming request, not solely by a body signature.
+
+## How Deliveries Are Authenticated
+
+The primary mechanism is an **OAuth 2.0 client_credentials Bearer token** sent
+on the `Authorization` header of every webhook request. The token carries the
+scope `post:webhook`. Green Dot supports several per-partner variants configured
+by your rep:
+
+- **OAuth** — client_credentials grant (the default)
+- **FormOAuth** / **FormUrlEncodedOAuth** — form-encoded token requests
+- **PartnerOAuth** — token issued by the partner's own authorization server
+- **Certificate** — mutual TLS (mTLS) / PKCS#7 client certificates
+
+Optionally, a program can also send an **`x-gd-signature`** header — an HMAC
+signature over the payload validated with a program-specific signing key. Sample
+payloads show no signature header, so treat it as optional and program-gated.
+The exact algorithm/encoding are **not documented publicly** — confirm them with
+your Green Dot representative.
+
+See [verification.md](verification.md) for implementation details.
+
+## Request Headers You Will Receive
+
+| Header | Notes |
+|--------|-------|
+| `Authorization: Bearer <token>` | OAuth client_credentials token, scope `post:webhook` |
+| `x-GD-RequestId` | Correlation id — **you must echo this back** in your response |
+| `x-gd-signature` | Optional payload signature (program-gated) |
+| `User-Agent: greendot-baas/3.0.0` | Identifies Green Dot's delivery agent |
+| `Content-Type: application/json` | JSON body |
+
+## Common Event Types
+
+The event name is the **`eventType`** field inside the JSON body.
+
+| `eventType` | Triggered When | Common Use Cases |
+|-------------|----------------|------------------|
+| `transaction` | A card or account transaction posts | Ledger sync, spend notifications |
+| `accountUpdated` | Account details or status change | Keep local account records in sync |
+| `achTransfer` | An ACH transfer changes state | Funding / payout status tracking |
+| `cardUpdate` | A card is issued, activated, or changes status | Card lifecycle, reissue flows |
+| `billPayTransfer` | A bill pay transfer changes state | Bill pay status, receipts |
+| `directDepositSwitch` | A direct-deposit switch progresses | DD onboarding funnel |
+| `provisioning` | Account / card provisioning progresses | Onboarding orchestration |
+
+Green Dot also emits statement-ready, interest-paid, NSF/failed-transfer, NOC,
+eWallet, paper-check, mail-tracking, promotional, P2P, ATM PIN, auto money
+movement, and adjustment final-status events. **The exact set enabled for your
+program is configured per-partner** — confirm the `eventType` values you will
+receive with your Green Dot rep.
+
+## Event Payload Structure
+
+Payloads are JSON objects keyed by `eventType`. A representative shape:
+
+```json
+{
+  "eventType": "transaction",
+  "programCode": "MYPROGRAM",
+  "eventId": "1c1b0b2a-2f3e-4a5b-9c8d-0e1f2a3b4c5d",
+  "eventTimestamp": "2026-01-15T12:34:56Z",
+  "data": {
+    "accountId": "acct_123",
+    "amount": 42.50,
+    "currency": "USD",
+    "status": "posted"
+  }
+}
+```
+
+Field names inside `data` vary by `eventType`. Treat unknown fields defensively.
+
+## Acknowledging a Delivery
+
+Your endpoint must respond `200` or `201` and:
+
+1. **Echo the `x-GD-RequestId` header** back on the response.
+2. Return a JSON body with a `responseDetails` array:
+
+```json
+{ "responseDetails": [{ "code": 0, "subCode": 0, "description": "<x-GD-RequestId>" }] }
+```
+
+`code: 0` signals success. Anything else (or a non-2xx status / timeout) causes
+Green Dot to retry the delivery if retries are enabled for your program.
+
+## Full Event Reference
+
+For the complete, current list of events and payloads, see Green Dot's
+[Webhooks overview](https://developer.greendot.com/embedded-finance/docs/webhooks-overview)
+and confirm the enabled set with your Green Dot representative.

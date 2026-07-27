@@ -873,6 +873,45 @@ providers:
         - batch.succeeded
         - video.generated
 
+  - name: greendot
+    displayName: Green Dot
+    docs:
+      webhooks: https://developer.greendot.com/embedded-finance/docs/webhooks-overview
+      verification: https://developer.greendot.com/embedded-finance/reference/event_post_testeventwebhook_rcv
+    notes: >
+      Green Dot Embedded Finance (Banking-as-a-Service) webhooks. NOT Standard Webhooks and NOT a
+      single mandatory HMAC signature — this is PUSH authentication: Green Dot authenticates ITSELF
+      to the partner-hosted endpoint. The PRIMARY model is OAuth 2.0 client_credentials — Green Dot
+      sends Authorization: Bearer <token> with scope "post:webhook" on every delivery; the partner
+      validates that token (JWKS/RS256 or introspection in production). Per-partner variants: OAuth,
+      FormOAuth, PartnerOAuth, FormUrlEncodedOAuth, and Certificate (mTLS/PKCS#7). Payloads MAY also
+      carry an OPTIONAL x-gd-signature header validated with a program-specific signing key, but the
+      algorithm/encoding/canonical-payload are NOT documented publicly (obtain from your Green Dot
+      rep) and sample payloads show no signature header — treat it as optional/program-gated. The
+      examples validate an HS256 shared-secret token (self-contained/testable) plus an optional
+      HMAC-SHA256 hex x-gd-signature over the raw body. Endpoints are registered BY your Green Dot
+      rep (no self-serve portal), configured per eventType. Gotchas: the partner MUST echo back the
+      x-GD-RequestId header AND respond 200/201 with a JSON responseDetails body
+      ({"responseDetails":[{"code":0,"subCode":0,"description":"<x-GD-RequestId>"}]}) or the delivery
+      is treated as failed. Retries run on 5xx/timeouts/DNS/connection/SSL failures (and resolved
+      401/403), hourly for up to 24h, and must be explicitly enabled per-partner. Event names are the
+      eventType field values: transaction, accountUpdated, achTransfer, cardUpdate, billPayTransfer,
+      directDepositSwitch, provisioning (plus statement-ready, interest-paid, NSF, NOC, eWallet,
+      paper-check, P2P, ATM PIN, adjustment — the enabled set is program-specific). No official SDK.
+    testScenario:
+      events:
+        - transaction
+        - achTransfer
+      prompt: >
+        Create a {framework} webhook handler for Green Dot Embedded Finance (BaaS). Authenticate the
+        delivery by validating the incoming OAuth client_credentials Bearer token and requiring the
+        post:webhook scope (return 401 otherwise), then verify the OPTIONAL x-gd-signature header
+        (HMAC-SHA256 hex over the raw body) with a timing-safe comparison only when a program signing
+        key is configured. Parse JSON only after auth passes, dispatch on the eventType field for
+        events like transaction and achTransfer, and acknowledge by echoing the x-GD-RequestId header
+        and returning HTTP 200 with a responseDetails JSON body. If you use any skills to help with
+        this, add a comment noting which skill(s) you referenced.
+
   - name: hubspot
     displayName: HubSpot
     docs:

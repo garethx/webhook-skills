@@ -887,6 +887,32 @@
       ]
     },
     {
+      "name": "greendot-webhooks",
+      "description": "Authenticate Green Dot Embedded Finance (BaaS) webhook deliveries via the OAuth client_credentials Bearer token (scope post:webhook), verify the optional x-gd-signature header, echo x-GD-RequestId and return the responseDetails acknowledgement, handle transaction, accountUpdated, achTransfer, cardUpdate, billPayTransfer, directDepositSwitch, and provisioning events.",
+      "source": "./skills/greendot-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/greendot-webhooks",
+      "keywords": [
+        "webhooks",
+        "greendot",
+        "green-dot",
+        "embedded-finance",
+        "baas",
+        "banking",
+        "fintech"
+      ]
+    },
+    {
       "name": "github-webhooks",
       "description": "Verify GitHub webhook signatures (HMAC-SHA256, X-Hub-Signature-256), handle push, pull_request, and issue events.",
       "source": "./skills/github-webhooks",
@@ -2943,6 +2969,7 @@
         "./skills/gemini-webhooks",
         "./skills/github-webhooks",
         "./skills/gitlab-webhooks",
+        "./skills/greendot-webhooks",
         "./skills/hubspot-webhooks",
         "./skills/huggingface-webhooks",
         "./skills/intercom-webhooks",

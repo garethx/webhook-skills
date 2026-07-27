@@ -1,0 +1,143 @@
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it } from "vitest";
+
+const TOKEN_SECRET = "test_token_secret_at_least_32_bytes_long";
+const REQUEST_ID = "req-abc-123";
+const PAYLOAD = JSON.stringify({
+  eventType: "transaction",
+  programCode: "MYPROGRAM",
+  eventId: "evt-1",
+  data: { accountId: "acct_123", amount: 42.5 },
+});
+
+function makeToken(scope = "post:webhook"): string {
+  return jwt.sign({ scope }, TOKEN_SECRET);
+}
+
+function hmacHex(rawBody: string, key: string): string {
+  return crypto.createHmac("sha256", key).update(rawBody).digest("hex");
+}
+
+async function loadPOST() {
+  // Reset the module registry so env changes are picked up on import.
+  const mod = await import("../app/webhooks/greendot/route");
+  return mod.POST;
+}
+
+function makeRequest(headers: Record<string, string>, body: string): NextRequest {
+  return new NextRequest("http://localhost:3000/webhooks/greendot", {
+    method: "POST",
+    headers,
+    body,
+  });
+}
+
+describe("Green Dot webhook receiver (Next.js)", () => {
+  beforeEach(() => {
+    process.env.GREENDOT_WEBHOOK_TOKEN_SECRET = TOKEN_SECRET;
+    process.env.GREENDOT_WEBHOOK_SCOPE = "post:webhook";
+    delete process.env.GREENDOT_SIGNING_KEY;
+  });
+
+  it("accepts a valid token and echoes x-GD-RequestId + responseDetails", async () => {
+    const POST = await loadPOST();
+    const res = await POST(
+      makeRequest(
+        {
+          authorization: `Bearer ${makeToken()}`,
+          "x-GD-RequestId": REQUEST_ID,
+          "content-type": "application/json",
+        },
+        PAYLOAD
+      )
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-GD-RequestId")).toBe(REQUEST_ID);
+    const body = await res.json();
+    expect(body.responseDetails[0]).toEqual({
+      code: 0,
+      subCode: 0,
+      description: REQUEST_ID,
+    });
+  });
+
+  it("rejects a missing bearer token with 401", async () => {
+    const POST = await loadPOST();
+    const res = await POST(
+      makeRequest({ "content-type": "application/json" }, PAYLOAD)
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects a token signed with the wrong secret with 401", async () => {
+    const POST = await loadPOST();
+    const bad = jwt.sign({ scope: "post:webhook" }, "wrong_secret");
+    const res = await POST(
+      makeRequest(
+        { authorization: `Bearer ${bad}`, "content-type": "application/json" },
+        PAYLOAD
+      )
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects a token missing the post:webhook scope with 401", async () => {
+    const POST = await loadPOST();
+    const res = await POST(
+      makeRequest(
+        {
+          authorization: `Bearer ${makeToken("read:account")}`,
+          "content-type": "application/json",
+        },
+        PAYLOAD
+      )
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("verifies x-gd-signature when a signing key is configured", async () => {
+    process.env.GREENDOT_SIGNING_KEY = "program_signing_key";
+    const POST = await loadPOST();
+    const res = await POST(
+      makeRequest(
+        {
+          authorization: `Bearer ${makeToken()}`,
+          "x-GD-RequestId": REQUEST_ID,
+          "x-gd-signature": hmacHex(PAYLOAD, "program_signing_key"),
+          "content-type": "application/json",
+        },
+        PAYLOAD
+      )
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects an invalid x-gd-signature with 400 when a key is configured", async () => {
+    process.env.GREENDOT_SIGNING_KEY = "program_signing_key";
+    const POST = await loadPOST();
+    const res = await POST(
+      makeRequest(
+        {
+          authorization: `Bearer ${makeToken()}`,
+          "x-gd-signature": "deadbeef",
+          "content-type": "application/json",
+        },
+        PAYLOAD
+      )
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for invalid JSON after auth passes", async () => {
+    const POST = await loadPOST();
+    const res = await POST(
+      makeRequest(
+        { authorization: `Bearer ${makeToken()}`, "content-type": "application/json" },
+        "{not json"
+      )
+    );
+    expect(res.status).toBe(400);
+  });
+});
