@@ -33,6 +33,27 @@
       ]
     },
     {
+      "name": "ethoca-webhooks",
+      "description": "Receive and verify Ethoca (Mastercard) Alerts webhooks. Use when setting up an Ethoca Alerts Push API receiver, securing the endpoint (mTLS + HTTP Basic Auth, no HMAC signature), or handling fraud and dispute alert notifications.",
+      "source": "./skills/ethoca-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/ethoca-webhooks",
+      "keywords": [
+        "webhooks",
+        "ethoca"
+      ]
+    },
+    {
       "name": "adyen-webhooks",
       "description": "Verify Adyen webhook HMAC signatures (additionalData.hmacSignature, HMAC-SHA256), handle AUTHORISATION, CAPTURE, and REFUND notifications.",
       "source": "./skills/adyen-webhooks",
