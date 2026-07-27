@@ -117,6 +117,27 @@
       ]
     },
     {
+      "name": "synctera-webhooks",
+      "description": "Receive and verify Synctera webhooks. Use when setting up Synctera webhook handlers, debugging Synctera-Signature verification, or handling banking events like ACCOUNT.UPDATED or TRANSACTIONS.POSTED.CREATED.",
+      "source": "./skills/synctera-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/synctera-webhooks",
+      "keywords": [
+        "webhooks",
+        "synctera"
+      ]
+    },
+    {
       "name": "tiktok-webhooks",
       "description": "Receive and verify TikTok for Developers webhooks (Login Kit, Content Posting, Data Portability). Use when setting up TikTok webhook handlers, debugging TikTok-Signature verification, or handling events like authorization.removed, video.upload.failed, video.publish.completed, or portability.download.ready. Not for TikTok Shop — see tiktok-shop-webhooks.",
       "source": "./skills/tiktok-webhooks",
