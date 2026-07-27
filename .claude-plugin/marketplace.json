@@ -33,6 +33,28 @@
       ]
     },
     {
+      "name": "bunny-stream-webhooks",
+      "description": "Receive and verify Bunny Stream webhooks. Use when setting up Bunny Stream webhook handlers, debugging X-BunnyStream-Signature verification, or handling video encoding events like Status 3 (Finished / encoding done), Status 5 (Failed), or captions and title/description generation.",
+      "source": "./skills/bunny-stream-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/bunny-stream-webhooks",
+      "keywords": [
+        "webhooks",
+        "bunny",
+        "stream"
+      ]
+    },
+    {
       "name": "adyen-webhooks",
       "description": "Verify Adyen webhook HMAC signatures (additionalData.hmacSignature, HMAC-SHA256), handle AUTHORISATION, CAPTURE, and REFUND notifications.",
       "source": "./skills/adyen-webhooks",
