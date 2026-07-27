@@ -159,6 +159,27 @@
       ]
     },
     {
+      "name": "tokenio-webhooks",
+      "description": "Receive and verify Token.io webhooks. Use when setting up Token.io webhook handlers, debugging Ed25519 signature verification, subscribing to webhook config via PUT /webhook/config, or handling open banking / A2A payment events like PAYMENT_STATUS_CHANGED, REFUND_STATUS_CHANGED, VRP_STATUS_CHANGED, and VIRTUAL_ACCOUNT_CREDIT_RECEIVED. Note: Token.io does NOT use HMAC or Standard Webhooks — it signs the raw body with an ASYMMETRIC Ed25519 signature in the token-signature header, verified with your member's Ed25519 public key.",
+      "source": "./skills/tokenio-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/tokenio-webhooks",
+      "keywords": [
+        "webhooks",
+        "tokenio"
+      ]
+    },
+    {
       "name": "upollo-webhooks",
       "description": "Receive and verify Upollo webhooks. Use when setting up Upollo webhook handlers, debugging Upollo-Signature verification (HMAC-SHA512), or reacting to fraud/risk flags like ACCOUNT_SHARING and MULTIPLE_ACCOUNTS when a user is flagged and an action (CHALLENGE, DENY, PERMIT) is returned.",
       "source": "./skills/upollo-webhooks",
