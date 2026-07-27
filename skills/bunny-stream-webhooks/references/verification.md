@@ -17,14 +17,17 @@ Bunny Stream signs each webhook with **HMAC-SHA256**:
 X-BunnyStream-Signature = hex( HMAC_SHA256( key = ReadOnlyApiKey, message = rawBody ) )
 ```
 
-Two additional informational headers accompany the signature:
+Two additional informational headers may accompany the signature. **These are
+unconfirmed** — they appeared in a single fetch only and may or may not be
+present on real deliveries. Treat them as observed-once metadata and do not rely
+on them:
 
 | Header | Value | Purpose |
 |--------|-------|---------|
-| `X-BunnyStream-Signature-Version` | `v1` | Signature scheme version |
-| `X-BunnyStream-Signature-Algorithm` | `hmac-sha256` | Algorithm identifier |
+| `X-BunnyStream-Signature-Version` (unconfirmed) | `v1` | Signature scheme version |
+| `X-BunnyStream-Signature-Algorithm` (unconfirmed) | `hmac-sha256` | Algorithm identifier |
 
-You verify against `X-BunnyStream-Signature`; the other two are metadata.
+You verify against `X-BunnyStream-Signature`; the other two, if present, are metadata.
 
 > **Not Standard Webhooks.** There are no `webhook-id` / `webhook-timestamp` / `webhook-signature` headers and no timestamp in the signed content.
 >

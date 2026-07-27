@@ -97,8 +97,10 @@ There is no title, duration, or resolution in the payload. When you need full me
 | Header | Description |
 |--------|-------------|
 | `X-BunnyStream-Signature` | HMAC-SHA256 of the raw body, lowercase hex — verify this |
-| `X-BunnyStream-Signature-Version` | Signature scheme version (`v1`) |
-| `X-BunnyStream-Signature-Algorithm` | Algorithm identifier (`hmac-sha256`) |
+| `X-BunnyStream-Signature-Version` | Signature scheme version (`v1`) — **unconfirmed** (see note) |
+| `X-BunnyStream-Signature-Algorithm` | Algorithm identifier (`hmac-sha256`) — **unconfirmed** (see note) |
+
+> The `-Version` and `-Algorithm` headers were observed in a single fetch only and are unconfirmed — they may or may not be present. Do not rely on them; verify solely against `X-BunnyStream-Signature`.
 
 ## Environment Variables
 
