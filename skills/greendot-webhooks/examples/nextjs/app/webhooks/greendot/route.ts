@@ -1,6 +1,5 @@
 // Generated with: greendot-webhooks skill
 // https://github.com/hookdeck/webhook-skills
-import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,7 +12,7 @@ interface GreenDotEvent {
 }
 
 /**
- * 1) Authenticate the delivery via the OAuth client_credentials Bearer token.
+ * Authenticate the delivery via the OAuth client_credentials Bearer token.
  *
  * Green Dot authenticates itself to your endpoint (push auth). The token is
  * issued by the client_credentials grant with scope `post:webhook`.
@@ -36,28 +35,15 @@ function verifyToken(authHeader: string | null): void {
   }
 }
 
-/**
- * 2) Optional program-gated payload signature. If GREENDOT_SIGNING_KEY is not
- * configured we rely on the Bearer token alone. When configured, verify the
- * `x-gd-signature` header over the RAW body with a timing-safe comparison.
- *
- * NOTE: The exact algorithm/encoding are not documented publicly — this assumes
- * HMAC-SHA256 hex. Confirm with your Green Dot representative.
- */
-function verifySignature(rawBody: string, signatureHeader: string | null): boolean {
-  const key = process.env.GREENDOT_SIGNING_KEY;
-  if (!key) return true; // not configured -> skip
-  if (!signatureHeader) return false; // configured but missing -> reject
-  const expected = crypto.createHmac("sha256", key).update(rawBody).digest("hex");
-  const a = Buffer.from(signatureHeader, "utf8");
-  const b = Buffer.from(expected, "utf8");
-  if (a.length !== b.length) return false;
-  try {
-    return crypto.timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
-}
+// NOTE: The `x-gd-signature` header is intentionally NOT verified.
+//
+// A delivery may carry `x-gd-signature`, but Green Dot's public docs do not
+// document its algorithm, encoding, or canonical payload — there is no published
+// scheme to reproduce. Wiring in a guessed HMAC would make an unverified payload
+// look verified, which is worse than no check. Authenticity comes from the OAuth
+// Bearer token (and/or the Certificate/mTLS transport). If your Green Dot
+// representative gives you the exact signature spec and key, implement the check
+// over the raw body here, after verifyToken.
 
 /** Dispatch on the `eventType` field of the JSON body. */
 function handleEvent(event: GreenDotEvent): void {
@@ -102,9 +88,9 @@ function acknowledge(requestId: string | null, code = 0): NextResponse {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const requestId = req.headers.get("x-GD-RequestId");
-  const rawBody = await req.text(); // raw body — required for signature check
+  const rawBody = await req.text(); // raw body so parsing follows authentication
 
-  // 1) Authenticate the OAuth Bearer token.
+  // 1) Authenticate the OAuth Bearer token (the real gate).
   try {
     verifyToken(req.headers.get("authorization"));
   } catch (err) {
@@ -114,12 +100,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // 2) Optional payload signature.
-  if (!verifySignature(rawBody, req.headers.get("x-gd-signature"))) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
-  }
+  // Note: x-gd-signature is not verified — see the note above.
 
-  // 3) Parse only AFTER authentication succeeds.
+  // 2) Parse only AFTER authentication succeeds.
   let event: GreenDotEvent;
   try {
     event = JSON.parse(rawBody);
@@ -127,7 +110,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // 4) Handle the event.
+  // 3) Handle the event.
   try {
     handleEvent(event);
   } catch (err) {
@@ -135,6 +118,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Handler error" }, { status: 500 });
   }
 
-  // 5) Acknowledge: echo x-GD-RequestId + return responseDetails.
+  // 4) Acknowledge: echo x-GD-RequestId + return responseDetails.
   return acknowledge(requestId);
 }

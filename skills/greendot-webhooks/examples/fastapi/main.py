@@ -1,7 +1,5 @@
 # Generated with: greendot-webhooks skill
 # https://github.com/hookdeck/webhook-skills
-import hashlib
-import hmac
 import json
 import os
 
@@ -12,11 +10,10 @@ app = FastAPI()
 
 TOKEN_SECRET = os.environ.get("GREENDOT_WEBHOOK_TOKEN_SECRET", "")
 REQUIRED_SCOPE = os.environ.get("GREENDOT_WEBHOOK_SCOPE", "post:webhook")
-SIGNING_KEY = os.environ.get("GREENDOT_SIGNING_KEY")  # optional, program-gated
 
 
 def verify_token(auth_header: str) -> dict:
-    """1) Authenticate the delivery via the OAuth client_credentials Bearer token.
+    """Authenticate the delivery via the OAuth client_credentials Bearer token.
 
     Green Dot authenticates itself to your endpoint (push auth). The token is
     issued by the client_credentials grant with scope ``post:webhook``.
@@ -36,22 +33,15 @@ def verify_token(auth_header: str) -> dict:
     return claims
 
 
-def verify_signature(raw_body: bytes, signature_header: str | None) -> bool:
-    """2) Optional program-gated payload signature.
-
-    If ``GREENDOT_SIGNING_KEY`` is not configured we rely on the Bearer token
-    alone. When configured, verify ``x-gd-signature`` over the RAW body with a
-    timing-safe comparison.
-
-    NOTE: The exact algorithm/encoding are not documented publicly — this assumes
-    HMAC-SHA256 hex. Confirm with your Green Dot representative.
-    """
-    if not SIGNING_KEY:
-        return True  # not configured -> skip
-    if not signature_header:
-        return False  # configured but missing -> reject
-    expected = hmac.new(SIGNING_KEY.encode(), raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature_header)
+# NOTE: The ``x-gd-signature`` header is intentionally NOT verified.
+#
+# A delivery may carry ``x-gd-signature``, but Green Dot's public docs do not
+# document its algorithm, encoding, or canonical payload — there is no published
+# scheme to reproduce. Wiring in a guessed HMAC would make an unverified payload
+# look verified, which is worse than no check. Authenticity comes from the OAuth
+# Bearer token (and/or the Certificate/mTLS transport). If your Green Dot
+# representative gives you the exact signature spec and key, implement the check
+# over the raw body here, after verify_token.
 
 
 def handle_event(event: dict) -> None:
@@ -99,9 +89,9 @@ def acknowledge(request_id: str | None, code: int = 0) -> Response:
 @app.post("/webhooks/greendot")
 async def greendot_webhook(request: Request) -> Response:
     request_id = request.headers.get("x-GD-RequestId")
-    raw_body = await request.body()  # raw bytes — required for signature check
+    raw_body = await request.body()  # raw bytes so parsing follows authentication
 
-    # 1) Authenticate the OAuth Bearer token.
+    # 1) Authenticate the OAuth Bearer token (the real gate).
     try:
         verify_token(request.headers.get("authorization"))
     except Exception as err:  # jwt errors + ValueError
@@ -111,15 +101,9 @@ async def greendot_webhook(request: Request) -> Response:
             status_code=401,
         )
 
-    # 2) Optional payload signature.
-    if not verify_signature(raw_body, request.headers.get("x-gd-signature")):
-        return Response(
-            content=json.dumps({"error": "Invalid signature"}),
-            media_type="application/json",
-            status_code=400,
-        )
+    # Note: x-gd-signature is not verified — see the note above.
 
-    # 3) Parse only AFTER authentication succeeds.
+    # 2) Parse only AFTER authentication succeeds.
     try:
         event = json.loads(raw_body)
     except json.JSONDecodeError:
@@ -129,7 +113,7 @@ async def greendot_webhook(request: Request) -> Response:
             status_code=400,
         )
 
-    # 4) Handle the event.
+    # 3) Handle the event.
     try:
         handle_event(event)
     except Exception as err:  # noqa: BLE001
@@ -140,5 +124,5 @@ async def greendot_webhook(request: Request) -> Response:
             status_code=500,
         )
 
-    # 5) Acknowledge: echo x-GD-RequestId + return responseDetails.
+    # 4) Acknowledge: echo x-GD-RequestId + return responseDetails.
     return acknowledge(request_id)

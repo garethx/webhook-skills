@@ -1,17 +1,11 @@
-import hashlib
-import hmac
 import json
 import os
 
 # Set env before importing the app so module-level config picks it up.
 os.environ["GREENDOT_WEBHOOK_TOKEN_SECRET"] = "test_token_secret_at_least_32_bytes_long"
 os.environ["GREENDOT_WEBHOOK_SCOPE"] = "post:webhook"
-os.environ.pop("GREENDOT_SIGNING_KEY", None)
-
-import importlib
 
 import jwt
-import pytest
 from fastapi.testclient import TestClient
 
 import main
@@ -33,23 +27,8 @@ def make_token(scope="post:webhook"):
     )
 
 
-def hmac_hex(raw_body: str, key: str) -> str:
-    return hmac.new(key.encode(), raw_body.encode(), hashlib.sha256).hexdigest()
-
-
-def load_client(signing_key=None):
-    """Reload the app so GREENDOT_SIGNING_KEY changes take effect."""
-    if signing_key is None:
-        os.environ.pop("GREENDOT_SIGNING_KEY", None)
-    else:
-        os.environ["GREENDOT_SIGNING_KEY"] = signing_key
-    importlib.reload(main)
+def load_client():
     return TestClient(main.app)
-
-
-def teardown_function():
-    os.environ.pop("GREENDOT_SIGNING_KEY", None)
-    importlib.reload(main)
 
 
 def test_accepts_valid_token_and_echoes_request_id():
@@ -103,34 +82,21 @@ def test_rejects_missing_scope():
     assert res.status_code == 401
 
 
-def test_verifies_signature_when_key_configured():
-    client = load_client(signing_key="program_signing_key")
-    signature = hmac_hex(PAYLOAD, "program_signing_key")
+def test_ignores_unverified_signature_header():
+    # x-gd-signature is undocumented and intentionally not verified; the token
+    # is the gate, so the header does not affect the outcome.
+    client = load_client()
     res = client.post(
         "/webhooks/greendot",
         headers={
             "Authorization": f"Bearer {make_token()}",
             "x-GD-RequestId": REQUEST_ID,
-            "x-gd-signature": signature,
+            "x-gd-signature": "anything-here-is-not-checked",
             "Content-Type": "application/json",
         },
         content=PAYLOAD,
     )
     assert res.status_code == 200
-
-
-def test_rejects_invalid_signature_when_key_configured():
-    client = load_client(signing_key="program_signing_key")
-    res = client.post(
-        "/webhooks/greendot",
-        headers={
-            "Authorization": f"Bearer {make_token()}",
-            "x-gd-signature": "deadbeef",
-            "Content-Type": "application/json",
-        },
-        content=PAYLOAD,
-    )
-    assert res.status_code == 400
 
 
 def test_rejects_invalid_json_after_auth():

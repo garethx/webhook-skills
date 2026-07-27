@@ -21,8 +21,7 @@ not through a developer portal. To onboard, provide your rep with:
 3. **Event types** — the `eventType` values you want enabled (e.g.
    `transaction`, `accountUpdated`, `achTransfer`, `cardUpdate`,
    `billPayTransfer`, `directDepositSwitch`, `provisioning`).
-4. **Program code** — used to route deliveries and, if enabled, to select the
-   `x-gd-signature` signing key.
+4. **Program code** — used to route deliveries.
 
 ## Authentication: OAuth client_credentials
 
@@ -43,16 +42,17 @@ the request. In production, validate against your authorization server (JWKS /
 RS256 or token introspection). For local testing, the examples validate an
 HS256 token with a shared secret (`GREENDOT_WEBHOOK_TOKEN_SECRET`).
 
-## Optional: x-gd-signature
+## The x-gd-signature header (not verified)
 
-Some programs additionally send an `x-gd-signature` header — an HMAC signature
-over the payload validated with a **program-specific signing key**. This is
-optional and gated per program; sample payloads show no signature header.
+Some deliveries may include an `x-gd-signature` header. Its algorithm, encoding,
+and canonical payload are **not documented publicly**, and sample payloads show
+no signature header. This skill deliberately does **not** verify it — a guessed
+HMAC would give false confidence in an unverified payload.
 
-The exact algorithm and encoding are **not documented publicly**. Obtain them
-(and the signing key) from your Green Dot representative, then set
-`GREENDOT_SIGNING_KEY`. If you do not configure a key, the examples skip the
-signature check and rely on the OAuth Bearer token.
+If you require payload-level verification, obtain the exact specification (and
+signing key) from your Green Dot representative and implement the check over the
+raw body, *after* the OAuth token check. Otherwise, rely on the OAuth Bearer
+token (and/or the Certificate/mTLS transport) for authenticity.
 
 ## Required Response
 

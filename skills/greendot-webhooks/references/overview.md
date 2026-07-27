@@ -25,13 +25,14 @@ by your rep:
 - **PartnerOAuth** — token issued by the partner's own authorization server
 - **Certificate** — mutual TLS (mTLS) / PKCS#7 client certificates
 
-Optionally, a program can also send an **`x-gd-signature`** header — an HMAC
-signature over the payload validated with a program-specific signing key. Sample
-payloads show no signature header, so treat it as optional and program-gated.
-The exact algorithm/encoding are **not documented publicly** — confirm them with
-your Green Dot representative.
+A delivery may also carry an **`x-gd-signature`** header, but its algorithm,
+encoding, and canonical payload are **not documented publicly**, and sample
+payloads show no signature header. This skill therefore does **not** verify it —
+a guessed HMAC would give false confidence. If you need payload-level
+verification, obtain the specification (and signing key) from your Green Dot
+representative first.
 
-See [verification.md](verification.md) for implementation details.
+See [verification.md](verification.md) for details.
 
 ## Request Headers You Will Receive
 
@@ -39,7 +40,7 @@ See [verification.md](verification.md) for implementation details.
 |--------|-------|
 | `Authorization: Bearer <token>` | OAuth client_credentials token, scope `post:webhook` |
 | `x-GD-RequestId` | Correlation id — **you must echo this back** in your response |
-| `x-gd-signature` | Optional payload signature (program-gated) |
+| `x-gd-signature` | May be present; algorithm undocumented — not verified by this skill |
 | `User-Agent: greendot-baas/3.0.0` | Identifies Green Dot's delivery agent |
 | `Content-Type: application/json` | JSON body |
 

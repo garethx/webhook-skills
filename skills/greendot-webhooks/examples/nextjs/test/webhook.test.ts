@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -14,10 +13,6 @@ const PAYLOAD = JSON.stringify({
 
 function makeToken(scope = "post:webhook"): string {
   return jwt.sign({ scope }, TOKEN_SECRET);
-}
-
-function hmacHex(rawBody: string, key: string): string {
-  return crypto.createHmac("sha256", key).update(rawBody).digest("hex");
 }
 
 async function loadPOST() {
@@ -38,7 +33,6 @@ describe("Green Dot webhook receiver (Next.js)", () => {
   beforeEach(() => {
     process.env.GREENDOT_WEBHOOK_TOKEN_SECRET = TOKEN_SECRET;
     process.env.GREENDOT_WEBHOOK_SCOPE = "post:webhook";
-    delete process.env.GREENDOT_SIGNING_KEY;
   });
 
   it("accepts a valid token and echoes x-GD-RequestId + responseDetails", async () => {
@@ -97,37 +91,21 @@ describe("Green Dot webhook receiver (Next.js)", () => {
     expect(res.status).toBe(401);
   });
 
-  it("verifies x-gd-signature when a signing key is configured", async () => {
-    process.env.GREENDOT_SIGNING_KEY = "program_signing_key";
+  it("ignores an x-gd-signature header (undocumented, not verified)", async () => {
     const POST = await loadPOST();
     const res = await POST(
       makeRequest(
         {
           authorization: `Bearer ${makeToken()}`,
           "x-GD-RequestId": REQUEST_ID,
-          "x-gd-signature": hmacHex(PAYLOAD, "program_signing_key"),
+          "x-gd-signature": "anything-here-is-not-checked",
           "content-type": "application/json",
         },
         PAYLOAD
       )
     );
+    // The token is the gate; the signature header does not affect the outcome.
     expect(res.status).toBe(200);
-  });
-
-  it("rejects an invalid x-gd-signature with 400 when a key is configured", async () => {
-    process.env.GREENDOT_SIGNING_KEY = "program_signing_key";
-    const POST = await loadPOST();
-    const res = await POST(
-      makeRequest(
-        {
-          authorization: `Bearer ${makeToken()}`,
-          "x-gd-signature": "deadbeef",
-          "content-type": "application/json",
-        },
-        PAYLOAD
-      )
-    );
-    expect(res.status).toBe(400);
   });
 
   it("returns 400 for invalid JSON after auth passes", async () => {

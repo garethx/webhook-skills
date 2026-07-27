@@ -3,10 +3,10 @@ name: greendot-webhooks
 description: >
   Receive and authenticate Green Dot Embedded Finance (BaaS) webhooks. Use when
   setting up a Green Dot partner webhook endpoint, validating the OAuth
-  client_credentials Bearer token (scope post:webhook), verifying the optional
-  x-gd-signature payload signature, echoing the x-GD-RequestId header, returning
-  the responseDetails acknowledgement, or handling eventType events like
-  transaction, accountUpdated, achTransfer, cardUpdate, billPayTransfer,
+  client_credentials Bearer token (scope post:webhook), handling the optional
+  undocumented x-gd-signature header, echoing the x-GD-RequestId header,
+  returning the responseDetails acknowledgement, or handling eventType events
+  like transaction, accountUpdated, achTransfer, cardUpdate, billPayTransfer,
   directDepositSwitch, and provisioning.
 license: MIT
 metadata:
@@ -21,32 +21,29 @@ Green Dot Embedded Finance (Banking-as-a-Service) does **not** use the Standard
 Webhooks spec or a single HMAC signature. It uses **push authentication**:
 Green Dot authenticates *itself* to your partner-hosted endpoint. The primary
 model is an **OAuth 2.0 client_credentials Bearer token** (scope `post:webhook`)
-sent on every delivery. Payloads may *optionally* carry an `x-gd-signature`
-header validated with a program-specific signing key.
+sent on every delivery, with a **Certificate (mTLS)** variant as an alternative.
 
 ## When to Use This Skill
 
 - How do I receive Green Dot Embedded Finance / BaaS webhooks?
 - How do I authenticate the Green Dot OAuth Bearer token on my endpoint?
-- How do I verify the optional `x-gd-signature` header?
+- What is the `x-gd-signature` header and can I verify it?
 - How do I echo the `x-GD-RequestId` header and return `responseDetails`?
 - How do I handle `transaction`, `accountUpdated`, or `achTransfer` events?
 - Why does Green Dot keep retrying my webhook endpoint?
 
 ## Verification (core)
 
-Two checks, in order. First **authenticate the delivery** by validating the
-OAuth client_credentials Bearer token and requiring the `post:webhook` scope.
-Then, if your program enables it, **verify the optional `x-gd-signature`** over
-the **raw** request body. Always parse JSON *after* both checks pass.
+**Authenticate the delivery** by validating the OAuth client_credentials Bearer
+token and requiring the `post:webhook` scope. This is the real gate. Always
+parse JSON *after* authentication passes.
 
 ```javascript
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 
-// 1) Authenticate: validate the OAuth client_credentials Bearer token + scope.
-//    In production validate against your authorization server (JWKS / RS256 or
-//    token introspection). HS256 with a shared program secret is shown here.
+// Authenticate: validate the OAuth client_credentials Bearer token + scope.
+// In production validate against your authorization server (JWKS / RS256 or
+// token introspection). HS256 with a shared program secret is shown here.
 function verifyToken(authHeader) {
   const token = String(authHeader || '').replace(/^Bearer\s+/i, '').trim();
   const claims = jwt.verify(token, process.env.GREENDOT_WEBHOOK_TOKEN_SECRET);
@@ -54,17 +51,20 @@ function verifyToken(authHeader) {
   if (!scopes.includes('post:webhook')) throw new Error('missing post:webhook scope');
   return claims;
 }
-
-// 2) Optional, program-gated payload signature. Algorithm/encoding are NOT
-//    documented publicly — confirm HMAC-SHA256/hex with your Green Dot rep.
-function verifySignature(rawBody, header) {
-  const expected = crypto.createHmac('sha256', process.env.GREENDOT_SIGNING_KEY)
-    .update(rawBody).digest('hex');
-  const a = Buffer.from(String(header || ''), 'utf8');
-  const b = Buffer.from(expected, 'utf8');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
 ```
+
+If you use the **Certificate (mTLS)** variant instead of OAuth, the token check
+is replaced by client-certificate validation at your TLS terminator / reverse
+proxy — there is no application-level token to check.
+
+> **About `x-gd-signature`:** a delivery *may* carry an `x-gd-signature` header,
+> but Green Dot's public docs do **not** document its algorithm, encoding, or the
+> canonical payload it covers. This skill therefore does **not** implement a
+> signature check — a guessed HMAC would give false confidence in an unverified
+> payload. If you need payload-level verification, obtain the exact specification
+> (and signing key) from your Green Dot representative before implementing any
+> check. Authenticity comes from the OAuth Bearer token (and/or mTLS). See
+> [TODO.md](TODO.md).
 
 Then **echo the `x-GD-RequestId` header** back and respond `200`/`201` with a
 `responseDetails` body, otherwise Green Dot treats the delivery as failed:
@@ -73,8 +73,8 @@ Then **echo the `x-GD-RequestId` header** back and respond `200`/`201` with a
 { "responseDetails": [{ "code": 0, "subCode": 0, "description": "<x-GD-RequestId>" }] }
 ```
 
-> **For complete handlers with token + signature verification, event dispatch,
-> the `responseDetails` acknowledgement, and tests**, see:
+> **For complete handlers with token verification, event dispatch, the
+> `responseDetails` acknowledgement, and tests**, see:
 > - [examples/express/](examples/express/)
 > - [examples/nextjs/](examples/nextjs/)
 > - [examples/fastapi/](examples/fastapi/)
@@ -107,11 +107,11 @@ GREENDOT_WEBHOOK_TOKEN_SECRET=your_token_signing_secret
 
 # Required OAuth scope on the token (default: post:webhook).
 GREENDOT_WEBHOOK_SCOPE=post:webhook
-
-# Optional: program-specific signing key for the x-gd-signature header.
-# Leave unset if your program does not send x-gd-signature.
-GREENDOT_SIGNING_KEY=your_program_signing_key
 ```
+
+> The `x-gd-signature` header is **not** verified by this skill (its algorithm is
+> undocumented — see [TODO.md](TODO.md)), so there is no signing-key environment
+> variable.
 
 ## Setup Notes
 
@@ -134,7 +134,7 @@ npx hookdeck-cli listen 3000 greendot --path /webhooks/greendot
 
 - [references/overview.md](references/overview.md) - What Green Dot webhooks are, event types, payload shape
 - [references/setup.md](references/setup.md) - Endpoint registration, OAuth, retries
-- [references/verification.md](references/verification.md) - Bearer token + x-gd-signature verification and gotchas
+- [references/verification.md](references/verification.md) - Bearer token verification, the undocumented x-gd-signature, and gotchas
 
 ## Attribution
 

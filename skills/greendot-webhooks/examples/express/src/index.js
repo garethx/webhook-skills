@@ -1,7 +1,6 @@
 // Generated with: greendot-webhooks skill
 // https://github.com/hookdeck/webhook-skills
 require('dotenv').config();
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 
@@ -9,10 +8,9 @@ const app = express();
 
 const TOKEN_SECRET = process.env.GREENDOT_WEBHOOK_TOKEN_SECRET;
 const REQUIRED_SCOPE = process.env.GREENDOT_WEBHOOK_SCOPE || 'post:webhook';
-const SIGNING_KEY = process.env.GREENDOT_SIGNING_KEY; // optional, program-gated
 
 /**
- * 1) Authenticate the delivery via the OAuth client_credentials Bearer token.
+ * Authenticate the delivery via the OAuth client_credentials Bearer token.
  *
  * Green Dot authenticates itself to your endpoint (push auth). The token is
  * issued by the client_credentials grant with scope `post:webhook`.
@@ -34,30 +32,15 @@ function verifyToken(authHeader) {
   return claims;
 }
 
-/**
- * 2) Optional program-gated payload signature. If GREENDOT_SIGNING_KEY is not
- * configured we rely on the Bearer token alone. When configured, verify the
- * `x-gd-signature` header over the RAW body with a timing-safe comparison.
- *
- * NOTE: The exact algorithm/encoding are not documented publicly — this assumes
- * HMAC-SHA256 hex. Confirm with your Green Dot representative.
- */
-function verifySignature(rawBody, signatureHeader) {
-  if (!SIGNING_KEY) return true; // not configured → skip
-  if (!signatureHeader) return false; // configured but missing → reject
-  const expected = crypto
-    .createHmac('sha256', SIGNING_KEY)
-    .update(rawBody) // raw body, not parsed JSON
-    .digest('hex');
-  const a = Buffer.from(String(signatureHeader), 'utf8');
-  const b = Buffer.from(expected, 'utf8');
-  if (a.length !== b.length) return false; // timingSafeEqual needs equal lengths
-  try {
-    return crypto.timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
-}
+// NOTE: The `x-gd-signature` header is intentionally NOT verified.
+//
+// A delivery may carry `x-gd-signature`, but Green Dot's public docs do not
+// document its algorithm, encoding, or canonical payload — there is no published
+// scheme to reproduce. Wiring in a guessed HMAC would make an unverified payload
+// look verified, which is worse than no check. Authenticity comes from the OAuth
+// Bearer token above (and/or the Certificate/mTLS transport). If your Green Dot
+// representative gives you the exact signature spec and key, implement the check
+// over the raw body here, after verifyToken.
 
 /**
  * Build the acknowledgement Green Dot expects: a `responseDetails` body plus the
@@ -106,7 +89,7 @@ function handleEvent(event) {
   }
 }
 
-// Capture the RAW body — required for x-gd-signature HMAC verification.
+// Capture the RAW body so parsing happens only after authentication.
 app.post(
   '/webhooks/greendot',
   express.raw({ type: '*/*' }),
@@ -114,19 +97,16 @@ app.post(
     const requestId = req.get('x-GD-RequestId');
     const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from('');
 
-    // 1) Authenticate the OAuth Bearer token.
+    // 1) Authenticate the OAuth Bearer token (the real gate).
     try {
       verifyToken(req.get('authorization'));
     } catch (err) {
       return res.status(401).json({ error: 'Unauthorized', message: err.message });
     }
 
-    // 2) Optional payload signature.
-    if (!verifySignature(rawBody, req.get('x-gd-signature'))) {
-      return res.status(400).json({ error: 'Invalid signature' });
-    }
+    // Note: x-gd-signature is not verified — see the note above.
 
-    // 3) Parse only AFTER authentication succeeds.
+    // 2) Parse only AFTER authentication succeeds.
     let event;
     try {
       event = JSON.parse(rawBody.toString('utf8'));
@@ -134,7 +114,7 @@ app.post(
       return res.status(400).json({ error: 'Invalid JSON' });
     }
 
-    // 4) Handle the event, then acknowledge.
+    // 3) Handle the event, then acknowledge.
     try {
       handleEvent(event);
     } catch (err) {
@@ -142,7 +122,7 @@ app.post(
       return res.status(500).json({ error: 'Handler error' });
     }
 
-    // 5) Acknowledge: echo x-GD-RequestId + return responseDetails.
+    // 4) Acknowledge: echo x-GD-RequestId + return responseDetails.
     return acknowledge(res, requestId);
   }
 );

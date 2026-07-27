@@ -1,14 +1,13 @@
 # Green Dot Webhooks - Next.js Example
 
 Minimal example of receiving Green Dot Embedded Finance (BaaS) webhooks in a
-Next.js App Router route handler with OAuth Bearer token authentication and
-optional `x-gd-signature` verification.
+Next.js App Router route handler with OAuth Bearer token authentication.
 
 ## Prerequisites
 
 - Node.js 18+
 - A Green Dot program (endpoint registered by your Green Dot rep) with the OAuth
-  token secret, and optionally the `x-gd-signature` signing key
+  token secret
 
 ## Setup
 
@@ -22,8 +21,7 @@ optional `x-gd-signature` verification.
    cp .env.example .env.local
    ```
 
-3. Set `GREENDOT_WEBHOOK_TOKEN_SECRET` (and optionally `GREENDOT_SIGNING_KEY`)
-   in `.env.local`.
+3. Set `GREENDOT_WEBHOOK_TOKEN_SECRET` in `.env.local`.
 
 ## Run
 
@@ -38,11 +36,12 @@ The webhook route is `POST /webhooks/greendot`
 
 1. **Authenticate** the OAuth client_credentials Bearer token and require the
    `post:webhook` scope (returns `401` otherwise).
-2. **Verify** the optional `x-gd-signature` over the raw body (`await req.text()`)
-   when `GREENDOT_SIGNING_KEY` is set (returns `400` on mismatch).
-3. **Parse** the JSON body and dispatch on `eventType`.
-4. **Acknowledge** with `200`, echoing the `x-GD-RequestId` header and returning
+2. **Parse** the JSON body and dispatch on `eventType`.
+3. **Acknowledge** with `200`, echoing the `x-GD-RequestId` header and returning
    a `responseDetails` body.
+
+> The `x-gd-signature` header is **not** verified — its algorithm is undocumented
+> (see [../../TODO.md](../../TODO.md)).
 
 > This example validates an HS256 token with a shared secret so it is
 > self-contained. In production, validate the token against your authorization
@@ -55,8 +54,8 @@ The webhook route is `POST /webhooks/greendot`
 npm test
 ```
 
-The tests generate real tokens and signatures using the same algorithms as the
-route handler.
+The tests generate real OAuth tokens using the same algorithm as the route
+handler.
 
 ## Local Development
 

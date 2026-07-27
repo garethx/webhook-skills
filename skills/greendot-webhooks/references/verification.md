@@ -3,20 +3,20 @@
 ## Why This Is Different
 
 Green Dot Embedded Finance does **not** use the Standard Webhooks spec and does
-**not** rely on a single mandatory HMAC signature. It uses **push
-authentication**: Green Dot proves its identity to your endpoint with an OAuth
-**client_credentials Bearer token** on every request. An optional
-`x-gd-signature` header may add a body signature on top, if your program enables
-it.
+**not** rely on a mandatory HMAC signature. It uses **push authentication**:
+Green Dot proves its identity to your endpoint with an OAuth
+**client_credentials Bearer token** on every request (or, in the Certificate
+variant, a client certificate at the TLS layer).
 
-So "verification" here is two ordered checks:
+So "verification" here is a single application-level check:
 
-1. **Authenticate the delivery** — validate the OAuth Bearer token and require
-   the `post:webhook` scope. (Primary, always present.)
-2. **Verify the payload signature** — validate `x-gd-signature` over the raw
-   body, *if* your program sends it. (Optional, program-gated.)
+- **Authenticate the delivery** — validate the OAuth Bearer token and require
+  the `post:webhook` scope. (Primary, always present.)
 
-Only parse the JSON body **after** both checks pass.
+A delivery may also carry an `x-gd-signature` header, but its algorithm is
+**not documented publicly**, so this skill does not verify it (see section 2).
+
+Only parse the JSON body **after** the token check passes.
 
 ## 1. OAuth Bearer Token (primary)
 
@@ -68,49 +68,32 @@ If you use the **Certificate** (mTLS) variant instead of OAuth, the token check
 is replaced by client-certificate validation at your TLS terminator / reverse
 proxy — there is no application-level token to check.
 
-## 2. Optional x-gd-signature (program-gated)
+## 2. The x-gd-signature header is NOT verified here
 
-If your program sends `x-gd-signature`, verify it over the **raw** request body
-(never the re-serialized parsed object) using the program signing key, with a
-**timing-safe** comparison.
+A delivery *may* include an `x-gd-signature` header. **This skill does not
+verify it, on purpose.**
 
-> ⚠️ The exact algorithm and encoding are **not documented publicly**. The
-> examples assume **HMAC-SHA256, hex-encoded, over the raw body** — confirm this
-> (and obtain the signing key) with your Green Dot representative before relying
-> on it in production.
+> ⚠️ Green Dot's public docs do **not** document the `x-gd-signature`
+> algorithm, its encoding, or the canonical payload it is computed over. There
+> is no published HMAC-SHA256 scheme to reproduce. Shipping a *guessed* HMAC
+> would be worse than nothing: a wired-in key would make an unverified payload
+> *look* verified.
 
-```javascript
-const crypto = require('crypto');
+If you require payload-level verification:
 
-function verifySignature(rawBody, signatureHeader) {
-  if (!process.env.GREENDOT_SIGNING_KEY) return true;   // not configured → skip
-  if (!signatureHeader) return false;                   // configured but missing → reject
-  const expected = crypto
-    .createHmac('sha256', process.env.GREENDOT_SIGNING_KEY)
-    .update(rawBody)                                    // raw body, not parsed JSON
-    .digest('hex');
-  const a = Buffer.from(String(signatureHeader), 'utf8');
-  const b = Buffer.from(expected, 'utf8');
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-```
+1. Obtain the exact algorithm, encoding, and canonical-payload definition (and
+   the signing key) from your **Green Dot representative**.
+2. Implement the check over the **raw** request body (never the re-serialized
+   parsed object) with a **timing-safe** comparison, *after* the token check.
 
-```python
-import hmac, hashlib, os
-
-def verify_signature(raw_body: bytes, signature_header: str | None) -> bool:
-    key = os.environ.get("GREENDOT_SIGNING_KEY")
-    if not key:
-        return True            # not configured → skip
-    if not signature_header:
-        return False           # configured but missing → reject
-    expected = hmac.new(key.encode(), raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature_header)
-```
+Until you have that specification, rely on the OAuth Bearer token (and/or the
+Certificate/mTLS transport) for authenticity — that is Green Dot's documented
+inbound-auth model.
 
 ## 3. Acknowledge Correctly
 
-After both checks pass and you have handled the event, respond `200`/`201` and:
+After the token check passes and you have handled the event, respond `200`/`201`
+and:
 
 - **Echo the `x-GD-RequestId` header** back on your response.
 - Return a `responseDetails` body:
@@ -121,11 +104,10 @@ After both checks pass and you have handled the event, respond `200`/`201` and:
 
 ## Common Gotchas
 
-- **Use the raw body** for `x-gd-signature`. Parsing then re-serializing JSON
-  changes bytes and breaks the HMAC. Capture the raw body first.
-- **Token check is the real gate.** `x-gd-signature` is optional; do not assume
-  every delivery is signed. If no signing key is configured, authenticate on the
-  Bearer token alone.
+- **Token check is the real gate.** Authenticity comes from the OAuth Bearer
+  token (or the Certificate/mTLS transport), not from a payload signature.
+- **Do not invent an `x-gd-signature` HMAC.** Its algorithm is undocumented; a
+  guessed check gives false confidence. Get the spec from your rep first.
 - **Always echo `x-GD-RequestId`.** Omitting it (or the `responseDetails` body)
   makes Green Dot treat the delivery as failed and retry it.
 - **Timing-safe compare**, and guard against unequal lengths (Node's
@@ -141,5 +123,4 @@ After both checks pass and you have handled the event, respond `200`/`201` and:
 |---------|--------------|
 | `401` on every request | Wrong `GREENDOT_WEBHOOK_TOKEN_SECRET`, expired token, or missing `post:webhook` scope |
 | `jwt malformed` / decode error | `Authorization` header not `Bearer <jwt>`, or token is opaque (use introspection instead) |
-| Signature check fails | Body was parsed/re-serialized before hashing, wrong signing key, or wrong algorithm/encoding (confirm with your rep) |
 | Green Dot keeps retrying | You did not return `200`/`201`, did not echo `x-GD-RequestId`, or omitted the `responseDetails` body |
