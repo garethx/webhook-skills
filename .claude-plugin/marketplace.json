@@ -2538,6 +2538,27 @@
       ]
     },
     {
+      "name": "utila-webhooks",
+      "description": "Receive and verify Utila webhooks. Use when setting up Utila webhook handlers, debugging x-utila-signature RSA/PSS verification, or handling digital-asset events like TRANSACTION_CREATED, TRANSACTION_STATE_UPDATED, WALLET_CREATED, WALLET_ADDRESS_CREATED, and TRANSACTION_AML_SCREENING_RESULT_READY.",
+      "source": "./skills/utila-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/utila-webhooks",
+      "keywords": [
+        "webhooks",
+        "utila"
+      ]
+    },
+    {
       "name": "usps-webhooks",
       "description": "Receive and verify USPS webhooks (Subscriptions - Tracking API v3.2). Use when setting up USPS tracking webhook handlers, debugging X-HMAC signature verification, creating tracking subscriptions, or handling package tracking events like Out for Delivery, Delivered, or Available for Pickup.",
       "source": "./skills/usps-webhooks",
