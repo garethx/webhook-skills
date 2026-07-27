@@ -1,0 +1,9 @@
+# Webhook verification uses only the Python standard library (hmac, hashlib).
+# The `upollo-python` SDK is an analysis client (it calls Upollo to analyse
+# users) and does NOT verify webhook signatures, so it is intentionally not a
+# dependency here.
+fastapi>=0.140.0
+uvicorn>=0.34.0
+python-dotenv>=1.0.0
+pytest>=9.1.1
+httpx>=0.28.1
