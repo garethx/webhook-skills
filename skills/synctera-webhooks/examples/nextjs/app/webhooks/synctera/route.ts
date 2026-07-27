@@ -57,35 +57,19 @@ export async function POST(request: NextRequest) {
 
   const event = JSON.parse(rawBody);
 
+  // Only ACCOUNT.UPDATED and TRANSACTIONS.POSTED.CREATED are confirmed event
+  // names. Others (e.g. a CARD.* or DISPUTE.* family) follow the same
+  // <resource>.[<sub-resource>.]<action> format but must be confirmed against
+  // Synctera's docs / your own webhook config before you switch on them.
   switch (event.type) {
     case 'ACCOUNT.UPDATED':
       console.log('Account updated:', event.account_id || event.id);
       // TODO: sync account status/balance
       break;
 
-    case 'CARD.CREATED':
-      console.log('Card created:', event.card_id || event.id);
-      // TODO: provision card in your UI
-      break;
-
-    case 'CARD.UPDATED':
-      console.log('Card updated:', event.card_id || event.id);
-      // TODO: reflect activation/lock status
-      break;
-
-    case 'TRANSACTION.CREATED':
-      console.log('Transaction created:', event.transaction_id || event.id);
-      // TODO: show pending activity
-      break;
-
-    case 'TRANSACTION.UPDATED':
-      console.log('Transaction updated:', event.transaction_id || event.id);
+    case 'TRANSACTIONS.POSTED.CREATED':
+      console.log('Transaction posted:', event.transaction_id || event.id);
       // TODO: reconcile ledger / update balances
-      break;
-
-    case 'DISPUTE.CREATED':
-      console.log('Dispute created:', event.dispute_id || event.id);
-      // TODO: start dispute workflow
       break;
 
     default:

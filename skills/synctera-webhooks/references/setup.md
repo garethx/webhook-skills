@@ -50,12 +50,16 @@ curl -X POST https://api.synctera.com/v0/webhooks \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://yourapp.com/webhooks/synctera",
-    "enabled_events": ["ACCOUNT.UPDATED", "CARD.CREATED", "TRANSACTION.CREATED", "CUSTOMER.*"],
+    "enabled_events": ["ACCOUNT.UPDATED", "TRANSACTIONS.POSTED.CREATED", "CUSTOMER.*"],
     "is_enabled": true,
     "description": "Primary webhook endpoint",
     "metadata": {}
   }'
 ```
+
+> `ACCOUNT.UPDATED` and `TRANSACTIONS.POSTED.CREATED` are verified event names;
+> the `CUSTOMER.*` wildcard illustrates the format. Confirm any other names
+> against Synctera's docs before subscribing.
 
 Fields:
 

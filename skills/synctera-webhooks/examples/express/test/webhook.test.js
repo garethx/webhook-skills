@@ -51,9 +51,9 @@ describe('POST /webhooks/synctera', () => {
   });
 
   it('returns 400 for a tampered payload', async () => {
-    const original = JSON.stringify({ type: 'TRANSACTION.CREATED', id: 'txn_1' });
+    const original = JSON.stringify({ type: 'TRANSACTIONS.POSTED.CREATED', id: 'txn_1' });
     const signature = sign(original, webhookSecret);
-    const tampered = JSON.stringify({ type: 'TRANSACTION.CREATED', id: 'txn_evil' });
+    const tampered = JSON.stringify({ type: 'TRANSACTIONS.POSTED.CREATED', id: 'txn_evil' });
 
     const res = await request(app)
       .post('/webhooks/synctera')
@@ -90,7 +90,7 @@ describe('POST /webhooks/synctera', () => {
   });
 
   it('accepts a rolling secret (two "."-delimited signatures)', async () => {
-    const payload = JSON.stringify({ type: 'CARD.CREATED', id: 'card_1' });
+    const payload = JSON.stringify({ type: 'TRANSACTIONS.POSTED.CREATED', id: 'txn_1' });
     const ts = Math.floor(Date.now() / 1000);
     const valid = sign(payload, webhookSecret, ts);
     // Simulate rotation: old (unknown) signature "." new valid signature
@@ -107,13 +107,11 @@ describe('POST /webhooks/synctera', () => {
   });
 
   it('handles different event types', async () => {
+    // Only the first two are verified event names; the rest exercise the
+    // default (unhandled) path.
     const eventTypes = [
       'ACCOUNT.UPDATED',
-      'CARD.CREATED',
-      'CARD.UPDATED',
-      'TRANSACTION.CREATED',
-      'TRANSACTION.UPDATED',
-      'DISPUTE.CREATED',
+      'TRANSACTIONS.POSTED.CREATED',
       'UNKNOWN.EVENT',
     ];
 

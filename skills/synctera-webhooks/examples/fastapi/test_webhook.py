@@ -57,8 +57,8 @@ class TestSyncteraWebhook:
         assert "Invalid signature" in response.json()["detail"]
 
     def test_tampered_payload_returns_400(self):
-        original = json.dumps({"type": "TRANSACTION.CREATED", "id": "txn_1"})
-        tampered = json.dumps({"type": "TRANSACTION.CREATED", "id": "txn_evil"})
+        original = json.dumps({"type": "TRANSACTIONS.POSTED.CREATED", "id": "txn_1"})
+        tampered = json.dumps({"type": "TRANSACTIONS.POSTED.CREATED", "id": "txn_evil"})
         ts = int(time.time())
         response = client.post(
             "/webhooks/synctera",
@@ -92,7 +92,7 @@ class TestSyncteraWebhook:
         assert response.json() == {"received": True}
 
     def test_rolling_secret_two_signatures(self):
-        payload = json.dumps({"type": "CARD.CREATED", "id": "card_1"})
+        payload = json.dumps({"type": "TRANSACTIONS.POSTED.CREATED", "id": "txn_1"})
         ts = int(time.time())
         rotated = f"{'0' * 64}.{sign(payload, WEBHOOK_SECRET, ts)}"
         response = client.post(
@@ -107,13 +107,11 @@ class TestSyncteraWebhook:
         assert response.status_code == 200
 
     def test_handles_different_event_types(self):
+        # Only the first two are verified event names; the rest exercise the
+        # default (unhandled) path.
         event_types = [
             "ACCOUNT.UPDATED",
-            "CARD.CREATED",
-            "CARD.UPDATED",
-            "TRANSACTION.CREATED",
-            "TRANSACTION.UPDATED",
-            "DISPUTE.CREATED",
+            "TRANSACTIONS.POSTED.CREATED",
             "UNKNOWN.EVENT",
         ]
         for event_type in event_types:

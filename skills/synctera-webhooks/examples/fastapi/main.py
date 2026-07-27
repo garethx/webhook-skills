@@ -66,29 +66,17 @@ async def synctera_webhook(request: Request):
     event = json.loads(raw_body)
     event_type = event.get("type")
 
+    # Only ACCOUNT.UPDATED and TRANSACTIONS.POSTED.CREATED are confirmed event
+    # names. Others (e.g. a CARD.* or DISPUTE.* family) follow the same
+    # <resource>.[<sub-resource>.]<action> format but must be confirmed against
+    # Synctera's docs / your own webhook config before you switch on them.
     if event_type == "ACCOUNT.UPDATED":
         print(f"Account updated: {event.get('account_id') or event.get('id')}")
         # TODO: sync account status/balance
 
-    elif event_type == "CARD.CREATED":
-        print(f"Card created: {event.get('card_id') or event.get('id')}")
-        # TODO: provision card in your UI
-
-    elif event_type == "CARD.UPDATED":
-        print(f"Card updated: {event.get('card_id') or event.get('id')}")
-        # TODO: reflect activation/lock status
-
-    elif event_type == "TRANSACTION.CREATED":
-        print(f"Transaction created: {event.get('transaction_id') or event.get('id')}")
-        # TODO: show pending activity
-
-    elif event_type == "TRANSACTION.UPDATED":
-        print(f"Transaction updated: {event.get('transaction_id') or event.get('id')}")
+    elif event_type == "TRANSACTIONS.POSTED.CREATED":
+        print(f"Transaction posted: {event.get('transaction_id') or event.get('id')}")
         # TODO: reconcile ledger / update balances
-
-    elif event_type == "DISPUTE.CREATED":
-        print(f"Dispute created: {event.get('dispute_id') or event.get('id')}")
-        # TODO: start dispute workflow
 
     else:
         print(f"Unhandled event type: {event_type}")

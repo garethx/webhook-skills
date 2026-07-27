@@ -3,8 +3,7 @@ name: synctera-webhooks
 description: >
   Receive and verify Synctera webhooks. Use when setting up Synctera webhook
   handlers, debugging Synctera-Signature verification, or handling banking
-  events like ACCOUNT.UPDATED, CARD.CREATED, TRANSACTION.CREATED, or
-  DISPUTE.CREATED.
+  events like ACCOUNT.UPDATED or TRANSACTIONS.POSTED.CREATED.
 license: MIT
 metadata:
   author: hookdeck
@@ -18,7 +17,7 @@ metadata:
 
 - How do I receive Synctera webhooks?
 - How do I verify Synctera webhook signatures (`Synctera-Signature`)?
-- How do I handle `ACCOUNT.UPDATED`, `CARD.CREATED`, or `TRANSACTION.CREATED` events?
+- How do I handle `ACCOUNT.UPDATED` or `TRANSACTIONS.POSTED.CREATED` events?
 - Why is my Synctera webhook signature verification failing?
 - How do I generate a Synctera webhook signing secret?
 
@@ -61,17 +60,18 @@ function verifySynctera(rawBody, signatureHeader, timestamp, secret, toleranceSe
 
 ## Common Event Types
 
-Event names use the format `<resource>.[<sub-resource>.]<action>`. Wildcards like `CUSTOMER.*` auto-subscribe to all current and future events under a resource.
+Event names use the format `<resource>.[<sub-resource>.]<action>`. Wildcards like `CUSTOMER.*` auto-subscribe to all current and future events under a resource. The three-segment `TRANSACTIONS.POSTED.CREATED` shows the optional sub-resource case.
 
-| Event | Triggered When |
-|-------|----------------|
-| `ACCOUNT.UPDATED` | An account changed (status, balance limits, etc.) |
-| `CARD.CREATED` | A card was issued |
-| `CARD.UPDATED` | A card changed (status, activation) |
-| `TRANSACTION.CREATED` | A transaction was created |
-| `TRANSACTION.UPDATED` | A transaction changed (e.g. posted) |
-| `DISPUTE.CREATED` | A dispute was opened |
-| `CUSTOMER.*` | Any customer event (wildcard) |
+> **Only `ACCOUNT.UPDATED` and `TRANSACTIONS.POSTED.CREATED` are verified names.** The others below are *illustrative* of the format only — confirm the exact spelling against Synctera's docs or your own webhook config before subscribing or switching on them. Do not treat this as an authoritative catalog.
+
+| Event | Verified? | Triggered When |
+|-------|-----------|----------------|
+| `ACCOUNT.UPDATED` | ✅ verified | An account changed (status, balance limits, etc.) |
+| `TRANSACTIONS.POSTED.CREATED` | ✅ verified | A posted transaction was recorded (note plural `TRANSACTIONS`, three segments) |
+| `CARD.CREATED` | illustrative | A card was issued (confirm name) |
+| `CARD.UPDATED` | illustrative | A card changed — status, activation (confirm name) |
+| `DISPUTE.CREATED` | illustrative | A dispute was opened (confirm name) |
+| `CUSTOMER.*` | illustrative | Any customer event (wildcard form) |
 
 > **For the full event reference**, see [references/overview.md](references/overview.md) and Synctera's [Webhooks guide](https://docs.synctera.com/docs/webhooks-guide).
 
