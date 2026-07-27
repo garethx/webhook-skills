@@ -54,6 +54,27 @@
       ]
     },
     {
+      "name": "favro-webhooks",
+      "description": "Receive and verify Favro webhooks. Use when setting up Favro webhook handlers, debugging X-Favro-Webhook signature verification, accepting the setup ping, or handling card events (card.created, card.committed, card.moved, card.updated, card.deleted) and comment events (comment.created, comment.updated, comment.deleted). Note: Favro does NOT use Standard Webhooks — the signature is base64(HMAC-SHA1(secret, payloadId + the URL you registered)), signed over the payloadId concatenated with the target URL, NOT the raw request body.",
+      "source": "./skills/favro-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/favro-webhooks",
+      "keywords": [
+        "webhooks",
+        "favro"
+      ]
+    },
+    {
       "name": "nmi-webhooks",
       "description": "Receive and verify NMI (Network Merchants) webhooks. Use when setting up NMI webhook handlers, debugging Webhook-Signature verification, or handling transaction events like transaction.sale.success, transaction.auth.success, transaction.refund.success, and transaction.void.success. Note: NMI does NOT use Standard Webhooks — the Webhook-Signature header is \"t=<nonce>,s=<sig>\" (comma-separated) where t is a NONCE (not a Unix timestamp), and the signature is HMAC-SHA256 over \"<nonce>.<raw_body>\", lowercase hex.",
       "source": "./skills/nmi-webhooks",
