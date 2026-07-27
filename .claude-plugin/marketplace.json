@@ -10,6 +10,27 @@
   },
   "plugins": [
     {
+      "name": "aiprise-webhooks",
+      "description": "Receive and verify AiPrise webhooks (callbacks). Use when setting up AiPrise identity/KYC/KYB callback handlers, debugging X-HMAC-SIGNATURE verification, or handling verification results like APPROVED, DECLINED, REVIEW, and UNKNOWN.",
+      "source": "./skills/aiprise-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/aiprise-webhooks",
+      "keywords": [
+        "webhooks",
+        "aiprise"
+      ]
+    },
+    {
       "name": "akeneo-webhooks",
       "description": "Receive and verify Akeneo PIM (Events API) webhooks. Use when setting up Akeneo webhook handlers, debugging x-akeneo-request-signature verification, or handling batched product and product-model events like product.created, product.updated, product.removed, product_model.created, product_model.updated, or product_model.removed.",
       "source": "./skills/akeneo-webhooks",
