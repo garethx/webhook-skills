@@ -334,6 +334,28 @@
       ]
     },
     {
+      "name": "bridge-api-webhooks",
+      "description": "Receive and verify Bridge API (bridgeapi.io) webhooks, the open-banking aggregator by Bridge/Bankin' (NOT bridge.xyz). Use when setting up Bridge API webhook handlers, debugging BridgeApi-Signature HMAC-SHA256 verification, or handling events like item.created, item.refreshed, item.account.updated, payment.transaction.created, and user.deleted.",
+      "source": "./skills/bridge-api-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/bridge-api-webhooks",
+      "keywords": [
+        "webhooks",
+        "bridge",
+        "open-banking"
+      ]
+    },
+    {
       "name": "bridge-xyz-webhooks",
       "description": "Receive and verify Bridge (bridge.xyz) webhooks. Use when setting up Bridge webhook handlers, debugging RSA signature verification of the X-Webhook-Signature header, or handling stablecoin/fiat events like customer.updated, kyc_link.updated, transfer.updated, and virtual_account.activity.",
       "source": "./skills/bridge-xyz-webhooks",
