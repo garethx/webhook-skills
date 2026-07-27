@@ -38,6 +38,33 @@
 #   3. Update README.md Provider Skills table
 
 providers:
+  - name: aiprise
+    displayName: AiPrise
+    docs:
+      webhooks: https://docs.aiprise.com/docs/callbacks-authentication
+      verification: https://docs.aiprise.com/docs/callbacks-authentication
+    notes: >
+      Identity verification platform (KYC/KYB). Notifies your server via signed
+      "callbacks". Signature = lowercase hex HMAC-SHA256 of the RAW request body,
+      sent in the X-HMAC-SIGNATURE header. The HMAC key is your AiPrise API private
+      key DIRECTLY (e.g. abcdef12-pqrs-...) — there is NO separate signing/endpoint
+      secret. NOT Standard Webhooks (no webhook-id/timestamp/signature headers).
+      Verify against the exact raw body bytes (unparsed UTF-8); re-serializing the
+      JSON breaks the signature. Callback URLs are set at the template level
+      (Dashboard > View Templates > {TemplateID}) or overridden per request via
+      callback_url (verification result) and events_callback_url (business-profile
+      change events); request-level wins. There is no rich typed-event system — the
+      outcome IS aiprise_summary.verification_result = APPROVED | DECLINED | REVIEW
+      | UNKNOWN, plus a process status (COMPLETED, PENDING, FAILED, ...). Correlate
+      via verification_session_id and optional client_reference_id. Official SDKs
+      (aiprise-web-sdk, aiprise-types, aiprise-react-native-sdk) are client-side /
+      mobile only — no server verification SDK, so verify manually. Retry behaviour
+      is not documented; make handlers idempotent on verification_session_id.
+    testScenario:
+      events:
+        - APPROVED
+        - DECLINED
+
   - name: akeneo
     displayName: Akeneo
     docs:
@@ -121,6 +148,34 @@ providers:
       events:
         - payment_intent.succeeded
         - refund.settled
+  - name: bridge-api
+    displayName: Bridge API
+    docs:
+      webhooks: https://docs.bridgeapi.io/docs/webhooks
+      verification: https://docs.bridgeapi.io/docs/secure-your-webhooks
+    notes: >
+      Bridge API (bridgeapi.io) — the open-banking / account-aggregation platform by
+      Bridge (formerly Bankin'), NOT bridge.xyz. Webhooks are signed with HMAC-SHA256,
+      NOT Standard Webhooks. The BridgeApi-Signature header carries one or more
+      comma-separated, scheme-prefixed values "v1=<UPPERCASE_HEX>". Verify by extracting
+      the v1= signature(s) (ignore other schemes to prevent downgrade attacks), computing
+      HMAC-SHA256 over the RAW request body with the webhook's signing secret as key, and
+      constant-time comparing (hex decode is case-insensitive). The secret is auto-generated
+      per webhook and shown once at creation/rotation; after a rotation the old secret stays
+      valid 24h, so up to 2 active v1 signatures can appear — accept if ANY matches. Configure
+      in the Bridge dashboard (admins only): callback URL, name, events; max 10 webhooks per
+      app; a "Send a test" button emits TEST_EVENT. Event names are lowercase resource.action
+      carried in the body `type` field (no event header): user.deleted, item.created,
+      item.refreshed, item.account.created/updated/deleted, payment.transaction.created/updated,
+      payment.link.updated. Retries for 1-2 days with exponential backoff on non-200/slow.
+      Expect webhooks for already-deleted users/items — handle defensively. Fixed source IPs
+      63.32.31.5, 52.215.247.62, 34.249.92.209 (use X-Forwarded-For behind a proxy); keep
+      response bodies under 10 KB. No official SDK — verify manually in every framework. Set
+      BRIDGE_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - item.refreshed
+        - payment.transaction.updated
   - name: bridge-xyz
     displayName: Bridge
     docs:
@@ -668,6 +723,65 @@ providers:
         - Accounts
         - Items
 
+  - name: tokenio
+    displayName: Token.io
+    docs:
+      webhooks: https://docs.token.io/products/tpp/integration-considerations/webhooks
+      verification: https://docs.token.io/products/tpp/integration-considerations/webhooks
+    notes: >
+      Open banking / account-to-account (A2A) payments platform. Uses an ASYMMETRIC
+      Ed25519 signature — NOT HMAC and NOT Standard Webhooks/JWS. Two headers arrive on
+      every delivery: token-signature (the Ed25519 signature of the EXACT raw POST body,
+      base64url) and token-event (the event type, e.g. PAYMENT_STATUS_CHANGED — a separate
+      header, not a body field). Verify with your member's Ed25519 PUBLIC key from the Token
+      Dashboard (Settings > Member Information), which is base64url with no padding (the raw
+      32-byte key = the `x` value of an OKP/Ed25519 JWK). There is NO shared secret. The
+      signed message is the raw body bytes — capture them before JSON parsing; any
+      re-serialization (key reorder/whitespace) breaks verification. Node verifies with
+      built-in crypto (createPublicKey JWK + crypto.verify(null, ...)); Python with the
+      cryptography package (Ed25519PublicKey.from_public_bytes + verify). Subscribe with
+      PUT /webhook/config {"config":{"type":[...],"url":"..."}}; read via GET, remove via
+      DELETE; ONE config per member/account (a second PUT replaces it). Endpoint MUST return
+      200; non-200 retried with exponential backoff (~10, 30, 70, 150 min) for up to 72h
+      (~10 attempts) — handle idempotently. PAYMENT_STATUS_CHANGED carries a `payment` object
+      with normalized status (INITIATION_PROCESSING, INITIATION_COMPLETED, INITIATION_REJECTED,
+      SUCCESS) plus raw ISO 20022 bankPaymentStatus. Official npm SDK `token-io` is a broad API
+      client (use it to subscribe), NOT a webhook verifier — verify manually. No pip SDK.
+    testScenario:
+      events:
+        - PAYMENT_STATUS_CHANGED
+        - REFUND_STATUS_CHANGED
+  - name: favro
+    displayName: Favro
+    docs:
+      webhooks: https://favro.com/developer/
+      verification: https://favro.com/developer/#webhook-signatures
+    notes: >
+      Planning / collaboration (Kanban) platform. Does NOT use the Standard Webhooks spec.
+      The signature is in the X-Favro-Webhook header (NOT X-Favro-Backend-Identifier, an
+      unrelated internal header). Value = base64(HMAC-SHA1(key = webhook secret,
+      msg = payloadId + the URL exactly as provided at webhook creation)). The signed
+      message is payloadId (a base64 string in the body) concatenated with the target URL —
+      NOT the raw request body — and the algorithm is SHA1, base64-encoded (not SHA256/hex).
+      *** SCHEME QUOTED VERBATIM from favro.com/developer (Jul 2026): "The header is a base64
+      digest of an HMAC-SHA1 hash. The hashed content is the concatenation of the payloadId
+      and the URL exactly as it was provided during webhook creation. The key used to sign
+      this text is the secret you entered when setting up the webhook." ***
+      Store the registered URL (FAVRO_WEBHOOK_URL) byte-identically or every signature fails —
+      the #1 gotcha. Webhooks are created per board/widget via POST create-webhook (name,
+      widgetCommonId, postToUrl, secret) or via Favro UI automations. On creation Favro sends
+      a Ping the endpoint must accept (2xx) to validate setup; the ping carries a payloadId and
+      is signed with the same scheme: {"payloadId":"<base64=>","action":"ping","hookId":"<id>",
+      "hook":{"url":"<postToUrl>"}}. Payloads carry an `action` field; the object type is
+      inferred from the card/comment object present (handlers dispatch on <type>.<action>):
+      card created/committed/moved/updated/deleted, comment created/updated/deleted.
+      UI-automation-triggered webhooks send partial data with no pre-update state. Retry
+      behavior is not documented. No official SDK (community Node @bscotch/bravo implements it).
+    testScenario:
+      events:
+        - card.created
+        - card.moved
+
   - name: frontapp
     displayName: Front
     docs:
@@ -912,6 +1026,45 @@ providers:
       events:
         - batch.succeeded
         - video.generated
+
+  - name: greendot
+    displayName: Green Dot
+    docs:
+      webhooks: https://developer.greendot.com/embedded-finance/docs/webhooks-overview
+      verification: https://developer.greendot.com/embedded-finance/reference/event_post_testeventwebhook_rcv
+    notes: >
+      Green Dot Embedded Finance (Banking-as-a-Service) webhooks. NOT Standard Webhooks and NOT a
+      single mandatory HMAC signature — this is PUSH authentication: Green Dot authenticates ITSELF
+      to the partner-hosted endpoint. The PRIMARY model is OAuth 2.0 client_credentials — Green Dot
+      sends Authorization: Bearer <token> with scope "post:webhook" on every delivery; the partner
+      validates that token (JWKS/RS256 or introspection in production). Per-partner variants: OAuth,
+      FormOAuth, PartnerOAuth, FormUrlEncodedOAuth, and Certificate (mTLS/PKCS#7). Payloads MAY also
+      carry an OPTIONAL x-gd-signature header validated with a program-specific signing key, but the
+      algorithm/encoding/canonical-payload are NOT documented publicly (obtain from your Green Dot
+      rep) and sample payloads show no signature header — treat it as optional/program-gated. The
+      examples validate an HS256 shared-secret token (self-contained/testable) plus an optional
+      HMAC-SHA256 hex x-gd-signature over the raw body. Endpoints are registered BY your Green Dot
+      rep (no self-serve portal), configured per eventType. Gotchas: the partner MUST echo back the
+      x-GD-RequestId header AND respond 200/201 with a JSON responseDetails body
+      ({"responseDetails":[{"code":0,"subCode":0,"description":"<x-GD-RequestId>"}]}) or the delivery
+      is treated as failed. Retries run on 5xx/timeouts/DNS/connection/SSL failures (and resolved
+      401/403), hourly for up to 24h, and must be explicitly enabled per-partner. Event names are the
+      eventType field values: transaction, accountUpdated, achTransfer, cardUpdate, billPayTransfer,
+      directDepositSwitch, provisioning (plus statement-ready, interest-paid, NSF, NOC, eWallet,
+      paper-check, P2P, ATM PIN, adjustment — the enabled set is program-specific). No official SDK.
+    testScenario:
+      events:
+        - transaction
+        - achTransfer
+      prompt: >
+        Create a {framework} webhook handler for Green Dot Embedded Finance (BaaS). Authenticate the
+        delivery by validating the incoming OAuth client_credentials Bearer token and requiring the
+        post:webhook scope (return 401 otherwise), then verify the OPTIONAL x-gd-signature header
+        (HMAC-SHA256 hex over the raw body) with a timing-safe comparison only when a program signing
+        key is configured. Parse JSON only after auth passes, dispatch on the eventType field for
+        events like transaction and achTransfer, and acknowledge by echoing the x-GD-RequestId header
+        and returning HTTP 200 with a responseDetails JSON body. If you use any skills to help with
+        this, add a comment noting which skill(s) you referenced.
 
   - name: hubspot
     displayName: HubSpot
@@ -1447,6 +1600,34 @@ providers:
       events:
         - subscription.created
         - transaction.completed
+
+  - name: paymob
+    displayName: Paymob
+    docs:
+      webhooks: https://developers.paymob.com/paymob-docs/developers/webhook-callbacks-and-hmac
+      verification: https://developers.paymob.com/paymob-docs/developers/webhook-callbacks-and-hmac/hmac/hmac-transaction-callback
+    notes: >
+      MENA payments platform. NOT Standard Webhooks and NOT signed over the raw body.
+      Paymob computes HMAC-SHA512 over a fixed, ordered concatenation of 20 selected
+      transaction fields (no separators), hex-encoded, delivered as the `hmac` QUERY
+      parameter (?hmac=<hex>) — there is no signature header. Field order:
+      amount_cents, created_at, currency, error_occured, has_parent_transaction,
+      obj.id, integration_id, is_3d_secure, is_auth, is_capture, is_refunded,
+      is_standalone_payment, is_voided, order.id, owner, pending, source_data.pan,
+      source_data.sub_type, source_data.type, success. Booleans concatenate as
+      lowercase "true"/"false". HMAC secret comes from Dashboard → Settings →
+      Account Info → HMAC. Two callback kinds per integration: Transaction Processed
+      Callback (server-to-server POST, JSON, nested keys obj.id/order.id/source_data.*)
+      and Transaction Response Callback (client redirect GET, flattened query params
+      id/order_id/source_data_pan/...). Single callback `type` value "TRANSACTION" —
+      no discrete event names; read state from booleans success/error_occured/pending/
+      is_refunded/is_voided/is_capture/is_auth. No usable first-party SDK verifier;
+      roll your own HMAC. Gotchas: SHA512 (not 256), hex (not base64), exact field
+      ordering, POST vs GET key-path differences.
+    testScenario:
+      events:
+        - TRANSACTION.success
+        - TRANSACTION.refunded
 
   - name: paypal
     displayName: PayPal
@@ -2171,6 +2352,38 @@ providers:
       events:
         - message.sent
         - message.finalized
+  - name: synctera
+    displayName: Synctera
+    docs:
+      webhooks: https://docs.synctera.com/docs/webhooks-guide
+      verification: https://docs.synctera.com/docs/webhooks-guide
+      events: https://docs.synctera.com/v1/reference/listevents-1
+    notes: >
+      Banking-as-a-Service (BaaS) platform. Custom HMAC scheme — NOT Standard
+      Webhooks (no webhook-id/webhook-timestamp/webhook-signature). Two HTTP
+      headers: Synctera-Signature (the signature) and Request-Timestamp (POSIX
+      seconds). Verify by computing HMAC-SHA256(secret, "{Request-Timestamp}.{raw_body}")
+      and hex-encoding; the "." is a LITERAL separator between the timestamp and
+      the RAW body. GOTCHA: the signing secret is NOT the API key — generate it via
+      POST /v0/webhook_secrets (empty body) and store the returned "secret". During
+      secret rotation (rolling secret), Synctera-Signature may contain TWO
+      "."-delimited signature strings — check the body against EACH and accept if
+      either matches. Reject if Request-Timestamp is >5 minutes from now (replay
+      protection); timestamp is in SECONDS, not milliseconds. Verify against the RAW
+      body — do not JSON.parse first. Create endpoints via POST /v0/webhooks (url,
+      enabled_events[], is_enabled, description, metadata). Event names use
+      <resource>.[<sub-resource>.]<action> (ACCOUNT.UPDATED, CARD.CREATED,
+      TRANSACTION.CREATED, TRANSACTION.UPDATED, DISPUTE.CREATED, ...) and support
+      wildcards like CUSTOMER.* (auto-subscribes to future events under the
+      resource). Respond 200 within 5s or it retries (exponential backoff up to
+      ~55h); events retained 60 days. Test with POST /v0/webhooks/trigger. Only
+      official client is Go (github.com/synctera/client-libraries-go) — no npm/pip,
+      so Node.js and Python verify manually. Set SYNCTERA_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - ACCOUNT.UPDATED
+        - CARD.CREATED
+        - TRANSACTION.CREATED
   - name: treezor
     displayName: Treezor
     docs:
@@ -2228,6 +2441,34 @@ providers:
         - createCard
         - updateCard
         - commentCard
+  - name: tiktok
+    displayName: TikTok
+    docs:
+      webhooks: https://developers.tiktok.com/doc/webhooks-overview
+      verification: https://developers.tiktok.com/doc/webhooks-verification
+      events: https://developers.tiktok.com/doc/webhooks-events
+    notes: >
+      TikTok for Developers webhooks (Login Kit / Content Posting / Data Portability) —
+      NOT TikTok Shop, which is a separate partner portal with a different signature scheme
+      (see the tiktok-shop provider). Events POST as JSON over HTTPS to the callback URL
+      registered in the developer app. Signature is in the TikTok-Signature header with value
+      format "t=<unix_ts>,s=<sig>". Signature = HMAC-SHA256 hex over signed_payload =
+      "<timestamp>" + "." + raw_request_body, keyed with the app's client_secret (there is no
+      separate webhook secret). Verify against the RAW body and reject stale timestamps to
+      prevent replay (no explicit tolerance window documented — 5 min is a sane default). This
+      is NOT the Standard Webhooks spec, though structurally similar. Payload fields:
+      client_key, event, create_time (int64 epoch seconds), user_openid (absent on
+      portability.download.ready), content (a serialized JSON string — parse separately).
+      Delivery is best-effort at-least-once with retries up to 72h (exponential backoff);
+      endpoints must be idempotent. Only four events exist (verified): authorization.removed,
+      video.upload.failed, video.publish.completed (NOT .complete; there is no
+      video.publish.failed), portability.download.ready. Configure the HTTPS callback URL and
+      subscribed events in the developer portal; no official webhook SDK, so verify manually.
+    testScenario:
+      events:
+        - authorization.removed
+        - video.publish.completed
+        - portability.download.ready
   - name: tiktok-shop
     displayName: TikTok Shop
     docs:
@@ -2359,6 +2600,33 @@ providers:
         - orders.notification
         - orders.cancel
         - store.provisioned
+  - name: utila
+    displayName: Utila
+    docs:
+      webhooks: https://docs.utila.io/reference/webhooks
+      verification: https://docs.utila.io/reference/webhooks
+      events: https://docs.utila.io/reference/webhooks
+    notes: >
+      Utila is a digital-asset operations platform. Webhooks are configured per vault
+      in the Console (Vault Settings -> Webhooks). Verification is ASYMMETRIC, not HMAC:
+      Utila signs each delivery with an RSA-4096 PRIVATE key using SHA-512 + PSS padding,
+      base64-encoded, sent in the x-utila-signature header. Verify with Utila's PEM-encoded
+      RSA-4096 PUBLIC key from the Console — there is NO shared secret. Verify over the RAW
+      body. NOT Standard Webhooks (no webhook-id/webhook-timestamp). No timestamp header, so
+      no built-in replay protection — dedupe on the event id. Endpoint must return HTTP 200;
+      failed deliveries retry with exponential back-off for up to 24h then are discarded.
+      Payloads are THIN (id, vault, type, resourceType, resource, optional details) — fetch
+      full detail via the Utila API/Stream using the resource path. Event names are
+      SCREAMING_SNAKE_CASE, exactly five: TRANSACTION_CREATED, TRANSACTION_STATE_UPDATED,
+      WALLET_CREATED, WALLET_ADDRESS_CREATED, TRANSACTION_AML_SCREENING_RESULT_READY. The
+      npm @utila/api package is documented but does not currently resolve on the public
+      registry (documented-but-not-installable); no pip SDK — verify manually with platform
+      crypto (Node crypto, Python cryptography).
+    testScenario:
+      events:
+        - TRANSACTION_CREATED
+        - TRANSACTION_STATE_UPDATED
+        - WALLET_ADDRESS_CREATED
   - name: twitch
     displayName: Twitch
     docs:
@@ -3212,6 +3480,41 @@ providers:
         base64url(rawBody))), and verify against the raw body. Enforce a timestamp tolerance, then
         dispatch on X-Neon-Event-Type (e.g. user.created) and return 2xx. Do NOT use svix or HMAC.
         If you use any skills to help with this, add a comment noting which skill(s) you referenced.
+  - name: nmi
+    displayName: NMI
+    docs:
+      webhooks: https://docs.nmi.com/reference/overview
+      verification: https://docs.nmi.com/reference/overview
+    notes: >
+      NMI (Network Merchants) payment gateway. Does NOT use Standard Webhooks. Each delivery
+      carries a single header, Webhook-Signature, of the form "t=<nonce>,s=<signature>"
+      (comma-separated). *** CRITICAL: the t= value is a NONCE, not a Unix timestamp — do NOT
+      parse it as a time or enforce any replay/age window; NMI documents none. *** Verify by
+      computing HMAC-SHA256 over "<nonce>.<raw_request_body>" (nonce + literal "." + raw body)
+      keyed with the webhooks signing key, hex-encode (lowercase), and compare timing-safe to the
+      s= value. You MUST use the raw, unparsed body — re-serializing the JSON breaks the HMAC.
+      The signing key comes from the Merchant Control Panel under Settings > Webhooks (distinct
+      from the gateway API/security key). Parse the header by splitting each segment at the first
+      "=" (don't rely on order). Payload envelope is {event_id, event_type, event_body}; event_id
+      supports idempotency. Event names are dotted lowercase transaction.<action>.<result> where
+      action is one of sale/auth/capture/void/refund/credit/validate and result is
+      success/failure/unknown. The documented catalog is transaction-lifecycle only — there are NO
+      distinct chargeback event names. NMI retries non-2xx deliveries, so respond 200 quickly.
+      Source IPs are 104.192.32.81–104.192.32.87 and 104.192.36.81–104.192.36.87 (defence in depth
+      only; the HMAC is authoritative). No official npm/pip SDK — verify manually in every framework.
+    testScenario:
+      events:
+        - transaction.sale.success
+        - transaction.refund.success
+        - transaction.void.success
+      prompt: >
+        Create a {framework} webhook handler for NMI (Network Merchants). Verify the
+        Webhook-Signature header ("t=<nonce>,s=<hex>") by computing HMAC-SHA256 over
+        "<nonce>.<raw_body>" with the NMI webhooks signing key and comparing timing-safe (hex) to
+        the s= value. The t= value is a NONCE, not a timestamp — do not enforce a replay window.
+        Use the raw, unparsed body. Then dispatch on the dotted event_type
+        (transaction.<action>.<result>) and return 2xx quickly. If you use any skills to help with
+        this, add a comment noting which skill(s) you referenced.
   - name: xero
     displayName: Xero
     docs:
@@ -3324,3 +3627,83 @@ providers:
         dispatch on event types like payment.completed and recurring-payment.renewed, always
         returning 2XX. If you use any skills to help with this, add a comment noting which skill(s)
         you referenced.
+  - name: bunny-stream
+    displayName: Bunny Stream
+    docs:
+      webhooks: https://docs.bunny.net/stream/webhooks
+      verification: https://docs.bunny.net/stream/webhooks#signature-validation
+    notes: >
+      Bunny.net's video hosting/encoding product (distinct from Bunny's general platform webhooks).
+      Signing is HMAC-SHA256 over the EXACT raw request body, keyed on the video library's Read-Only
+      API key (UTF-8), output as lowercase hex in the X-BunnyStream-Signature header. Two extra
+      informational headers accompany it: X-BunnyStream-Signature-Version (v1) and
+      X-BunnyStream-Signature-Algorithm (hmac-sha256). Verify against the UNPARSED raw body (do not
+      re-serialize — whitespace/key-order changes break the digest) with a constant-time hex compare.
+      This is a CUSTOM scheme, NOT Standard Webhooks (no webhook-id/webhook-timestamp/webhook-signature
+      and no timestamp in the signed content). IMPORTANT: do not confuse with Bunny's general-platform
+      webhooks (docs.bunny.com/.../webhook-security) which use HMAC-SHA1 + x-bunny-signature. The
+      payload is thin: {"VideoLibraryId": int, "VideoGuid": guid, "Status": int} — the event type is
+      the numeric Status, not an event-name string. Fetch full metadata via the Stream API
+      (GET /library/{libraryId}/videos/{videoGuid}) using VideoGuid, after verifying. Status enum:
+      0 Queued, 1 Processing, 2 Encoding, 3 Finished (encoding done), 4 ResolutionFinished, 5 Failed,
+      6 PresignedUploadStarted, 7 PresignedUploadFinished, 8 PresignedUploadFailed, 9 CaptionsGenerated,
+      10 TitleOrDescriptionGenerated. Webhook URL is configured per video library in the Stream
+      dashboard; the signing secret IS the library's Read-Only API key. Retry behavior is not
+      documented — make handlers idempotent. No official SDK (community only) — verify manually.
+    testScenario:
+      events:
+        - "Status 3 (Finished)"
+        - "Status 5 (Failed)"
+      prompt: >
+        Create a {framework} webhook handler for Bunny Stream. Verify the X-BunnyStream-Signature
+        header — HMAC-SHA256 of the raw request body keyed on the video library's Read-Only API key,
+        lowercase hex — with a timing-safe comparison over the unparsed raw body. Parse the thin
+        payload {VideoLibraryId, VideoGuid, Status} and dispatch on the numeric Status, handling
+        3 (Finished / encoding done) and 5 (Failed). If you use any skills to help with this, add a
+        comment noting which skill(s) you referenced.
+
+  - name: upollo
+    displayName: Upollo
+    docs:
+      webhooks: https://app.upollo.ai/docs/reference/webhooks
+      verification: https://app.upollo.ai/docs/reference/webhooks
+    notes: >
+      Fraud / risk-detection platform. NOT Standard Webhooks. Webhooks are not a
+      subscription to named events — a delivery fires whenever Upollo FLAGS a user
+      (account sharing, multi-accounting, etc.) and carries an analysis object:
+      recommended action (short form CHALLENGE/DENY/PERMIT/OFFER/LOG), flags[] (each
+      with type, firstFlagged, mostRecentlyFlagged), eventType (short form e.g.
+      LOGIN), userInfo, deviceInfo. Dispatch on action + flags[].type, not an event
+      name. Signature: single Upollo-Signature header with two comma-separated parts
+      "t:<unix_ts>,s0:<hash>". s0 = HMAC-SHA512 (NOT SHA-256) of the RAW body keyed
+      with the webhook secret; recompute over the raw body and constant-time compare.
+      The timestamp t is delivered but is NOT part of the signed content. Digest
+      encoding is undocumented — the s0: prefix and 128-char values indicate lowercase
+      hex; handlers accept hex or base64 as a safety net until confirmed live. Secret
+      is generated when you add a webhook URL under Webhooks on the Access & Keys page
+      at app.upollo.ai (this is the webhook secret, NOT the API key). Retry behaviour
+      undocumented. SDKs: pip upollo-python (0.1.1, live) is a gRPC ANALYSIS client and
+      does NOT verify webhooks — verify manually; npm @upollo/web and @upollo/node are
+      documented but return 404 on the public registry. Test flags via email suffixes
+      +account_sharing (-> ACCOUNT_SHARING) and +multiple_accounts (-> MULTIPLE_ACCOUNTS).
+      Enum values come from Upollo's own protobuf definitions (Outcome, FlagType,
+      EventType) shipped in upollo-python.
+      *** OPERATIONAL STATUS UNVERIFIED (Jul 2026): app.upollo.ai / upollo.ai did NOT
+      resolve and the npm SDKs 404 at generation time. The scheme here is documented and
+      matched to Upollo's protobuf, but was NOT confirmed against a live delivery.
+      Confirm Upollo is operational and re-verify the encoding/payload before relying on
+      this skill. ***
+    testScenario:
+      events:
+        - ACCOUNT_SHARING
+        - MULTIPLE_ACCOUNTS
+      prompt: >
+        Create a {framework} webhook handler for Upollo. Verify the Upollo-Signature
+        header (parse the comma-separated "t:<ts>,s0:<hash>" parts, recompute
+        HMAC-SHA512 of the RAW body keyed with the webhook secret, constant-time compare
+        against the s0 part). After verifying, dispatch on the recommended action
+        (CHALLENGE/DENY/PERMIT/OFFER/LOG) and iterate flags[].type such as
+        ACCOUNT_SHARING and MULTIPLE_ACCOUNTS, normalizing the OUTCOME_/EVENT_TYPE_/
+        FLAG_TYPE_ enum prefixes. Return 400 for an invalid signature and 200 on success.
+        If you use any skills to help with this, add a comment noting which skill(s) you
+        referenced.
