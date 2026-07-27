@@ -66,9 +66,23 @@ describe('POST /webhooks/ethoca', () => {
     transaction: { arn: '74987654321098765432109', amount: '125.00', currency: 'USD' },
   };
 
-  it('returns 401 when the Authorization header is missing', async () => {
+  it('returns 401 when credentials are configured but the header is missing', async () => {
     const res = await POST(makeRequest(alert));
     expect(res.status).toBe(401);
+  });
+
+  it('accepts a delivery without Basic Auth when no credentials are configured (mTLS-only)', async () => {
+    const savedUser = process.env.ETHOCA_WEBHOOK_USERNAME;
+    const savedPass = process.env.ETHOCA_WEBHOOK_PASSWORD;
+    delete process.env.ETHOCA_WEBHOOK_USERNAME;
+    delete process.env.ETHOCA_WEBHOOK_PASSWORD;
+    try {
+      const res = await POST(makeRequest(alert));
+      expect(res.status).toBe(200);
+    } finally {
+      process.env.ETHOCA_WEBHOOK_USERNAME = savedUser;
+      process.env.ETHOCA_WEBHOOK_PASSWORD = savedPass;
+    }
   });
 
   it('returns 401 for invalid credentials', async () => {

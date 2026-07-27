@@ -17,8 +17,10 @@ function safeEqual(a: string, b: string): boolean {
  * Verify Ethoca webhook HTTP Basic Auth.
  *
  * Ethoca Alerts Push API deliveries have NO HMAC/signature header. Trust comes
- * from mutual TLS (MSSL, Entrust CA) at the transport layer plus these Basic
- * Auth credentials at the application layer.
+ * from mutual TLS (MSSL, Entrust CA) at the transport layer. Basic Auth is an
+ * OPTIONAL second factor that applies only if you agreed credentials with the
+ * Ethoca Customer Delivery Team during onboarding — it is not guaranteed by the
+ * API. Run this check only when credentials are configured (see POST).
  */
 export function verifyEthocaAuth(
   authHeader: string | null,
@@ -35,8 +37,10 @@ export function verifyEthocaAuth(
   );
 }
 
-// Normalize alertType to one of the two Ethoca categories. Confirm the literal
-// values (historically numeric) against your Ethoca onboarding schema.
+// Normalize alertType to one of the two Ethoca categories. NOTE: the numeric
+// mapping (1 -> fraud, 2 -> dispute) is an UNCONFIRMED guess — the literal
+// alertType enum is not published publicly and has historically been numeric.
+// Confirm the actual values against your Ethoca onboarding schema.
 export function alertCategory(alertType: unknown): 'fraud' | 'dispute' | 'unknown' {
   const map: Record<string, 'fraud' | 'dispute'> = {
     fraud: 'fraud',
@@ -48,15 +52,18 @@ export function alertCategory(alertType: unknown): 'fraud' | 'dispute' | 'unknow
 }
 
 export async function POST(request: NextRequest) {
-  const authenticated = verifyEthocaAuth(
-    request.headers.get('authorization'),
-    process.env.ETHOCA_WEBHOOK_USERNAME!,
-    process.env.ETHOCA_WEBHOOK_PASSWORD!
-  );
+  // Basic Auth is enforced only when credentials are configured. Whether Ethoca
+  // sends Basic Auth is agreed at onboarding with the Ethoca Customer Delivery
+  // Team, not guaranteed by the API. With no credentials configured, rely on
+  // mTLS (the actual trust mechanism) and accept the delivery.
+  const username = process.env.ETHOCA_WEBHOOK_USERNAME;
+  const password = process.env.ETHOCA_WEBHOOK_PASSWORD;
 
-  if (!authenticated) {
-    console.error('Ethoca webhook authentication failed');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (username && password) {
+    if (!verifyEthocaAuth(request.headers.get('authorization'), username, password)) {
+      console.error('Ethoca webhook authentication failed');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
   }
 
   // No body signature to protect, so ordinary JSON parsing is safe here.

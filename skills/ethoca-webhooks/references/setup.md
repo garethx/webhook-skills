@@ -17,10 +17,13 @@ push URL yourself. Plan onboarding lead time accordingly.
 During onboarding you agree with Ethoca:
 
 1. **Endpoint URL** — where alerts are POSTed (e.g. `https://api.example.com/webhooks/ethoca`).
-2. **HTTP Basic Auth credentials** — a username and password Ethoca will send on
-   every request as `Authorization: Basic base64(username:password)`.
+2. **HTTP Basic Auth credentials (optional)** — if you opt in, a username and
+   password Ethoca will send as `Authorization: Basic base64(username:password)`.
+   This is an optional application-layer factor; an mTLS-only endpoint can skip
+   it.
 3. **mTLS certificates** — exchange/trust of client and server certificates
-   (Ethoca's client cert chains to the **Entrust** CA).
+   (Ethoca's client cert chains to the **Entrust** CA). This is the primary,
+   definitive trust mechanism.
 4. **`alertType` values** — confirm the literal `alertType` codes your account
    receives (these are not published publicly and may be numeric).
 
@@ -31,17 +34,17 @@ Ethoca delivers over **mutual TLS (MSSL)**:
 - Your server must **trust the Entrust CA** so Ethoca's client certificate
   validates.
 - Configure your TLS terminator / load balancer to **request and require a client
-  certificate**. This is where authenticity is primarily enforced — the
-  application-layer Basic Auth check is a second factor.
+  certificate**. This is where authenticity is enforced — the optional
+  application-layer Basic Auth check is only a second factor when configured.
 - Optionally restrict inbound traffic to Ethoca's published egress **IP ranges**
   (ask the Customer Delivery Team for the current list).
 
 mTLS is handled by your infrastructure (nginx, Envoy, a cloud load balancer,
 etc.), not by the example application code in this skill.
 
-## Store the Basic Auth Credentials
+## Store the Basic Auth Credentials (if agreed)
 
-Put the agreed credentials in your environment:
+If you agreed Basic Auth at onboarding, put the credentials in your environment:
 
 ```bash
 ETHOCA_WEBHOOK_USERNAME=your_basic_auth_username
@@ -50,6 +53,8 @@ ETHOCA_WEBHOOK_PASSWORD=your_basic_auth_password
 
 Your handler decodes the `Authorization: Basic ...` header and compares it to
 these values with a timing-safe comparison — see [verification.md](verification.md).
+If you did **not** agree Basic Auth (mTLS-only), leave these unset; the handler
+then skips the Basic Auth check and relies on mTLS instead of returning `401`.
 
 ## Reporting Outcomes (Outbound Outcome API)
 

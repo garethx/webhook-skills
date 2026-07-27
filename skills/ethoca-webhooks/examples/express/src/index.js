@@ -4,15 +4,15 @@ require('dotenv').config();
 const express = require('express');
 const crypto = require('crypto');
 
-// Validate required environment variables at startup
-const requiredEnvVars = ['ETHOCA_WEBHOOK_USERNAME', 'ETHOCA_WEBHOOK_PASSWORD'];
-const missingEnvVars = requiredEnvVars.filter((name) => !process.env[name]);
-
-if (missingEnvVars.length > 0) {
-  console.error(`Error: Missing required environment variables: ${missingEnvVars.join(', ')}`);
-  if (process.env.NODE_ENV !== 'test') {
-    process.exit(1);
-  }
+// Basic Auth credentials are OPTIONAL — they apply only if you agreed them with
+// the Ethoca Customer Delivery Team during onboarding. When they are not
+// configured, the endpoint relies on mTLS alone (see the note in the route
+// handler), so a missing Authorization header is acceptable rather than a 401.
+if (!process.env.ETHOCA_WEBHOOK_USERNAME || !process.env.ETHOCA_WEBHOOK_PASSWORD) {
+  console.warn(
+    'Ethoca Basic Auth credentials not configured — relying on mTLS only. ' +
+      'Set ETHOCA_WEBHOOK_USERNAME/ETHOCA_WEBHOOK_PASSWORD to enforce Basic Auth.'
+  );
 }
 
 const app = express();
@@ -31,8 +31,10 @@ function safeEqual(a, b) {
  * Verify Ethoca webhook HTTP Basic Auth.
  *
  * Ethoca Alerts Push API deliveries have NO HMAC/signature header. Trust comes
- * from mutual TLS (MSSL, Entrust CA) at the transport layer plus these Basic
- * Auth credentials at the application layer.
+ * from mutual TLS (MSSL, Entrust CA) at the transport layer. Basic Auth is an
+ * OPTIONAL second factor that applies only if you agreed credentials with the
+ * Ethoca Customer Delivery Team during onboarding — it is not guaranteed by the
+ * API. Run this check only when credentials are configured (see the route).
  *
  * @param {string} authHeader - Authorization header value
  * @param {string} username - Expected username
@@ -50,8 +52,10 @@ function verifyEthocaAuth(authHeader, username, password) {
   );
 }
 
-// Normalize alertType to one of the two Ethoca categories. Confirm the literal
-// values (historically numeric) against your Ethoca onboarding schema.
+// Normalize alertType to one of the two Ethoca categories. NOTE: the numeric
+// mapping (1 -> fraud, 2 -> dispute) is an UNCONFIRMED guess — the literal
+// alertType enum is not published publicly and has historically been numeric.
+// Confirm the actual values against your Ethoca onboarding schema.
 function alertCategory(alertType) {
   const map = { fraud: 'fraud', dispute: 'dispute', 1: 'fraud', 2: 'dispute' };
   return map[alertType] || 'unknown';
@@ -59,15 +63,18 @@ function alertCategory(alertType) {
 
 // Ordinary JSON parsing is fine: there is no body signature to protect.
 app.post('/webhooks/ethoca', express.json(), (req, res) => {
-  const authenticated = verifyEthocaAuth(
-    req.headers.authorization,
-    process.env.ETHOCA_WEBHOOK_USERNAME,
-    process.env.ETHOCA_WEBHOOK_PASSWORD
-  );
+  // Basic Auth is enforced only when credentials are configured. Whether Ethoca
+  // sends Basic Auth is agreed at onboarding with the Ethoca Customer Delivery
+  // Team, not guaranteed by the API. With no credentials configured, rely on
+  // mTLS (the actual trust mechanism) and accept the delivery.
+  const username = process.env.ETHOCA_WEBHOOK_USERNAME;
+  const password = process.env.ETHOCA_WEBHOOK_PASSWORD;
 
-  if (!authenticated) {
-    console.error('Ethoca webhook authentication failed');
-    return res.status(401).send('Unauthorized');
+  if (username && password) {
+    if (!verifyEthocaAuth(req.headers.authorization, username, password)) {
+      console.error('Ethoca webhook authentication failed');
+      return res.status(401).send('Unauthorized');
+    }
   }
 
   const alert = req.body || {};

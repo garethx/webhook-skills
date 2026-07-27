@@ -62,9 +62,23 @@ class TestAlertCategory:
 
 
 class TestEthocaWebhook:
-    def test_missing_auth_returns_401(self):
+    def test_missing_auth_returns_401_when_configured(self):
         response = client.post("/webhooks/ethoca", json=ALERT)
         assert response.status_code == 401
+
+    def test_accepts_without_auth_when_not_configured(self):
+        # mTLS-only: with no Basic Auth credentials configured, a delivery
+        # without an Authorization header is accepted (trust relies on mTLS).
+        saved_user = os.environ.pop("ETHOCA_WEBHOOK_USERNAME", None)
+        saved_pass = os.environ.pop("ETHOCA_WEBHOOK_PASSWORD", None)
+        try:
+            response = client.post("/webhooks/ethoca", json=ALERT)
+            assert response.status_code == 200
+        finally:
+            if saved_user is not None:
+                os.environ["ETHOCA_WEBHOOK_USERNAME"] = saved_user
+            if saved_pass is not None:
+                os.environ["ETHOCA_WEBHOOK_PASSWORD"] = saved_pass
 
     def test_invalid_credentials_returns_401(self):
         response = client.post(

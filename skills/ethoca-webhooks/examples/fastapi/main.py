@@ -18,8 +18,10 @@ def verify_ethoca_auth(authorization: str, username: str, password: str) -> bool
     Verify Ethoca webhook HTTP Basic Auth.
 
     Ethoca Alerts Push API deliveries have NO HMAC/signature header. Trust comes
-    from mutual TLS (MSSL, Entrust CA) at the transport layer plus these Basic
-    Auth credentials at the application layer.
+    from mutual TLS (MSSL, Entrust CA) at the transport layer. Basic Auth is an
+    OPTIONAL second factor that applies only if you agreed credentials with the
+    Ethoca Customer Delivery Team during onboarding — it is not guaranteed by the
+    API. Run this check only when credentials are configured (see the dependency).
     """
     if not authorization or not authorization.startswith("Basic "):
         return False
@@ -35,21 +37,29 @@ def verify_ethoca_auth(authorization: str, username: str, password: str) -> bool
 
 def alert_category(alert_type: Any) -> str:
     """
-    Normalize alertType to one of the two Ethoca categories. Confirm the literal
-    values (historically numeric) against your Ethoca onboarding schema.
+    Normalize alertType to one of the two Ethoca categories. NOTE: the numeric
+    mapping (1 -> fraud, 2 -> dispute) is an UNCONFIRMED guess — the literal
+    alertType enum is not published publicly and has historically been numeric.
+    Confirm the actual values against your Ethoca onboarding schema.
     """
     mapping = {"fraud": "fraud", "dispute": "dispute", "1": "fraud", "2": "dispute"}
     return mapping.get(str(alert_type), "unknown")
 
 
 def require_ethoca_auth(authorization: Optional[str] = Header(None)) -> bool:
-    """FastAPI dependency that enforces Ethoca Basic Auth."""
+    """FastAPI dependency that enforces Ethoca Basic Auth when it is configured.
+
+    Basic Auth is an OPTIONAL, onboarding-agreed layer. Whether Ethoca sends it
+    is agreed with the Ethoca Customer Delivery Team, not guaranteed by the API.
+    When no credentials are configured, rely on mTLS (the actual trust mechanism)
+    and accept the delivery rather than returning 401.
+    """
     expected_username = os.getenv("ETHOCA_WEBHOOK_USERNAME")
     expected_password = os.getenv("ETHOCA_WEBHOOK_PASSWORD")
 
     if not expected_username or not expected_password:
-        print("ERROR: Missing ETHOCA_WEBHOOK_USERNAME or ETHOCA_WEBHOOK_PASSWORD")
-        raise HTTPException(status_code=500, detail="Server configuration error")
+        # No Basic Auth configured — rely on mTLS (MSSL) at the transport layer.
+        return True
 
     if not verify_ethoca_auth(authorization or "", expected_username, expected_password):
         raise HTTPException(status_code=401, detail="Unauthorized")

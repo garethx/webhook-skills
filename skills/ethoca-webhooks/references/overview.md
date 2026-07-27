@@ -16,17 +16,20 @@ model.)
 ## How Delivery Works
 
 1. Ethoca opens a **mutual TLS (MSSL)** connection to your registered HTTPS URL,
-   presenting a client certificate signed by the **Entrust** CA.
-2. Each request carries `Authorization: Basic base64(username:password)` using
-   credentials agreed during onboarding.
-3. Your endpoint validates the credentials, processes the alert, and returns
-   `200`.
+   presenting a client certificate signed by the **Entrust** CA. This is the
+   definitive check that authenticates the delivery.
+2. *If* Basic Auth was agreed at onboarding, the request also carries
+   `Authorization: Basic base64(username:password)`. This is an optional second
+   factor — an mTLS-only endpoint may receive no `Authorization` header.
+3. Your endpoint processes the alert (validating the Basic Auth credentials if
+   they are configured) and returns `200`.
 4. Separately, you report what you did with the alert (refunded, already
    resolved, etc.) through the **Outcome API**, which is authenticated with
    OAuth 1.0a — see [verification.md](verification.md).
 
 There is **no HMAC signature header** on push alerts. Authenticity is guaranteed
-by the mutual-TLS channel plus Basic Auth, not by a signed payload.
+by the mutual-TLS channel, with Basic Auth as an optional application-layer
+factor — not by a signed payload.
 
 ## Alert Categories (`alertType`)
 

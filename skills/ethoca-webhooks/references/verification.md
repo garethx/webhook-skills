@@ -7,23 +7,26 @@ header you recompute and compare. **Ethoca does not.** There is no
 `X-Ethoca-Signature`, no HMAC, and this is **not** Standard Webhooks
 (`webhook-id` / `webhook-timestamp` / `webhook-signature`).
 
-Authenticity of an Ethoca Alerts Push delivery rests on two layers you set up
-during onboarding:
+Authenticity of an Ethoca Alerts Push delivery rests primarily on the transport:
 
-1. **Mutual TLS (MSSL)** — the transport. Ethoca presents a client certificate
-   chaining to the **Entrust** CA. Your TLS terminator trusts that CA and
-   requires a valid client cert, so only Ethoca can complete the connection.
-2. **HTTP Basic Auth** — the application check. Every POST carries
-   `Authorization: Basic base64(username:password)` with credentials agreed
-   during onboarding.
+1. **Mutual TLS (MSSL) — the definitive layer.** Ethoca presents a client
+   certificate chaining to the **Entrust** CA. Your TLS terminator trusts that CA
+   and requires a valid client cert, so only Ethoca can complete the connection.
+   This is the mechanism that authenticates the delivery.
+2. **HTTP Basic Auth — an OPTIONAL second factor.** *If* you agree Basic Auth
+   credentials with the Ethoca Customer Delivery Team at onboarding, each POST
+   carries `Authorization: Basic base64(username:password)` and your handler
+   checks it. It is not guaranteed by the API — an mTLS-only endpoint may receive
+   no `Authorization` header, so enforce this check **only when credentials are
+   configured** rather than rejecting unauthenticated requests outright.
 
-A third recommended layer is an **IP allowlist** of Ethoca's egress ranges.
+A recommended additional layer is an **IP allowlist** of Ethoca's egress ranges.
 
 Because there is no signature over the body, the raw request bytes are not
 security-critical, and ordinary JSON body parsing is safe here. Do **not**
 fabricate an HMAC check — there is nothing to verify against.
 
-## Implementation — Basic Auth (what your handler checks)
+## Implementation — Basic Auth (optional, when configured)
 
 ### Node.js
 
@@ -121,13 +124,16 @@ Consumer Clarity** product, not Alerts).
 ## Common Gotchas
 
 - **Do not look for a signature header.** There is no HMAC on push alerts.
-  Verification = mTLS + Basic Auth.
+  Trust = mTLS (definitive) + optional Basic Auth.
+- **Basic Auth is optional.** Enforce it only when `ETHOCA_WEBHOOK_USERNAME` /
+  `ETHOCA_WEBHOOK_PASSWORD` are configured. An mTLS-only endpoint may receive no
+  `Authorization` header — accept those deliveries rather than returning `401`.
 - **Split the decoded credentials on the first colon only.** Passwords can
   contain `:`.
 - **Use a timing-safe comparison** (`crypto.timingSafeEqual` / `hmac.compare_digest`)
   and guard against length mismatch, which throws in Node.
-- **Return `401`** for missing or invalid credentials, `200` to acknowledge a
-  valid alert.
+- **Return `401`** for invalid credentials *when Basic Auth is configured*, `200`
+  to acknowledge a valid alert.
 - **mTLS cannot be exercised through a local tunnel** (the tunnel terminates
   TLS). Validate it in staging.
 - **Consumer Clarity ≠ Alerts.** The `ETHOCA-SHA1 KeyRef=...,Signature=...`

@@ -2,8 +2,9 @@
 name: ethoca-webhooks
 description: >
   Receive and verify Ethoca (Mastercard) Alerts webhooks. Use when setting up an
-  Ethoca Alerts Push API receiver, securing the endpoint (mTLS + HTTP Basic Auth,
-  no HMAC signature), or handling fraud and dispute alert notifications.
+  Ethoca Alerts Push API receiver, securing the endpoint (mTLS, with optional
+  onboarding-agreed HTTP Basic Auth; no HMAC signature), or handling fraud and
+  dispute alert notifications.
 license: MIT
 metadata:
   author: hookdeck
@@ -29,18 +30,23 @@ JSON to an endpoint you register with the Ethoca Customer Delivery Team.
 
 **There is NO per-message HMAC/signature header on Ethoca Push API alerts.** Do
 not look for `X-Ethoca-Signature` or a Standard Webhooks header — none exists.
-Trust is established at two layers you configure with Ethoca during onboarding:
+Trust is established primarily by the transport:
 
-1. **Transport — mutual TLS (MSSL).** Ethoca presents a client certificate; your
-   server must trust the **Entrust** CA and (recommended) require a client cert.
-   This is enforced at your TLS terminator / load balancer, not in app code.
-2. **Application — HTTP Basic Auth.** Ethoca sends `Authorization: Basic
-   base64(username:password)` on every POST, using credentials you agree during
-   onboarding. This is the check your handler performs.
+1. **Transport — mutual TLS (MSSL) — the definitive check.** Ethoca presents a
+   client certificate; your server must trust the **Entrust** CA and require a
+   client cert. This is enforced at your TLS terminator / load balancer, not in
+   app code, and is the actual mechanism that authenticates the delivery.
+2. **Application — HTTP Basic Auth (OPTIONAL).** *If* you agree Basic Auth
+   credentials with the Ethoca Customer Delivery Team at onboarding, Ethoca sends
+   `Authorization: Basic base64(username:password)` and your handler checks it.
+   Whether Ethoca sends Basic Auth is not guaranteed by the API — an endpoint
+   secured by mTLS alone may receive no `Authorization` header.
 
-An **IP allowlist** of Ethoca's egress ranges is a recommended third layer.
+An **IP allowlist** of Ethoca's egress ranges is a recommended additional layer.
 
-Verify the Basic Auth credentials with a timing-safe comparison. Node:
+Enforce Basic Auth **only when credentials are configured** — if none are set,
+accept the delivery and rely on mTLS rather than returning `401`. When
+configured, verify the credentials with a timing-safe comparison. Node:
 
 ```javascript
 const crypto = require('crypto');
@@ -92,9 +98,13 @@ Ethoca alerts fall into two categories, carried in the `alertType` field:
 
 ## Environment Variables
 
+Optional — set both only if you agreed Basic Auth credentials at onboarding.
+Leave them unset for an mTLS-only endpoint (the handler then skips the Basic Auth
+check instead of returning `401`).
+
 ```bash
-ETHOCA_WEBHOOK_USERNAME=your_basic_auth_username   # Agreed with Ethoca onboarding
-ETHOCA_WEBHOOK_PASSWORD=your_basic_auth_password   # Agreed with Ethoca onboarding
+ETHOCA_WEBHOOK_USERNAME=your_basic_auth_username   # Optional; agreed with Ethoca onboarding
+ETHOCA_WEBHOOK_PASSWORD=your_basic_auth_password   # Optional; agreed with Ethoca onboarding
 ```
 
 ## Local Development

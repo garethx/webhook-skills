@@ -1,18 +1,20 @@
 # Ethoca Webhooks - Next.js Example
 
-Minimal example of receiving Ethoca Alerts webhooks (Push API) with HTTP Basic
-Auth verification, using the Next.js App Router.
+Minimal example of receiving Ethoca Alerts webhooks (Push API), secured by mTLS
+with optional HTTP Basic Auth, using the Next.js App Router.
 
 > **Ethoca Alerts have no HMAC signature.** Authenticity comes from mutual TLS
-> (MSSL, Entrust CA) at the transport layer plus HTTP Basic Auth at the
-> application layer. This example implements the Basic Auth check; configure mTLS
-> at your load balancer / reverse proxy (see the skill's `references/verification.md`).
+> (MSSL, Entrust CA) at the transport layer — the definitive check. HTTP Basic
+> Auth is an OPTIONAL second factor, applied only if you agreed credentials at
+> onboarding. This example implements the Basic Auth check *when credentials are
+> configured*; otherwise it relies on mTLS. Configure mTLS at your load balancer
+> / reverse proxy (see the skill's `references/verification.md`).
 
 ## Prerequisites
 
 - Node.js 18+
 - Ethoca Alerts account with a push endpoint registered by the Customer Delivery Team
-- The HTTP Basic Auth username/password agreed during onboarding
+- Optionally, the HTTP Basic Auth username/password if agreed during onboarding
 
 ## Setup
 
@@ -26,7 +28,8 @@ Auth verification, using the Next.js App Router.
    cp .env.example .env
    ```
 
-3. Add your Ethoca Basic Auth credentials to `.env`.
+3. If you agreed Basic Auth at onboarding, add the credentials to `.env`.
+   Otherwise leave them unset to run mTLS-only.
 
 ## Run
 
