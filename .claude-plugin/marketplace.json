@@ -54,6 +54,27 @@
       ]
     },
     {
+      "name": "ascend-webhooks",
+      "description": "Receive and verify Ascend webhooks. Use when setting up Ascend webhook handlers, debugging Ascend signature verification (X-Ascend-Signature, HMAC-SHA256), or handling insurance payment events like invoice.paid, payout.paid, and refund.paid.",
+      "source": "./skills/ascend-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/ascend-webhooks",
+      "keywords": [
+        "webhooks",
+        "ascend"
+      ]
+    },
+    {
       "name": "bunny-stream-webhooks",
       "description": "Receive and verify Bunny Stream webhooks. Use when setting up Bunny Stream webhook handlers, debugging X-BunnyStream-Signature verification, or handling video encoding events like Status 3 (Finished / encoding done), Status 5 (Failed), or captions and title/description generation.",
       "source": "./skills/bunny-stream-webhooks",
