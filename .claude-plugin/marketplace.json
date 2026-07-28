@@ -225,6 +225,27 @@
       ]
     },
     {
+      "name": "praxis-webhooks",
+      "description": "Receive and verify Praxis (Praxis Tech / Cashier payment orchestration) webhooks. Use when setting up a Praxis webhook endpoint, verifying the gt-authentication SHA-384 signature, signing the acknowledgement with the external-request-signature header, or handling Payment Notification (transaction_status pending, approved, rejected, error) and Subscription Notification events.",
+      "source": "./skills/praxis-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/praxis-webhooks",
+      "keywords": [
+        "webhooks",
+        "praxis"
+      ]
+    },
+    {
       "name": "synctera-webhooks",
       "description": "Receive and verify Synctera webhooks. Use when setting up Synctera webhook handlers, debugging Synctera-Signature verification, or handling banking events like ACCOUNT.UPDATED or TRANSACTIONS.POSTED.CREATED.",
       "source": "./skills/synctera-webhooks",
