@@ -1,0 +1,74 @@
+# PayPro Global Webhooks - Next.js Example
+
+Minimal example of receiving PayPro Global IPN (Instant Payment Notification)
+webhooks in a Next.js App Router route handler, with `SIGNATURE` (SHA256) and
+`HASH` (MD5) verification.
+
+## Prerequisites
+
+- Node.js 18+
+- A PayPro Global vendor account with the **Validation Key** and **Secret Key**
+  from **Store Settings → General Settings → Integration**
+
+## Setup
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Copy environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. Set `PAYPRO_VALIDATION_KEY` (for `SIGNATURE`) and, optionally,
+   `PAYPRO_SECRET_KEY` (for `HASH`). These are **two different keys**.
+
+## Run
+
+```bash
+npm run dev
+```
+
+The route handler lives at `app/webhooks/paypro-global/route.ts` and receives
+webhooks at `POST /webhooks/paypro-global` (http://localhost:3000).
+
+## How It Works
+
+1. **(Optional) IP allowlist** — when `PAYPRO_ENFORCE_IP=true`, reject requests
+   whose `x-forwarded-for` source IP is not one of PayPro Global's fixed
+   addresses (`403`).
+2. **Verify `SIGNATURE`** (SHA256, primary) — recompute from the parsed form
+   field values and compare timing-safely (`400` on mismatch).
+3. **Verify `HASH`** (MD5, secondary) — enforced only when `PAYPRO_SECRET_KEY`
+   is set (`400` on mismatch).
+4. **Dispatch** on `IPN_TYPE_NAME` and respond `200` to acknowledge.
+
+PayPro Global posts `application/x-www-form-urlencoded` — the body is parsed with
+`request.formData()`. The `SIGNATURE` covers specific field **values**, not the
+raw body, so parsing first is correct here.
+
+> PayPro Global has **no official SDK** — verification is manual. See
+> [../../references/verification.md](../../references/verification.md).
+
+## Test
+
+```bash
+npm test
+```
+
+The tests generate real `SIGNATURE` and `HASH` values using the same algorithm as
+PayPro Global (including the documented examples), and cover valid, tampered,
+test-order, and missing-field cases.
+
+## Local Development
+
+Tunnel PayPro Global IPNs to your local server with the Hookdeck CLI:
+
+```bash
+npx hookdeck-cli listen 3000 paypro-global --path /webhooks/paypro-global
+```
+
+No account required — the CLI creates a guest account and provides a local tunnel
+plus a web UI for inspecting requests.
