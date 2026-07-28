@@ -97,6 +97,27 @@
       ]
     },
     {
+      "name": "paypro-global-webhooks",
+      "description": "Receive and verify PayPro Global IPN (Instant Payment Notification) webhooks. Use when setting up a PayPro Global IPN handler, debugging the SIGNATURE (SHA256) or HASH (MD5) verification, or handling order and subscription events like OrderCharged, OrderRefunded, and SubscriptionChargeSucceed. Payloads are form-encoded (application/x-www-form-urlencoded), not JSON. NOT HMAC-in-a-header and NOT Standard Webhooks — SIGNATURE is SHA256 over ORDER_ID+ORDER_STATUS+ORDER_TOTAL_AMOUNT+CUSTOMER_EMAIL+VALIDATION_KEY+TEST_MODE+IPN_TYPE_NAME, and HASH is MD5(ORDER_ID+SecretKey); VALIDATION_KEY and SecretKey are two different keys.",
+      "source": "./skills/paypro-global-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/paypro-global-webhooks",
+      "keywords": [
+        "webhooks",
+        "paypro-global"
+      ]
+    },
+    {
       "name": "favro-webhooks",
       "description": "Receive and verify Favro webhooks. Use when setting up Favro webhook handlers, debugging X-Favro-Webhook signature verification, accepting the setup ping, or handling card events (card.created, card.committed, card.moved, card.updated, card.deleted) and comment events (comment.created, comment.updated, comment.deleted). Note: Favro does NOT use Standard Webhooks — the signature is base64(HMAC-SHA1(secret, payloadId + the URL you registered)), signed over the payloadId concatenated with the target URL, NOT the raw request body.",
       "source": "./skills/favro-webhooks",
