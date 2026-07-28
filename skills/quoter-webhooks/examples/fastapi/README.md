@@ -1,0 +1,75 @@
+# Quoter Webhooks - FastAPI Example
+
+Minimal example of receiving Quoter webhooks with MD5 hash verification using
+FastAPI.
+
+Quoter POSTs `application/x-www-form-urlencoded` with three fields — `hash`,
+`timestamp`, and `data` — and signs with `md5(HASH_KEY + timestamp + data)`.
+This is a weak scheme (MD5, form field, optional key), **not** HMAC-SHA256 and
+**not** Standard Webhooks. Always configure a Hash Key in Quoter.
+
+## Prerequisites
+
+- Python 3.9+
+- A Quoter account with a webhook configured under Settings → Integrations (with a Hash Key set)
+
+## Setup
+
+1. Create virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Copy environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Add your Quoter Hash Key to `.env` (`QUOTER_HASH_KEY`).
+
+## Run
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+Server runs on http://localhost:8000
+
+## Object Type Routing
+
+Quoter doesn't identify the object type in the request. Configure a distinct
+target URL per object type using the `?object=` query parameter, matching the
+webhook's "Applies To" setting:
+
+- Quote → `https://yourapp.com/webhooks/quoter?object=quote`
+- Person → `https://yourapp.com/webhooks/quoter?object=person`
+- Payment → `https://yourapp.com/webhooks/quoter?object=payment`
+
+## Test
+
+Run the test suite (generates real MD5 hashes):
+
+```bash
+pytest test_webhook.py -v
+```
+
+### Using Hookdeck CLI
+
+```bash
+# Forward webhooks to localhost (no account required)
+npx hookdeck-cli listen 8000 quoter --path /webhooks/quoter
+```
+
+Point the Quoter webhook target URL at the URL the CLI prints (append
+`?object=quote`, `?object=person`, or `?object=payment`), then create or update
+a matching object in Quoter.
+
+## Endpoint
+
+- `POST /webhooks/quoter` - Receives and verifies Quoter webhook deliveries
