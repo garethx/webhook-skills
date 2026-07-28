@@ -65,6 +65,32 @@ providers:
         - APPROVED
         - DECLINED
 
+  - name: ascend
+    displayName: Ascend
+    docs:
+      webhooks: https://developers.useascend.com/docs/webhooks
+      verification: https://developers.useascend.com/docs/webhooks
+    notes: >
+      Insurance payments / premium financing platform. Custom Stripe-style
+      HMAC-SHA256 scheme — NOT Svix, NOT Standard Webhooks. Signature is in the
+      X-Ascend-Signature header formatted "t=<timestamp>,v1=<hex_hmac>". The
+      signed string is "<timestamp>:<raw_request_body>" (COLON separator, not
+      Stripe's dot). The same timestamp also arrives in X-Ascend-Request-Timestamp.
+      Compute HMAC-SHA256 over that string with the webhook secret, hex-encode,
+      constant-time compare. Use the RAW body — re-serializing breaks the match.
+      Payload shape is { id, type, data } where `data` IS the resource object
+      (no Stripe-style data.object wrapper). Endpoints must return HTTP 200.
+      Webhook registration is MANUAL (email developers@useascend.com with org,
+      environment, events, and endpoint URL — no self-serve dashboard). Only
+      invoice.paid is documented with a sample payload; payout and refund
+      categories exist. Retry behaviour and timestamp tolerance are not
+      documented — make handlers idempotent on the event id. No official SDKs,
+      so verify manually in every framework.
+    testScenario:
+      events:
+        - invoice.paid
+        - payout.paid
+
   - name: akeneo
     displayName: Akeneo
     docs:
@@ -463,6 +489,36 @@ providers:
       events:
         - created
         - matter_closed
+
+  - name: cloudsignal
+    displayName: CloudSignal (Cloudprinter.com)
+    docs:
+      webhooks: https://docs.cloudprinter.com/client/cloudsignal-webhooks-v2-0
+      verification: https://docs.cloudprinter.com/connected-apps/cloudsignal-webhooks/
+    notes: >
+      CloudSignal is Cloudprinter.com's OUTBOUND webhook product for print-fulfilment
+      order/item status notifications — NOT the unrelated cloudsignal.io MQTT platform.
+      CRITICAL: authentication is NOT an HMAC signature and NOT Standard Webhooks. Each
+      POST carries a plaintext per-endpoint "Webhook API key" in the JSON body's `apikey`
+      field (distinct from the account API key); the receiver matches it against the
+      configured key with a timing-safe compare. There is NO signature header, no
+      timestamp, no HMAC — do NOT invent an X-CloudSignal-Signature. Because the apikey
+      lives inside the body, ordinary JSON parsing IS the verification step (no raw body
+      needed). Set CLOUDSIGNAL_WEBHOOK_APIKEY. Nine signal types (case-sensitive
+      PascalCase): CloudprinterOrderValidated, ItemValidated, ItemProduce, ItemProduced,
+      ItemPacked, ItemShipped (adds tracking, shipping_option), ItemError (adds cause),
+      ItemCanceled (adds cause), CloudprinterOrderCanceled. Common fields: apikey, type,
+      order, item, order_reference, item_reference, datetime. Return HTTP 200/204 to
+      acknowledge; anything else triggers retries — up to 100 attempts over 7 days. The
+      official SDK @cloudprinter/cloudsignal (npm; no pip) is a STANDALONE Node http
+      server (new CloudSignal.EventHandler(apikey, port) emitting events), so it cannot
+      mount on an Express/Next.js/FastAPI route — the examples verify manually (its
+      internal check is exactly body.apikey === expectedKey, and it returns 500 on a bad
+      key where the examples return 401).
+    testScenario:
+      events:
+        - CloudprinterOrderValidated
+        - ItemShipped
 
   - name: cursor
     displayName: Cursor
@@ -957,6 +1013,44 @@ providers:
         - subscription.activated
         - subscription.charge.completed
 
+  - name: faundit
+    displayName: Faundit
+    docs:
+      webhooks: https://faundit.gitbook.io/faundit-api-v2/webhooks
+      verification: https://faundit.gitbook.io/faundit-api-v2/webhooks
+    notes: >
+      Lost-and-found / returns platform. Signs webhooks with HMAC-SHA256, hex-encoded.
+      NOT the Standard Webhooks spec. The current (v1) scheme sends header
+      X-Faundit-Signature-Next computed over "v1:<timestamp>:<body>", where <timestamp>
+      is the X-Faundit-Timestamp header value and <body> is the RAW, unparsed request
+      body (payload integrity). A deprecated v0 scheme sends header X-Faundit-Signature
+      over "v0:<timestamp>" only (no body integrity — avoid). Verify by recomputing
+      hex(HMAC-SHA256(secret, "v1:" + timestamp + ":" + raw_body)) and constant-time
+      comparing against X-Faundit-Signature-Next; use the raw body before JSON parsing and
+      prefer the -Next header. The signing secret is NOT self-service — request it from
+      tech@faundit.com. Only TWO event types exist: item-status and request-status; the
+      granular statuses (item: contact-missing, waiting-response, wrong-owner,
+      pickup-by-guest, left-behind, finished, shipment-paid, pickup-scheduled, in-route,
+      delivered, deleted, expired, anonymized; request: registered, not-found, resolved,
+      deleted, expired, anonymized) are the data.status payload field, NOT separate events.
+      Payload envelope: { "event-type", "data": { id, timestamp, status, locationID } }.
+      API v2 renamed Members/faundit_memberID to Locations/locationID (legacy IDs still
+      accepted). No official SDKs — verify HMAC manually in every framework. Set
+      FAUNDIT_WEBHOOK_SECRET env var.
+    testScenario:
+      events:
+        - item-status
+        - request-status
+      prompt: >
+        Create a {framework} webhook handler for Faundit. Verify the
+        X-Faundit-Signature-Next header (recompute hex HMAC-SHA256 over
+        "v1:<X-Faundit-Timestamp>:<raw body>" with the signing secret and constant-time
+        compare) using the raw, unparsed body. After verifying, dispatch on the top-level
+        event-type field (item-status or request-status) and branch on data.status such as
+        delivered, finished, expired, registered, and resolved. Return 400 for an invalid
+        signature and 200 on success. If you use any skills to help with this, add a comment
+        noting which skill(s) you referenced.
+
   - name: fusionauth
     displayName: FusionAuth
     docs:
@@ -1065,6 +1159,47 @@ providers:
         events like transaction and achTransfer, and acknowledge by echoing the x-GD-RequestId header
         and returning HTTP 200 with a responseDetails JSON body. If you use any skills to help with
         this, add a comment noting which skill(s) you referenced.
+
+  - name: praxis
+    displayName: Praxis
+    docs:
+      webhooks: https://docs.praxis.tech/reference/webhooks
+      verification: https://docs.praxis.tech/docs/authentication
+    notes: >
+      Praxis Tech ("Cashier") payment orchestration. NOT Standard Webhooks and NOT an HMAC. Every
+      outbound webhook is signed with a SHA-384 hex digest (96 lowercase hex chars) in the lowercase
+      gt-authentication header. Verification: take a FIXED, per-webhook-type list of field VALUES in
+      the documented order, concatenate them into one string, append the Merchant Secret, then
+      hash('sha384', concatenated + merchant_secret) and compare (timing-safe) to gt-authentication.
+      Field sets differ per type. Payment Notification (no event-name field; identified by
+      transaction.transaction_status = initialized/pending/approved/rejected/error): merchant_id,
+      application_key, timestamp, customer.customer_token, session.order_id, transaction.tid,
+      transaction.currency, transaction.amount, transaction.conversion_rate,
+      transaction.processed_currency, transaction.processed_amount + secret. Subscription Notification
+      (has an explicit event field): event, merchant_id, application_key, cid, plan_id,
+      subscription_id, subscription_status, timestamp + secret. GOTCHA: the general API-request
+      signature sorts keys alphabetically (ksort) then values+secret+sha384, but WEBHOOKS use the
+      explicit documented field order per type — do NOT alphabetize webhook fields. Amounts arrive as
+      STRINGS ("10.00") — do not re-serialize them as numbers or the digest breaks. Because the
+      signature covers field values (not the raw body), you must parse JSON first to rebuild the
+      signed string. The endpoint MUST reply HTTP 200 with a {"status":0,...} body AND sign the ACK:
+      response fields status+timestamp, hash('sha384', status+timestamp+merchant_secret), sent in the
+      external-request-signature response header. No official server SDK (only a browser Cashier JS
+      SDK) — verification is manual on every platform.
+    testScenario:
+      events:
+        - approved
+        - PaymentSucceeded
+      prompt: >
+        Create a {framework} webhook handler for Praxis (Cashier) payment orchestration. Verify the
+        gt-authentication header: concatenate the documented per-type field VALUES in order (do NOT
+        alphabetize), append the Merchant Secret, hash with SHA-384 (hex), and compare timing-safely.
+        A Subscription Notification carries an event field; a Payment Notification does not (dispatch
+        on transaction.transaction_status). Parse JSON before verifying (the signature covers field
+        values, not the raw body), keep amounts as strings, return 400 on a bad or missing signature,
+        and acknowledge with HTTP 200 + a {"status":0,"timestamp":...} body signed via the
+        external-request-signature header (sha384 of status+timestamp+secret). If you use any skills
+        to help with this, add a comment noting which skill(s) you referenced.
 
   - name: hubspot
     displayName: HubSpot
@@ -3753,3 +3888,51 @@ providers:
         SubscriptionChargeSucceed), return 400 for an invalid signature and 200 to acknowledge.
         If you use any skills to help with this, add a comment noting which skill(s) you
         referenced.
+  - name: zift
+    displayName: Zift
+    docs:
+      webhooks: https://api.zift.io/#webhooks
+      verification: https://api.zift.io/#webhooks
+    notes: >
+      Zift (a payments platform / gateway) delivers billing and processing notifications
+      as plain HTTPS POST + JSON to an endpoint registered OUT-OF-BAND (email Zift support
+      the HTTPS endpoint URL and desired events; webhooks are set at the integrator/reseller
+      level, NOT per-merchant — there is no self-serve dashboard UI). CRITICAL: there is NO
+      signature/HMAC header, NO signing secret, and NO Basic/token auth on delivery — this is
+      confirmed from the full rendered docs, not just "couldn't find it". Do NOT invent an
+      X-Zift-Signature and this is NOT Standard Webhooks. Authenticity relies only on HTTPS +
+      endpoint-URL secrecy (recommend IP allowlisting Zift's egress ranges at the load
+      balancer). A tunnel/gateway (e.g. Hookdeck's ZIFT source) cannot cryptographically
+      verify these — treat as unverified/passthrough. Because there is no body signature,
+      ordinary JSON parsing is safe. The ONE protocol requirement is the ACKNOWLEDGEMENT: to
+      ack a delivery the endpoint MUST return a JSON body echoing the received notificationId,
+      e.g. {"notificationId": 272638} — Zift accepts an int OR a string, so pass the value
+      straight through to preserve its type. Returning "OK"/empty/{"received":true} is NOT an
+      ack and triggers retries at +5min, +15min, +60min, +24h, then status "Failed" (no further
+      redelivery) — so make handling idempotent (dedupe on notificationId). Payload envelope:
+      notificationId, eventCode (dotted category.entity-action, e.g. "billing.subscription-created"),
+      eventDate (epoch-MILLISECONDS), dataType (names the shape of data), data{}. Two event
+      families keyed by the eventCode prefix — billing.* and processing.* — dispatch on the
+      prefix (robust) then branch on the specific code. Only billing.subscription-created is
+      documented verbatim; other eventCodes are derived from the setup TRIGGER names (billing:
+      subscription~create, payment-option~create, allocation~create, payment~process; processing:
+      chargeback, return, reversal, NOC) using the category.entity-action pattern — confirm exact
+      literals with Zift support at onboarding. processing.return and processing.noc carry ACH
+      detail (return reason codes; NOC token/routing/account-type changes). No official Zift
+      webhook SDKs.
+    testScenario:
+      events:
+        - billing.subscription-created
+        - processing.chargeback
+      prompt: >
+        Create a {framework} webhook handler for Zift. There is NO HMAC/signature header and
+        NO signing secret — do NOT invent an X-Zift-Signature or a Standard Webhooks check.
+        Parse the JSON body (notificationId, eventCode, eventDate, dataType, data) and ACKNOWLEDGE
+        the delivery by returning a JSON body echoing the received notificationId, e.g.
+        {"notificationId": 272638} — accept an int OR a string and pass it straight through so the
+        echoed type matches. Returning "OK"/empty is NOT an ack and causes retries. Dispatch on the
+        eventCode prefix (billing.* vs processing.*) then branch on the specific code such as
+        billing.subscription-created and processing.chargeback; make handling idempotent (dedupe on
+        notificationId). Return 400 when notificationId is missing (cannot ack) and 200 with the
+        acknowledgement body on success. If you use any skills to help with this, add a comment
+        noting which skill(s) you referenced.
