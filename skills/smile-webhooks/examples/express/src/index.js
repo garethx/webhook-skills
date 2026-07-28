@@ -47,7 +47,7 @@ function handleEvent(event) {
       break;
     case 'IDENTITY_ADDED':
       console.log(`Identity added: ${event.data?.userId}`);
-      // TODO: populate KYC / profile fields.
+      // TODO: populate identity / profile fields.
       break;
     case 'INCOMES_ADDED':
       console.log(`Incomes added: ${event.data?.userId}`);
