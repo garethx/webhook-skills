@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import hmac
 import json
@@ -6,7 +7,7 @@ import os
 # Set env before importing the app so module-level config picks it up.
 os.environ["SMILE_WEBHOOK_SECRET"] = "test_webhook_secret"
 
-from fastapi.testclient import TestClient
+import httpx
 
 import main
 
@@ -32,12 +33,19 @@ def sign(body: str, secret: str = SECRET) -> str:
     return hmac.new(secret.encode("utf-8"), body.encode("utf-8"), hashlib.sha512).hexdigest()
 
 
-client = TestClient(main.app)
+def post(headers: dict, content: str) -> httpx.Response:
+    """POST to the app through httpx's ASGI transport (no live server)."""
+
+    async def _post() -> httpx.Response:
+        transport = httpx.ASGITransport(app=main.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post("/webhooks/smile", headers=headers, content=content)
+
+    return asyncio.run(_post())
 
 
 def test_accepts_valid_signature():
-    res = client.post(
-        "/webhooks/smile",
+    res = post(
         headers={"Smile-Signature": sign(PAYLOAD), "Content-Type": "application/json"},
         content=PAYLOAD,
     )
@@ -46,8 +54,7 @@ def test_accepts_valid_signature():
 
 
 def test_rejects_missing_signature():
-    res = client.post(
-        "/webhooks/smile",
+    res = post(
         headers={"Content-Type": "application/json"},
         content=PAYLOAD,
     )
@@ -55,8 +62,7 @@ def test_rejects_missing_signature():
 
 
 def test_rejects_invalid_signature():
-    res = client.post(
-        "/webhooks/smile",
+    res = post(
         headers={"Smile-Signature": "deadbeef", "Content-Type": "application/json"},
         content=PAYLOAD,
     )
@@ -64,8 +70,7 @@ def test_rejects_invalid_signature():
 
 
 def test_rejects_wrong_secret():
-    res = client.post(
-        "/webhooks/smile",
+    res = post(
         headers={
             "Smile-Signature": sign(PAYLOAD, "wrong_secret"),
             "Content-Type": "application/json",
@@ -78,8 +83,7 @@ def test_rejects_wrong_secret():
 def test_rejects_tampered_body():
     signature = sign(PAYLOAD)  # signature for the original body
     tampered = PAYLOAD.replace("ACCOUNT_CONNECTED", "RECORD_COMPLETED")
-    res = client.post(
-        "/webhooks/smile",
+    res = post(
         headers={"Smile-Signature": signature, "Content-Type": "application/json"},
         content=tampered,
     )
@@ -88,8 +92,7 @@ def test_rejects_tampered_body():
 
 def test_rejects_invalid_json_with_valid_signature():
     body = "{not json"
-    res = client.post(
-        "/webhooks/smile",
+    res = post(
         headers={"Smile-Signature": sign(body), "Content-Type": "application/json"},
         content=body,
     )
