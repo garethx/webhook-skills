@@ -330,6 +330,27 @@
       ]
     },
     {
+      "name": "zift-webhooks",
+      "description": "Receive and acknowledge Zift (Zift Payments / payment gateway) webhook notifications. Use when setting up a Zift webhook receiver, understanding why there is no signature/HMAC header to verify, returning the required {\"notificationId\": ...} acknowledgement, or handling billing and processing events like billing.subscription-created, processing.chargeback, and processing.return.",
+      "source": "./skills/zift-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/zift-webhooks",
+      "keywords": [
+        "webhooks",
+        "zift"
+      ]
+    },
+    {
       "name": "adyen-webhooks",
       "description": "Verify Adyen webhook HMAC signatures (additionalData.hmacSignature, HMAC-SHA256), handle AUTHORISATION, CAPTURE, and REFUND notifications.",
       "source": "./skills/adyen-webhooks",
