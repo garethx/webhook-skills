@@ -490,6 +490,36 @@ providers:
         - created
         - matter_closed
 
+  - name: cloudsignal
+    displayName: CloudSignal (Cloudprinter.com)
+    docs:
+      webhooks: https://docs.cloudprinter.com/client/cloudsignal-webhooks-v2-0
+      verification: https://docs.cloudprinter.com/connected-apps/cloudsignal-webhooks/
+    notes: >
+      CloudSignal is Cloudprinter.com's OUTBOUND webhook product for print-fulfilment
+      order/item status notifications — NOT the unrelated cloudsignal.io MQTT platform.
+      CRITICAL: authentication is NOT an HMAC signature and NOT Standard Webhooks. Each
+      POST carries a plaintext per-endpoint "Webhook API key" in the JSON body's `apikey`
+      field (distinct from the account API key); the receiver matches it against the
+      configured key with a timing-safe compare. There is NO signature header, no
+      timestamp, no HMAC — do NOT invent an X-CloudSignal-Signature. Because the apikey
+      lives inside the body, ordinary JSON parsing IS the verification step (no raw body
+      needed). Set CLOUDSIGNAL_WEBHOOK_APIKEY. Nine signal types (case-sensitive
+      PascalCase): CloudprinterOrderValidated, ItemValidated, ItemProduce, ItemProduced,
+      ItemPacked, ItemShipped (adds tracking, shipping_option), ItemError (adds cause),
+      ItemCanceled (adds cause), CloudprinterOrderCanceled. Common fields: apikey, type,
+      order, item, order_reference, item_reference, datetime. Return HTTP 200/204 to
+      acknowledge; anything else triggers retries — up to 100 attempts over 7 days. The
+      official SDK @cloudprinter/cloudsignal (npm; no pip) is a STANDALONE Node http
+      server (new CloudSignal.EventHandler(apikey, port) emitting events), so it cannot
+      mount on an Express/Next.js/FastAPI route — the examples verify manually (its
+      internal check is exactly body.apikey === expectedKey, and it returns 500 on a bad
+      key where the examples return 401).
+    testScenario:
+      events:
+        - CloudprinterOrderValidated
+        - ItemShipped
+
   - name: cursor
     displayName: Cursor
     docs:
