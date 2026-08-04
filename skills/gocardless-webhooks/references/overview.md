@@ -12,7 +12,7 @@ an `events` array (up to 250 events per request). Each event describes one chang
 one resource. The request is signed with an HMAC-SHA256 signature in the
 `Webhook-Signature` header.
 
-Because GoCardless **retries the entire batch** if your endpoint returns any non-2xx
+Because delivery is at-least-once and a manual retry (GoCardless does not auto-retry) replays the whole batch
 response, your handler must be **idempotent** — dedupe on each `event.id` so replays
 don't double-process.
 
@@ -38,9 +38,18 @@ don't double-process.
         "reason_code": "ADDACS-B"
       }
     }
-  ]
+  ],
+  "meta": { "webhook_id": "WB0123..." }
 }
 ```
+
+> **Confirmed against a live sandbox delivery (2026-08).** Real deliveries carry
+> a top-level `meta.webhook_id` alongside `events` (the SDK's `parseWithMeta`
+> reads it). `resource_type` is **plural on the wire** — e.g. an observed
+> delivery had `"resource_type":"billing_requests"`, `"action":"select_institution"`,
+> with `details{origin,cause,description}` and `links{customer,billing_request}`.
+> Observed request headers: `origin: https://api-sandbox.gocardless.com`,
+> `user-agent: gocardless-webhook-service/1.2`, `content-type: application/json`.
 
 Key fields on each event:
 
@@ -119,5 +128,5 @@ You typically dispatch on the combination of `resource_type` + `action`.
 ## Full Event Reference
 
 For the complete list of resource types and actions, see GoCardless's
-[webhook documentation](https://developer.gocardless.com/api-reference/#appendix-webhooks)
-and [staying up to date with webhooks](https://developer.gocardless.com/getting-started/api/staying-up-to-date-with-webhooks/).
+[webhook documentation](https://docs.gocardless.com/api-reference/#appendix-webhooks)
+and [staying up to date with webhooks](https://docs.gocardless.com/getting-started/api/staying-up-to-date-with-webhooks/).

@@ -105,3 +105,14 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_gocardless_official_public_test_vector():
+    """From gocardless-nodejs (src/fixtures/webhook_body.json), minified. Ties
+    this skill's signing to GoCardless's own published fixture (reproduced 2026-08)."""
+    import hmac as _hmac, hashlib as _hashlib
+    secret = "ED7D658C-D8EB-4941-948B-3973214F2D49"
+    body = "{\"events\":[{\"id\":\"EV00BD05S5VM2T\",\"created_at\":\"2018-07-05T09:13:51.404Z\",\"resource_type\":\"subscriptions\",\"action\":\"created\",\"links\":{\"subscription\":\"SB0003JJQ2MR06\"},\"details\":{\"origin\":\"api\",\"cause\":\"subscription_created\",\"description\":\"Subscription created via the API.\"},\"metadata\":{}},{\"id\":\"EV00BD05TB8K63\",\"created_at\":\"2018-07-05T09:13:56.893Z\",\"resource_type\":\"mandates\",\"action\":\"created\",\"links\":{\"mandate\":\"MD000AMA19XGEC\"},\"details\":{\"origin\":\"api\",\"cause\":\"mandate_created\",\"description\":\"Mandate created via the API.\"},\"metadata\":{}}]}"
+    expected = "2693754819d3e32d7e8fcb13c729631f316c6de8dc1cf634d6527f1c07276e7e"
+    computed = _hmac.new(secret.encode("utf-8"), body.encode("utf-8"), _hashlib.sha256).hexdigest()
+    assert computed == expected

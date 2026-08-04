@@ -118,6 +118,18 @@ describe('POST /webhooks/gocardless', () => {
   });
 });
 
+describe("GoCardless official public test vector", () => {
+  // From gocardless-nodejs (src/fixtures/webhook_body.json), minified. Ties this
+  // skill's signing to GoCardless's own published fixture. Reproduced 2026-08.
+  const VECTOR_SECRET = 'ED7D658C-D8EB-4941-948B-3973214F2D49';
+  const VECTOR_BODY = '{"events":[{"id":"EV00BD05S5VM2T","created_at":"2018-07-05T09:13:51.404Z","resource_type":"subscriptions","action":"created","links":{"subscription":"SB0003JJQ2MR06"},"details":{"origin":"api","cause":"subscription_created","description":"Subscription created via the API."},"metadata":{}},{"id":"EV00BD05TB8K63","created_at":"2018-07-05T09:13:56.893Z","resource_type":"mandates","action":"created","links":{"mandate":"MD000AMA19XGEC"},"details":{"origin":"api","cause":"mandate_created","description":"Mandate created via the API."},"metadata":{}}]}';
+  const VECTOR_SIG = '2693754819d3e32d7e8fcb13c729631f316c6de8dc1cf634d6527f1c07276e7e';
+
+  it("reproduces the published signature exactly", () => {
+    expect(sign(VECTOR_BODY, VECTOR_SECRET)).toBe(VECTOR_SIG);
+  });
+});
+
 describe('GET /health', () => {
   it('returns health status', async () => {
     const response = await request(app).get('/health');

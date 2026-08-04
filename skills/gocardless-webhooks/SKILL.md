@@ -27,14 +27,21 @@ HMAC-SHA256 signature in the `Webhook-Signature` header.
 
 ## How GoCardless Signs Webhooks
 
-- **Header:** `Webhook-Signature`
+- **Header:** `Webhook-Signature` — a bare 64-char lowercase hex digest (no `X-`
+  prefix, no `sha256=` scheme prefix)
 - **Algorithm:** HMAC-SHA256 over the **raw request body**, keyed with the
   webhook endpoint secret (from your GoCardless Dashboard)
+- **Key:** use the secret **verbatim as a UTF-8 string** — do NOT base64-decode it
+  even though it looks base64url-ish; decoding it produces a wrong signature
 - **Encoding:** lowercase **hex** string
 - **Comparison:** timing-safe equality
-- **Response:** return `204 No Content` once the whole batch is accepted. Return a
-  non-2xx (e.g. `498`) if verification fails. GoCardless **retries the whole batch**
-  on any non-2xx, so event handlers must be **idempotent on `event.id`**.
+- **Response:** return `204 No Content` once the whole batch is accepted; a non-2xx
+  (e.g. `498`) marks the delivery failed. GoCardless does **not** auto-retry —
+  redelivery is manual (`POST /webhooks/{id}/actions/retry`). Delivery is
+  at-least-once, so keep handlers **idempotent on `event.id`**.
+
+*(Scheme verified 2026-08 against a live sandbox delivery and the official
+`gocardless-nodejs` SDK; GoCardless's prose still doesn't name the algorithm.)*
 
 Always verify against the **raw body** — parsing JSON first and re-serializing will
 change the bytes and break the signature.
@@ -86,6 +93,7 @@ GoCardless events combine a `resource_type` with an `action`. The most common:
 | `payments` | `cancelled` | Payment cancelled before submission |
 | `payments` | `charged_back` | Customer charged the payment back |
 | `mandates` | `active` | Mandate set up and ready to collect |
+| `mandates` | `customer_approval_granted` | Customer authorised the mandate (confirmed live) |
 | `mandates` | `cancelled` | Mandate cancelled (e.g. bank account closed) |
 | `mandates` | `failed` | Mandate setup failed |
 | `mandates` | `expired` | Mandate expired through inactivity |
@@ -129,7 +137,7 @@ local tunnel + web UI for inspecting requests. Use port `8000` for the FastAPI e
 
 ## Recommended: webhook-handler-patterns
 
-We recommend installing the [webhook-handler-patterns](https://github.com/hookdeck/webhook-skills/tree/main/skills/webhook-handler-patterns) skill alongside this one. GoCardless retries the whole batch on any non-2xx, so idempotency matters. Key references (open on GitHub):
+We recommend installing the [webhook-handler-patterns](https://github.com/hookdeck/webhook-skills/tree/main/skills/webhook-handler-patterns) skill alongside this one. GoCardless doesn't auto-retry (redelivery is manual), but delivery is at-least-once, so idempotency matters. Key references (open on GitHub):
 
 - [Handler sequence](https://github.com/hookdeck/webhook-skills/blob/main/skills/webhook-handler-patterns/references/handler-sequence.md) — Verify first, parse second, handle idempotently third
 - [Idempotency](https://github.com/hookdeck/webhook-skills/blob/main/skills/webhook-handler-patterns/references/idempotency.md) — Prevent duplicate processing (dedupe on `event.id`)

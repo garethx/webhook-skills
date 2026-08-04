@@ -28,6 +28,14 @@ it to the header using a **timing-safe** equality check.
 | Secret | Webhook endpoint secret from the Dashboard |
 | Comparison | Timing-safe (`crypto.timingSafeEqual` / `hmac.compare_digest`) |
 
+> **Verified against a live sandbox delivery and GoCardless's official SDK
+> (2026-08).** A real delivery's `Webhook-Signature` was reproduced exactly by
+> `HMAC-SHA256(rawBody, secret)` over the exact wire bytes, and it matches the
+> `gocardless-nodejs` SDK's own construction
+> (`crypto.createHmac('sha256', secret).update(body).digest()` +
+> `timingSafeEqual`). GoCardless's prose still never names the algorithm — so
+> the algorithm is confirmed by evidence, not by their docs.
+
 ## Implementation
 
 ### SDK Verification (Node.js — preferred)
@@ -89,24 +97,34 @@ def verify(raw_body: bytes, signature_header: str, secret: str) -> bool:
 - **Header name casing.** The header is `Webhook-Signature`. HTTP headers are
   case-insensitive; most frameworks lower-case them (`webhook-signature`).
 - **Hex, not base64.** The signature is hex-encoded. Don't base64-decode it.
+- **Use the secret verbatim — do NOT base64-decode the KEY.** The endpoint secret
+  looks base64url-ish (e.g. contains `-` and `_`), which tempts a base64 decode
+  before HMAC-ing. Don't: the key is the raw UTF-8 string. Base64-decoding it
+  produces a non-matching signature (verified — decoding the public test vector's
+  secret yields the wrong digest).
+- **Header format.** `Webhook-Signature` carries a bare 64-char lowercase hex
+  digest — no `X-` prefix and no `sha256=` scheme prefix.
 - **Timing-safe compare.** Use `crypto.timingSafeEqual` (Node) or `hmac.compare_digest`
   (Python), not `==`. Guard against length mismatches (they raise/throw) by treating
   any exception as "invalid".
 - **Batches.** The body has an `events` array (up to 250 events). Verify once over the
   whole body, then iterate the events.
-- **Idempotency.** GoCardless retries the whole batch on any non-2xx. Dedupe on
-  `event.id` so retries don't double-process.
+- **Idempotency.** GoCardless does NOT auto-retry (see below), but delivery is
+  at-least-once and you (or a teammate) can manually redeliver, so still dedupe on
+  `event.id` to avoid double-processing.
 
 ## Response Codes
 
 | Situation | Status |
 |-----------|--------|
 | Signature valid, batch accepted | `204 No Content` |
-| Signature invalid or missing | `498` (any non-2xx triggers a retry) |
+| Signature invalid or missing | `498 Invalid Token` (GoCardless's documented value) |
 | Malformed body / unexpected error | `400` / `500` |
 
 GoCardless's documentation uses `204` for success and `498 Invalid Token` for a failed
-signature check. Any non-2xx response causes GoCardless to retry the batch.
+signature check. GoCardless does **not** automatically retry failed deliveries —
+redelivery is manual (see setup.md: `POST /webhooks/{id}/actions/retry` or the
+Dashboard). Still return `204` promptly and process asynchronously.
 
 ## Debugging Verification Failures
 
