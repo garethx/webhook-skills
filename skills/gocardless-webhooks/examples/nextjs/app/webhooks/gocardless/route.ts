@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     return new Response('Bad request', { status: 400 });
   }
 
-  // A webhook is a BATCH of events (up to 250). GoCardless retries the whole batch on
+  // A webhook is a BATCH of events (up to 250). Delivery is at-least-once and a manual retry replays the whole batch;
   // any non-2xx, so handlers must be idempotent on event.id.
   for (const event of events) {
     handleEvent(event);

@@ -15,5 +15,5 @@ Contributions to address these items are welcome.
 ## Suggestions
 
 - [ ] Everything else is accurate and internally consistent — signature verification (SDK + manual), event names, files, dependency versions, env vars, endpoint path, and tests all check out.
-- [ ] The 498 'Invalid Token' status is non-standard HTTP but is genuinely what GoCardless's own docs use, so it is correct to keep; a one-line note in verification.md explaining 'any non-2xx triggers a retry' already covers readers who find 498 surprising.
+- [ ] The 498 'Invalid Token' status is non-standard HTTP but is genuinely what GoCardless's own docs use, so it is correct to keep. (Note: the earlier 'any non-2xx triggers a retry' framing was corrected in 2026-08 — GoCardless does not auto-retry; redelivery is manual via POST /webhooks/{id}/actions/retry.)
 

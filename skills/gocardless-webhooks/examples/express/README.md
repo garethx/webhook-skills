@@ -47,7 +47,7 @@ Server runs on http://localhost:3000 and accepts webhooks at
   It throws `InvalidSignatureError` if the signature doesn't match.
 - A webhook is a **batch** of up to 250 events. Each event is dispatched by
   `resource_type` + `action`. Return `204 No Content` to acknowledge the batch.
-- GoCardless retries the whole batch on any non-2xx, so keep handlers **idempotent on
+- Delivery is at-least-once and manual retries replay the whole batch, so keep handlers **idempotent on
   `event.id`**.
 
 ## Test

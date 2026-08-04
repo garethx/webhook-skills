@@ -44,11 +44,14 @@ Each environment has its own webhook endpoints and secrets. Configure the correc
 ## Retries and Delivery
 
 - GoCardless expects a **2xx** response (return `204 No Content`).
-- If your endpoint returns a non-2xx status, times out, or is unreachable,
-  GoCardless **retries the entire batch** with exponential backoff.
-- Because the whole batch is retried, make handlers **idempotent on `event.id`**.
-- You can view delivery attempts and manually retry from the Dashboard under the
-  webhook endpoint.
+- **GoCardless does NOT automatically retry failed deliveries.** There is no
+  exponential-backoff schedule. If your endpoint returns a non-2xx, times out, or
+  is unreachable, the delivery is simply marked failed.
+- **Redelivery is manual**, either from the Dashboard (webhook endpoint → the
+  failed delivery) or via the API: `POST /webhooks/{id}/actions/retry` (the
+  `gocardless-nodejs` SDK exposes this as `webhooks.retry(id)`).
+- Delivery is at-least-once and manual retries replay the whole batch, so keep
+  handlers **idempotent on `event.id`**.
 
 ## Testing Locally
 

@@ -47,7 +47,7 @@ async def handle_webhook(request: Request):
     payload = json.loads(raw_body)
     events = payload.get("events", [])
 
-    # A webhook is a BATCH of events (up to 250). GoCardless retries the whole batch
+    # A webhook is a BATCH of events (up to 250). Delivery is at-least-once and a manual retry replays the whole batch
     # on any non-2xx, so handlers must be idempotent on event["id"].
     for event in events:
         handle_event(event)

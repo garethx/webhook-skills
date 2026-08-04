@@ -40,7 +40,7 @@ app.post(
     }
 
     // A single webhook is a BATCH of events (up to 250). Process each one.
-    // GoCardless retries the whole batch on any non-2xx, so handlers must be
+    // Delivery is at-least-once and a manual retry replays the whole batch, so handlers must be
     // idempotent on event.id.
     for (const event of events) {
       handleEvent(event);
