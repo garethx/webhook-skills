@@ -25,10 +25,18 @@ metadata:
 ## Verification (core)
 
 Square signs each webhook with an **HMAC-SHA256** over the **notification URL
-concatenated with the raw request body**, base64-encoded, delivered in the
+concatenated with the raw request body** (`notificationUrl + rawBody`, in that
+order — confirmed by testing), base64-encoded, delivered in the
 `x-square-hmacsha256-signature` header. The notification URL is part of the
-signed content, so it must exactly match the URL configured in your Square
-subscription. Always verify the **raw** body — never `JSON.parse` first.
+signed content, so it must exactly match — byte-for-byte — the URL configured in
+your Square subscription. Always verify the **raw** body — never `JSON.parse`
+first.
+
+> **Top pitfall:** the HMAC key is the subscription's **Signature Key** (short,
+> e.g. `qfjakbt2uWB8DKAMECF-EA`), used verbatim — **not** an OAuth access token
+> (`EAAA…`), which produces no match. Square also still sends a deprecated
+> `x-square-signature` (HMAC-SHA1) header alongside the SHA-256 one; verify the
+> **SHA-256** header.
 
 Node (official Square SDK — recommended):
 

@@ -10,12 +10,13 @@ tampered with in transit) before you act on payment or refund data.
 
 Square signs every webhook with an **HMAC-SHA256**:
 
-- **Header:** `x-square-hmacsha256-signature`
+- **Header:** `x-square-hmacsha256-signature` (44-character base64 digest)
 - **Algorithm:** HMAC-SHA256
 - **Encoding:** base64
 - **Signed content:** the **notification URL** concatenated with the **raw
   request body** — `notificationUrl + rawBody` — in that order
-- **Key:** the **signature key** from your webhook subscription
+- **Key:** the **signature key** from your webhook subscription, used
+  **verbatim** as the HMAC key (do **not** base64-decode it first)
 
 To verify, recompute the HMAC over `notificationUrl + rawBody` using your
 subscription's signature key, base64-encode it, and compare it against the
@@ -24,6 +25,21 @@ header value using a constant-time (timing-safe) comparison.
 > The notification URL is part of the signed content. It must be the **exact**
 > URL registered on the subscription (scheme, host, and path), or the computed
 > signature will not match.
+
+> **Verified against a live sandbox delivery (2026-08).** The `notificationUrl
+> + rawBody` ordering was confirmed empirically — `rawBody + notificationUrl`
+> and body-only both fail to match. The byte-for-byte URL requirement was also
+> confirmed: adding a trailing slash or switching `https`→`http` breaks
+> verification. The signature key is used verbatim as the HMAC key (matching
+> the SDK); base64-decoding it first does not match.
+
+### The legacy `x-square-signature` (SHA-1) header
+
+Square **still delivers** a second, deprecated header alongside the SHA-256 one:
+`x-square-signature`, an HMAC-**SHA1** (base64) over the same `notificationUrl +
+rawBody` content. Confirmed present on `square-version: 2026-07-15`. Do not rely
+on it — **verify the SHA-256 `x-square-hmacsha256-signature` header** — but do
+not be surprised to see it on incoming requests.
 
 ## Implementation
 
@@ -94,13 +110,21 @@ function isValidSquareSignature(rawBody, signature, key, url) {
 
 ## Common Gotchas
 
+- **Use the subscription's Signature Key — NOT an access token.** This is the
+  most common setup mistake. The HMAC key is the **Signature Key** shown on the
+  webhook subscription (short, e.g. `qfjakbt2uWB8DKAMECF-EA`). An OAuth/access
+  token (`EAAA…`) produces no match. If verification never passes, check you are
+  using the Signature Key, not the access token.
 - **Use the raw body.** Verify the exact bytes Square sent. If you parse JSON
   and re-serialize, whitespace and key ordering change and the signature will
   not match. In Express use `express.raw()`; in Next.js use `await request.text()`;
   in FastAPI use `await request.body()`.
-- **The notification URL is part of the signature.** It must match the
-  subscription's registered URL exactly — including `https://`, host, and path.
-  A trailing slash or `http` vs `https` mismatch breaks verification.
+- **The notification URL is part of the signature — byte-for-byte.** It must
+  match the subscription's registered URL exactly — including `https://`, host,
+  and path. A trailing slash or `http` vs `https` mismatch breaks verification
+  (confirmed by testing 2026-08).
+- **Do not base64-decode the Signature Key.** It is used verbatim (as UTF-8) as
+  the HMAC key. Decoding it first yields a different, non-matching digest.
 - **Each subscription has its own signature key.** Sandbox and Production keys
   differ. Verify with the key that matches the environment sending the event.
 - **Use a timing-safe comparison.** Compare with `crypto.timingSafeEqual`
