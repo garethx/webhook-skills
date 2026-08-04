@@ -51,6 +51,29 @@ describe('verifySquareSignature', () => {
 
     await expect(verifySquareSignature(body, signature)).resolves.toBe(false);
   });
+
+  // Known-answer test: locks the exact signing construction — HMAC-SHA256 over
+  // (notificationUrl + rawBody), base64, key used verbatim. The digest is
+  // self-computed (not a Square-produced signature; the ordering and encoding
+  // were confirmed against a live delivery and the official SDK, 2026-08). This
+  // guards against a regression that flips the order to (body + url) or decodes
+  // the key, which a round-trip test using the same helper could otherwise mask.
+  it('accepts a fixed known-answer signature (URL + body, base64)', async () => {
+    const kaKey = 'test_signature_key';
+    const kaUrl = 'https://example.com/webhooks/square';
+    const kaBody =
+      '{"merchant_id":"6SSW7HV8K2ST5","type":"order.updated",' +
+      '"event_id":"11111111-2222-3333-4444-555555555555",' +
+      '"created_at":"2026-08-04T12:00:00.000Z","data":{"type":"order_updated",' +
+      '"id":"ORDER123","object":{"order_updated":{"order_id":"ORDER123",' +
+      '"state":"OPEN","version":2}}}}';
+    const expected = 'ti2bYNj+FEJ+f3yjR4wIWQZaNkVBPfOCNkZzUuc7SrE=';
+
+    // The env key/url match kaKey/kaUrl, so the app verifies this directly.
+    expect(kaKey).toBe(signatureKey);
+    expect(kaUrl).toBe(notificationUrl);
+    await expect(verifySquareSignature(kaBody, expected)).resolves.toBe(true);
+  });
 });
 
 describe('POST /webhooks/square', () => {

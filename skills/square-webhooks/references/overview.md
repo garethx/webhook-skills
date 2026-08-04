@@ -61,14 +61,39 @@ All Square event notifications share the same top-level envelope:
 
 Key fields:
 
-- **`type`** — the event type; dispatch your handler logic on this value.
+- **`type`** — the event type; dispatch your handler logic on this value. Uses
+  **dot** notation (e.g. `order.updated`, `payment.updated`).
 - **`event_id`** — a unique ID for the event; use it for idempotency to skip
   duplicate deliveries (Square may deliver the same event more than once).
 - **`merchant_id`** — the Square account (merchant) the event belongs to.
 - **`created_at`** — ISO 8601 timestamp of when the event occurred.
-- **`data.type`** — the affected object type (e.g. `payment`, `refund`, `order`).
+- **`data.type`** — the affected object type. **Do not conflate this with the
+  top-level `type`.** The nested `data.type` uses **underscore** form and does
+  not always match the dotted event type — e.g. a live `order.updated` event
+  (top-level, dotted) carries `data.type: "order_updated"` (nested,
+  underscored). Dispatch on the top-level `type`, not `data.type`.
 - **`data.id`** — the ID of the affected object.
 - **`data.object`** — the affected object's current state.
+
+> **Confirmed live (2026-08).** An `order.updated` sandbox delivery carried the
+> envelope above with `merchant_id`, top-level `type: "order.updated"`,
+> `event_id`, `created_at`, and `data { type: "order_updated", id, object }`.
+
+## Request Headers
+
+A Square webhook delivery carries these headers (observed live, 2026-08):
+
+| Header | Purpose |
+|--------|---------|
+| `x-square-hmacsha256-signature` | HMAC-SHA256 (base64) signature — **verify this one** |
+| `x-square-signature` | Legacy HMAC-SHA1 (base64) signature — still sent, deprecated |
+| `square-environment` | `Sandbox` or `Production` |
+| `square-subscription-id` | The webhook subscription that produced the delivery |
+| `square-version` | The API version pinned on the subscription (e.g. `2026-07-15`) |
+| `user-agent` | `Square Connect v2` |
+
+Retried deliveries additionally include `square-retry-number` and
+`square-retry-reason` (see below).
 
 ## Full Event Reference
 

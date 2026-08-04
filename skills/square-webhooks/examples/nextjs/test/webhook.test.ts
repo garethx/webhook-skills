@@ -76,6 +76,24 @@ describe('POST /webhooks/square', () => {
     expect(await res.json()).toEqual({ received: true });
   });
 
+  // Known-answer test: locks the signing construction — HMAC-SHA256 over
+  // (notificationUrl + rawBody), base64, key verbatim. Digest is self-computed
+  // (not Square-produced; order/encoding confirmed against a live delivery and
+  // the official SDK, 2026-08). Guards against a regression that flips the order
+  // to (body + url) or decodes the key.
+  it('accepts a fixed known-answer signature (URL + body, base64)', async () => {
+    const kaBody =
+      '{"merchant_id":"6SSW7HV8K2ST5","type":"order.updated",' +
+      '"event_id":"11111111-2222-3333-4444-555555555555",' +
+      '"created_at":"2026-08-04T12:00:00.000Z","data":{"type":"order_updated",' +
+      '"id":"ORDER123","object":{"order_updated":{"order_id":"ORDER123",' +
+      '"state":"OPEN","version":2}}}}';
+    const expected = 'ti2bYNj+FEJ+f3yjR4wIWQZaNkVBPfOCNkZzUuc7SrE=';
+
+    const res = await POST(makeRequest(kaBody, expected));
+    expect(res.status).toBe(200);
+  });
+
   it('handles the common Square event types', async () => {
     const types = [
       'payment.created',
