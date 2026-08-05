@@ -30,11 +30,11 @@ The webhook secret is used to generate signatures for verifying webhook authenti
    - **Order created** - `order.created`
    - **Order updated** - `order.updated`
    - **Order deleted** - `order.deleted`
-   - **Order restored** - `order.restored`
+   - **Order restored** - `order.restored` _(deprecated 2026-08 — no longer documented by WooCommerce)_
    - **Product created** - `product.created`
    - **Product updated** - `product.updated`
    - **Product deleted** - `product.deleted`
-   - **Product restored** - `product.restored`
+   - **Product restored** - `product.restored` _(deprecated 2026-08 — no longer documented by WooCommerce)_
    - **Customer created** - `customer.created`
    - **Customer updated** - `customer.updated`
    - **Customer deleted** - `customer.deleted`
