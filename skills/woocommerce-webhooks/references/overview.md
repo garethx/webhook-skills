@@ -19,11 +19,11 @@ This enables real-time integration between your WooCommerce store and external s
 | `order.created` | New order is placed | Send order confirmation emails, create shipping labels, update inventory |
 | `order.updated` | Order status or details change | Track order fulfillment, send status updates to customers |
 | `order.deleted` | Order is permanently deleted | Clean up external records, reverse inventory changes |
-| `order.restored` | Deleted order is restored | Restore external records, reapply inventory changes |
+| `order.restored` ⚠️ _deprecated 2026-08_ | Deleted order is restored | No longer documented in WooCommerce webhook topics; retained for historical reference |
 | `product.created` | New product is added | Sync to external catalogs, trigger marketing campaigns |
 | `product.updated` | Product details change | Update pricing feeds, sync inventory levels |
 | `product.deleted` | Product is permanently deleted | Remove from external catalogs, update recommendations |
-| `product.restored` | Deleted product is restored | Restore to external catalogs |
+| `product.restored` ⚠️ _deprecated 2026-08_ | Deleted product is restored | No longer documented in WooCommerce webhook topics; retained for historical reference |
 | `customer.created` | New customer account registered | Send welcome emails, add to CRM, create loyalty profiles |
 | `customer.updated` | Customer profile changes | Update CRM records, sync preferences |
 | `customer.deleted` | Customer account deleted | Clean up external profiles, handle GDPR deletion |
