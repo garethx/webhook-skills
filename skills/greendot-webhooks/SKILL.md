@@ -65,6 +65,10 @@ proxy — there is no application-level token to check.
 > (and signing key) from your Green Dot representative before implementing any
 > check. Authenticity comes from the OAuth Bearer token (and/or mTLS). See
 > [TODO.md](TODO.md).
+>
+> Green Dot also sends an `API-Key` header (your program's own static key,
+> echoed back) on every delivery — it is not a signature, so don't treat it as
+> proof of authenticity beyond weak defense-in-depth on top of the Bearer token.
 
 Then **echo the `x-GD-RequestId` header** back and respond `200`/`201` with a
 `responseDetails` body, otherwise Green Dot treats the delivery as failed:
