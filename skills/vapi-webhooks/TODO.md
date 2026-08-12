@@ -5,28 +5,32 @@
 These items were identified while authoring the skill from Vapi's documentation.
 They are acceptable for merge; contributions to close them are welcome.
 
-## Deliberately generic (not defects)
+## Verified against live deliveries (2026-08-12)
 
-- [ ] **HMAC option — default now grounded, still customer-configurable.** Vapi's
-  own docs pin no default algorithm/header/encoding/signed-string (re-confirmed
-  2026-08 via WebFetch of `/server-url/server-authentication` — they list only the
-  configurable fields). `references/verification.md` now gives a **concrete
-  default** taken from Hookdeck's verified Vapi source in `hookdeck/core`:
-  HMAC-**SHA256** over the **raw request body** (no timestamp prefix), **hex**, in
-  the **`x-signature`** header, with `sha1`/`sha512` and `base64`/`base64url`
-  supported and MD5 excluded. This is Hookdeck's default, not a Vapi guarantee —
-  the customer's dashboard credential still wins. A live capture (or a Vapi-signed
-  known-answer vector) would let us add a KAT and upgrade "default" → "confirmed".
+- [x] **HMAC construction confirmed** by recomputing digests of real Vapi sandbox
+  deliveries (secret `test`, SHA-256, hex, verbatim key). Signature header
+  `x-signature` (bare digest). The **Payload Format** decides the signed content:
+  - `{body}` → `HMAC-SHA256(rawBody, secret)` — matches hookdeck/core; recommended.
+  - `{timestamp}.{body}` → `HMAC-SHA256(x-timestamp + "." + rawBody, secret)`,
+    where `x-timestamp` is the send-time epoch-ms header. Verified it is **not**
+    reproducible when the timestamp header is disabled (the signing value isn't
+    delivered), and that the signing timestamp is the `x-timestamp` header, not
+    `message.timestamp` (they differ ~40ms). `references/verification.md` carries
+    both constructions + self-computed known-answer vectors.
 
-## To verify against a live account
+Also confirmed live: the `{"message":{...}}` envelope with nested `message.type`
+(`status-update`, `end-of-call-report` observed), `message.timestamp` as epoch-ms,
+and the header set (`x-signature`, `x-timestamp`, empty `x-vapi-secret`,
+`x-call-id`, `user-agent: axios/1.8.3`).
 
-- [ ] **No live-delivery verification yet.** This skill was authored from the
-  canonical docs (`/server-url`, `/server-url/events`,
-  `/server-url/server-authentication`), not from a captured live delivery. A live
-  run should confirm: the exact `message.type` string set, the `tool-calls`
-  `toolCallList` entry shape (`function.name`/`arguments` vs flat `name`), and the
-  precise required response shapes for `transfer-destination-request` and
-  `knowledge-base-request`.
+## Still open (not yet observed live)
+
+- [ ] **Request/response payload shapes.** The four response types
+  (`assistant-request`, `tool-calls`, `transfer-destination-request`,
+  `knowledge-base-request`) are authored from docs — the live test call errored
+  before invoking a tool, so the exact `toolCallList` entry shape
+  (`function.name`/`arguments` vs flat `name`) and the required response bodies
+  are not yet delivery-confirmed.
 - [ ] **`assistant-request` ~7.5s timeout** is documented as a hard, fixed cap
   derived from the telephony provider's 15s limit. Confirm the exact budget in a
   live inbound call.

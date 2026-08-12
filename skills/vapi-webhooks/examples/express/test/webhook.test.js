@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const request = require('supertest');
 
 // Set the test shared secret before importing the app
@@ -133,5 +134,32 @@ describe('GET /health', () => {
     const res = await request(app).get('/health');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'ok' });
+  });
+});
+
+// Known-answer test for the HMAC credential path (verified against live Vapi
+// deliveries 2026-08-12). Vapi signs with HMAC-SHA256, hex, secret verbatim, in
+// the x-signature header. The Payload Format decides the signed content:
+//   {body}            -> HMAC-SHA256(rawBody, secret)
+//   {timestamp}.{body}-> HMAC-SHA256(<x-timestamp> + "." + rawBody, secret)
+// The expected digests below are self-computed with a sample secret; they lock
+// the exact construction so a regression in it is caught.
+describe('Vapi HMAC construction (verified)', () => {
+  const secret = 'whsec_vapi_sample_key';
+  const body =
+    '{"message":{"type":"status-update","status":"ended","timestamp":1786546871392,"call":{"id":"call_kat123"}}}';
+
+  it('{body} format signs the raw request body', () => {
+    const hex = crypto.createHmac('sha256', secret).update(body).digest('hex');
+    expect(hex).toBe('bf7be5b3be319cba484d93d31bc820376566161a3a0a442c3b9292fc599a15e4');
+  });
+
+  it('{timestamp}.{body} format signs the x-timestamp header value + "." + body', () => {
+    const xTimestamp = '1786546871433'; // value delivered in the x-timestamp header
+    const hex = crypto
+      .createHmac('sha256', secret)
+      .update(`${xTimestamp}.${body}`)
+      .digest('hex');
+    expect(hex).toBe('708dd047594968a1403c7e1695e89d3e0898ad57e0c6990ace3576f9a0259184');
   });
 });

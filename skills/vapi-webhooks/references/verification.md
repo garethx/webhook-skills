@@ -89,64 +89,87 @@ deliveries, refreshing automatically when it expires. To verify, validate the
 presented bearer token the way you validate any access token you issued (e.g.
 introspect it or check your signing) — it is *your* token, not a Vapi signature.
 
-## Option: HMAC (fully configurable — no fixed construction)
+## Option: HMAC (verified against live deliveries, 2026-08-12)
 
-If you choose an HMAC credential, **you** configure, in the dashboard:
+If you attach an HMAC credential, Vapi signs each delivery and puts a **bare
+digest** in a signature header. The construction below was **confirmed by
+recomputing the digest of real Vapi sandbox deliveries** (SHA-256, key used
+verbatim).
 
-- the **secret key**,
-- the **algorithm** (e.g. SHA-256, SHA-1 — your choice),
-- the **signature header name** (Vapi's docs show `x-signature` only as an
-  *example*, not a default),
-- an **optional timestamp header** for replay protection, and
-- the **payload format** used for signing.
+**What Vapi signs depends on the credential's "Payload Format":**
 
-**Vapi's own docs publish no fixed header name, algorithm, encoding, or
-signed-string construction** — they only list the configurable fields (signature
-header, algorithm "SHA256, SHA1, etc.", an optional timestamp header, and a
-"payload format"). So the authoritative source for *your* endpoint is the
-credential you created; verify against those exact choices.
+- **`{body}` (recommended):** the signed content is the **raw request body**:
+  `HMAC-SHA256(rawBody, secret)`. Self-contained and verifiable on its own — and
+  it matches how Hookdeck's own Vapi source verifies. **Prefer this format.**
+- **`{timestamp}.{body}` (Vapi's default):** the signed content is
+  `<timestamp> + "." + rawBody`, where `<timestamp>` is Vapi's **send-time epoch
+  in milliseconds**, delivered in the **timestamp header** (default `x-timestamp`).
+  You **must keep the timestamp header enabled** for this format — with it off,
+  the value Vapi signed with is never delivered and the signature is
+  **impossible to verify** (confirmed: no payload field reproduces it).
 
-**A concrete default to start from (from Hookdeck's verified Vapi source).**
-Hookdeck's [core Vapi integration](https://docs.vapi.ai/server-url/server-authentication#hmac-authentication)
-implements the HMAC option as:
+Both formats share:
 
-- **Signed content: the raw request body**, with **no** timestamp prefix — this
-  is the detail Vapi's docs omit. (Hookdeck's HMAC controller signs the body
-  as-is for Vapi; it does *not* prepend `timestamp + delimiter`.)
-- **Algorithm:** `sha256` by default; `sha1` and `sha512` also supported. **MD5
-  is deliberately not offered** (it can't be verified at some ingestion edges).
-- **Encoding:** `hex` by default; `base64` / `base64url` also supported.
-- **Header:** `x-signature` by default, carrying the **bare digest** (not a
-  structured `t=…,v1=…` value).
+- **Signature header:** `x-signature` by default (configurable), a bare digest —
+  not a structured `t=…,v1=…` value.
+- **Algorithm:** `sha256` default (`sha1` / `sha512` selectable).
+- **Encoding:** `hex` default (`base64` selectable).
+- **Secret:** used **verbatim** as the HMAC key. Vapi has a "secret is base64"
+  toggle — leave it **off** unless you intend the key to be base64-decoded first.
 
-Treat these as sensible **defaults, not a Vapi guarantee**: whatever you actually
-selected when creating the credential in the Vapi dashboard wins, and the
-delivered signature must match it.
+> **Gotcha — two different timestamps.** The signing timestamp is the value in the
+> **timestamp header** (`x-timestamp`), *not* `message.timestamp` in the body —
+> they differ by tens of milliseconds (the header is stamped at send time). Sign
+> with the header value.
+
+> **Hookdeck compatibility.** Hookdeck's core Vapi source verifies the **`{body}`**
+> construction (raw body, no timestamp). It cannot verify `{timestamp}.{body}`
+> (it has no separate-timestamp-header support), so set your Vapi credential to
+> `{body}` when routing through Hookdeck.
 
 ```javascript
 const crypto = require('crypto');
 
-// Defaults below match Hookdeck's verified Vapi source. Override algorithm,
-// headerName, and encoding to whatever you configured on the Vapi credential.
-function verifyVapiHmac(
-  rawBody,
-  headers,
-  { secret, algorithm = 'sha256', headerName = 'x-signature', encoding = 'hex' }
-) {
-  const provided = headers[headerName.toLowerCase()];
+// Verify a Vapi HMAC delivery. Set `format` to match the credential's Payload Format.
+function verifyVapiHmac(rawBody, headers, {
+  secret,
+  format = 'body',              // 'body' → {body}; 'timestamp.body' → {timestamp}.{body}
+  algorithm = 'sha256',
+  signatureHeader = 'x-signature',
+  timestampHeader = 'x-timestamp',
+  encoding = 'hex',
+}) {
+  const provided = headers[signatureHeader.toLowerCase()];
   if (!provided || !secret) return false;
-  // Default payload format is the raw request body (no timestamp prefix). If you
-  // enabled a timestamp header, sign exactly what you configured instead.
-  const expected = crypto.createHmac(algorithm, secret).update(rawBody).digest(encoding);
+
+  let signed = rawBody;
+  if (format === 'timestamp.body') {
+    const ts = headers[timestampHeader.toLowerCase()];
+    if (!ts) return false;       // the timestamp header MUST be enabled for this format
+    signed = `${ts}.${rawBody}`; // ts is epoch-ms; optionally reject stale timestamps here
+  }
+
+  const expected = crypto.createHmac(algorithm, secret).update(signed).digest(encoding);
   const a = Buffer.from(expected), b = Buffer.from(provided);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 ```
 
-If you enabled the timestamp header, also reject stale timestamps (e.g. older
-than a few minutes) to blunt replay attacks. **Confirm the header name,
-algorithm, and payload format against your dashboard credential** — Vapi's docs
-don't pin them; the values above are Hookdeck's defaults, not a Vapi spec.
+### Known-answer vectors (self-computed — reproduce to check your implementation)
+
+Secret `whsec_vapi_sample_key`, body (107 bytes):
+
+```
+{"message":{"type":"status-update","status":"ended","timestamp":1786546871392,"call":{"id":"call_kat123"}}}
+```
+
+- **`{body}`** → `HMAC-SHA256(body, secret)` hex =
+  `bf7be5b3be319cba484d93d31bc820376566161a3a0a442c3b9292fc599a15e4`
+- **`{timestamp}.{body}`** with `x-timestamp: 1786546871433` →
+  `HMAC-SHA256("1786546871433." + body, secret)` hex =
+  `708dd047594968a1403c7e1695e89d3e0898ad57e0c6990ace3576f9a0259184`
+
+Match your verifier against these before trusting it in production.
 
 ## Common Gotchas
 
@@ -155,10 +178,11 @@ don't pin them; the values above are Hookdeck's defaults, not a Vapi spec.
 - **Pick your header by credential type.** Bearer/OAuth → `Authorization`; the
   legacy/`server.secret` path → `X-Vapi-Secret`. The example handler checks both.
 - **The shared secret is a literal compare, not a hash.** Don't HMAC it.
-- **Don't invent an HMAC scheme.** Vapi's docs pin no default header, algorithm,
-  or signed-string. Start from the concrete default above (raw body, `sha256`,
-  `hex`, `x-signature` — from Hookdeck's verified source) and match it to your
-  own credential.
+- **HMAC signs by Payload Format.** `{body}` signs the raw body; `{timestamp}.{body}`
+  signs `x-timestamp` + `.` + raw body (verified). Prefer `{body}` — it's
+  self-contained and Hookdeck-compatible. For `{timestamp}.{body}`, the timestamp
+  header must be on or the signature can't be verified.
+- **Sign with the `x-timestamp` header, not `message.timestamp`.** They differ.
 - **Use a timing-safe comparison** (`crypto.timingSafeEqual` /
   `hmac.compare_digest`) and guard length mismatch, which throws in Node.
 - **Event type is `message.type`**, nested — not a top-level field, and not the
