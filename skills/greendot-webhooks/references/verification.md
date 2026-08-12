@@ -90,6 +90,15 @@ Until you have that specification, rely on the OAuth Bearer token (and/or the
 Certificate/mTLS transport) for authenticity — that is Green Dot's documented
 inbound-auth model.
 
+## 2b. The `API-Key` header is informational, not a signature
+
+Green Dot's docs also list an `API-Key` header sent on every delivery, carrying
+**your program's own, static API key**. Do not mistake this for a signature: it
+is not computed from the payload and does not rotate per request — it is the
+same value you already hold. If you choose to compare it, treat it as weak
+defense-in-depth layered on top of the OAuth Bearer token check (§1), never as
+a replacement for it.
+
 ## 3. Acknowledge Correctly
 
 After the token check passes and you have handled the event, respond `200`/`201`
@@ -108,6 +117,8 @@ and:
   token (or the Certificate/mTLS transport), not from a payload signature.
 - **Do not invent an `x-gd-signature` HMAC.** Its algorithm is undocumented; a
   guessed check gives false confidence. Get the spec from your rep first.
+- **Don't treat `API-Key` as a signature.** It's your program's own static key,
+  echoed back unchanged — not proof the payload wasn't tampered with.
 - **Always echo `x-GD-RequestId`.** Omitting it (or the `responseDetails` body)
   makes Green Dot treat the delivery as failed and retry it.
 - **Timing-safe compare**, and guard against unequal lengths (Node's

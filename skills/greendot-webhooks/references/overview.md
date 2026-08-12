@@ -26,11 +26,15 @@ by your rep:
 - **Certificate** — mutual TLS (mTLS) / PKCS#7 client certificates
 
 A delivery may also carry an **`x-gd-signature`** header, but its algorithm,
-encoding, and canonical payload are **not documented publicly**, and sample
-payloads show no signature header. This skill therefore does **not** verify it —
-a guessed HMAC would give false confidence. If you need payload-level
-verification, obtain the specification (and signing key) from your Green Dot
-representative first.
+encoding, and canonical payload are **not documented publicly**. This skill
+therefore does **not** verify it — a guessed HMAC would give false confidence.
+If you need payload-level verification, obtain the specification (and signing
+key) from your Green Dot representative first.
+
+Green Dot also sends an **`API-Key`** header on every delivery — your
+program's own, static API key. It is not a computed signature (just the same
+key you already hold), so at most treat a compare against it as weak
+defense-in-depth layered on the Bearer token check, never as a replacement.
 
 See [verification.md](verification.md) for details.
 
@@ -41,6 +45,7 @@ See [verification.md](verification.md) for details.
 | `Authorization: Bearer <token>` | OAuth client_credentials token, scope `post:webhook` |
 | `x-GD-RequestId` | Correlation id — **you must echo this back** in your response |
 | `x-gd-signature` | May be present; algorithm undocumented — not verified by this skill |
+| `API-Key` | Your program's own static API key, echoed back — not a computed signature |
 | `User-Agent: greendot-baas/3.0.0` | Identifies Green Dot's delivery agent |
 | `Content-Type: application/json` | JSON body |
 
