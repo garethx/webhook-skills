@@ -48,9 +48,11 @@ credential. Auth is configured in the dashboard as a **Custom Credential**
 3. **OAuth 2.0 (client credentials):** Vapi fetches a token from *your* token
    endpoint and presents it as `Authorization: Bearer <token>`.
 4. **HMAC:** fully user-configurable — *you* choose the algorithm, the signature
-   header name, an optional timestamp header, and the payload format. Vapi
-   publishes **no fixed** header/algorithm/signed-string, so this skill does not
-   hardcode one (see [references/verification.md](references/verification.md)).
+   header name, an optional timestamp header, and the payload format. Vapi's docs
+   pin **no** defaults. Hookdeck's verified Vapi source defaults to **HMAC-SHA256
+   over the raw body, hex-encoded, in `x-signature`** — a good starting point to
+   match against your credential (see
+   [references/verification.md](references/verification.md)).
 
 The **primary, fully-specified path** — and the one these examples implement — is
 the **shared secret** (#1/#2). Read the token from `Authorization` (stripping a

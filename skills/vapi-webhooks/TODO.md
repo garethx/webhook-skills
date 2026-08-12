@@ -7,12 +7,16 @@ They are acceptable for merge; contributions to close them are welcome.
 
 ## Deliberately generic (not defects)
 
-- [ ] **HMAC option has no worked known-answer.** Vapi's HMAC credential lets the
-  customer choose the algorithm, signature header name, optional timestamp
-  header, and payload format, and the docs pin **none** of these to a default.
-  `references/verification.md` therefore documents HMAC generically and refuses to
-  assert a fixed construction. If Vapi later publishes a canonical HMAC scheme (or
-  a default header/algorithm), add a concrete verifier + test vector.
+- [ ] **HMAC option — default now grounded, still customer-configurable.** Vapi's
+  own docs pin no default algorithm/header/encoding/signed-string (re-confirmed
+  2026-08 via WebFetch of `/server-url/server-authentication` — they list only the
+  configurable fields). `references/verification.md` now gives a **concrete
+  default** taken from Hookdeck's verified Vapi source in `hookdeck/core`:
+  HMAC-**SHA256** over the **raw request body** (no timestamp prefix), **hex**, in
+  the **`x-signature`** header, with `sha1`/`sha512` and `base64`/`base64url`
+  supported and MD5 excluded. This is Hookdeck's default, not a Vapi guarantee —
+  the customer's dashboard credential still wins. A live capture (or a Vapi-signed
+  known-answer vector) would let us add a KAT and upgrade "default" → "confirmed".
 
 ## To verify against a live account
 

@@ -100,20 +100,43 @@ If you choose an HMAC credential, **you** configure, in the dashboard:
 - an **optional timestamp header** for replay protection, and
 - the **payload format** used for signing.
 
-Because **Vapi publishes no fixed header name, algorithm, or signed-string
-construction**, this skill will not assert one — doing so would be fabrication.
-Verify against **the exact choices you made** when creating the credential. The
-shape is the usual HMAC comparison:
+**Vapi's own docs publish no fixed header name, algorithm, encoding, or
+signed-string construction** — they only list the configurable fields (signature
+header, algorithm "SHA256, SHA1, etc.", an optional timestamp header, and a
+"payload format"). So the authoritative source for *your* endpoint is the
+credential you created; verify against those exact choices.
+
+**A concrete default to start from (from Hookdeck's verified Vapi source).**
+Hookdeck's [core Vapi integration](https://docs.vapi.ai/server-url/server-authentication#hmac-authentication)
+implements the HMAC option as:
+
+- **Signed content: the raw request body**, with **no** timestamp prefix — this
+  is the detail Vapi's docs omit. (Hookdeck's HMAC controller signs the body
+  as-is for Vapi; it does *not* prepend `timestamp + delimiter`.)
+- **Algorithm:** `sha256` by default; `sha1` and `sha512` also supported. **MD5
+  is deliberately not offered** (it can't be verified at some ingestion edges).
+- **Encoding:** `hex` by default; `base64` / `base64url` also supported.
+- **Header:** `x-signature` by default, carrying the **bare digest** (not a
+  structured `t=…,v1=…` value).
+
+Treat these as sensible **defaults, not a Vapi guarantee**: whatever you actually
+selected when creating the credential in the Vapi dashboard wins, and the
+delivered signature must match it.
 
 ```javascript
 const crypto = require('crypto');
 
-// Fill in YOUR configured values: algorithm, header name, and payload format.
-function verifyConfiguredHmac(rawBody, headers, { secret, algorithm, headerName, encoding = 'hex' }) {
+// Defaults below match Hookdeck's verified Vapi source. Override algorithm,
+// headerName, and encoding to whatever you configured on the Vapi credential.
+function verifyVapiHmac(
+  rawBody,
+  headers,
+  { secret, algorithm = 'sha256', headerName = 'x-signature', encoding = 'hex' }
+) {
   const provided = headers[headerName.toLowerCase()];
   if (!provided || !secret) return false;
-  // Payload format is whatever you selected (commonly the raw request body;
-  // if you enabled a timestamp header, sign exactly what you configured).
+  // Default payload format is the raw request body (no timestamp prefix). If you
+  // enabled a timestamp header, sign exactly what you configured instead.
   const expected = crypto.createHmac(algorithm, secret).update(rawBody).digest(encoding);
   const a = Buffer.from(expected), b = Buffer.from(provided);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
@@ -122,8 +145,8 @@ function verifyConfiguredHmac(rawBody, headers, { secret, algorithm, headerName,
 
 If you enabled the timestamp header, also reject stale timestamps (e.g. older
 than a few minutes) to blunt replay attacks. **Confirm the header name,
-algorithm, and payload format in your dashboard credential** — they are not
-knowable from the docs.
+algorithm, and payload format against your dashboard credential** — Vapi's docs
+don't pin them; the values above are Hookdeck's defaults, not a Vapi spec.
 
 ## Common Gotchas
 
@@ -132,8 +155,10 @@ knowable from the docs.
 - **Pick your header by credential type.** Bearer/OAuth → `Authorization`; the
   legacy/`server.secret` path → `X-Vapi-Secret`. The example handler checks both.
 - **The shared secret is a literal compare, not a hash.** Don't HMAC it.
-- **Don't invent an HMAC scheme.** There is no documented default header,
-  algorithm, or signed-string — read them off your own credential.
+- **Don't invent an HMAC scheme.** Vapi's docs pin no default header, algorithm,
+  or signed-string. Start from the concrete default above (raw body, `sha256`,
+  `hex`, `x-signature` — from Hookdeck's verified source) and match it to your
+  own credential.
 - **Use a timing-safe comparison** (`crypto.timingSafeEqual` /
   `hmac.compare_digest`) and guard length mismatch, which throws in Node.
 - **Event type is `message.type`**, nested — not a top-level field, and not the
