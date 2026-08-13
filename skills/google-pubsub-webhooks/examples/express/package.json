@@ -1,0 +1,19 @@
+{
+  "name": "google-pubsub-webhooks-express",
+  "version": "1.0.0",
+  "description": "Google Cloud Pub/Sub push subscription webhook handler with Express",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "google-auth-library": "^11.0.2"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
+  }
+}

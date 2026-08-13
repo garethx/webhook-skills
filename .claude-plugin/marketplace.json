@@ -1428,6 +1428,29 @@
       ]
     },
     {
+      "name": "google-pubsub-webhooks",
+      "description": "Receive and verify Google Cloud Pub/Sub push subscription webhooks. Use when setting up a Pub/Sub push endpoint, verifying the OIDC Authorization: Bearer JWT that Pub/Sub attaches to authenticated push subscriptions (iss, aud, email, email_verified), parsing the push envelope (message.data base64, message.attributes, messageId, publishTime, subscription), securing an unauthenticated push endpoint, or debugging redelivery and ack deadline issues.",
+      "source": "./skills/google-pubsub-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/google-pubsub-webhooks",
+      "keywords": [
+        "webhooks",
+        "google-cloud",
+        "pubsub",
+        "oidc"
+      ]
+    },
+    {
       "name": "hubspot-webhooks",
       "description": "Verify HubSpot v3 webhook signatures (HMAC-SHA256 with method+uri+body+timestamp), handle contact, deal, and company events.",
       "source": "./skills/hubspot-webhooks",
