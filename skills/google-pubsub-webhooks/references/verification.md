@@ -72,13 +72,18 @@ Three comparisons that must be lenient, or you reject valid deliveries:
 - **`iss` has two valid forms.** Accept both `https://accounts.google.com` and
   the scheme-less `accounts.google.com`. Pinning one is a plausible-looking
   hardening that buys nothing — Google's own libraries accept either.
-- **The `Bearer` scheme is case-insensitive** per RFC 7235. Match it with a
+- **The `Bearer` scheme is case-insensitive** per RFC 9110 §11.1 (which obsoleted RFC 7235). Match it with a
   lowercased comparison, not `=== 'Bearer'`.
 - **Service account emails are case-insensitive.** Normalize both sides before
   comparing, or a casing typo in your config silently rejects every message.
 
-`aud` may also arrive as an **array** rather than a string; the official
-libraries handle that for you, but hand-rolled checks often miss it.
+One thing to be careful about claiming: **JWT allows `aud` to be either a string
+or an array** ([RFC 7519 §4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)),
+and defensive implementations accept both. Google's documented Pub/Sub token
+shows a single string, and nothing in the Pub/Sub docs says an array is ever
+sent — so handle both if you hand-roll the check, but do not assume the array
+form is something you will actually see here. The official libraries cover it
+either way.
 
 ## Implementation
 

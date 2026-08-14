@@ -44,7 +44,7 @@ def verify_push_jwt(authorization_header, audience, service_account_email):
 
     Returns the token claims, or None if verification failed.
     """
-    # RFC 7235 makes the scheme case-insensitive, so match it that way.
+    # RFC 9110 makes the auth scheme case-insensitive, so match it that way.
     scheme, _, token = (authorization_header or "").partition(" ")
     if scheme.lower() != "bearer" or not token:
         return None

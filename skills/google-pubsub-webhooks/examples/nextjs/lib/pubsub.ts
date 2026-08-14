@@ -49,7 +49,7 @@ export async function verifyPushJwt(
   authorizationHeader: string | null,
   { audience, serviceAccountEmail }: { audience: string; serviceAccountEmail: string }
 ): Promise<Record<string, unknown> | null> {
-  // RFC 7235 makes the scheme case-insensitive, so match it that way.
+  // RFC 9110 makes the auth scheme case-insensitive, so match it that way.
   const [scheme, token] = String(authorizationHeader || '').split(' ');
   if (!token || scheme.toLowerCase() !== 'bearer') return null;
 

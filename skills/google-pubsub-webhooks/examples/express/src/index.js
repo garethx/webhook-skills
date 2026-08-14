@@ -37,7 +37,7 @@ function timingSafeCompare(a, b) {
  * @returns the token claims, or null if verification failed.
  */
 async function verifyPushJwt(authorizationHeader, { audience, serviceAccountEmail }) {
-  // RFC 7235 makes the scheme case-insensitive, so match it that way.
+  // RFC 9110 makes the auth scheme case-insensitive, so match it that way.
   const [scheme, token] = String(authorizationHeader || '').split(' ');
   if (!token || scheme.toLowerCase() !== 'bearer') return null;
 

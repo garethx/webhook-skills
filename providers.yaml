@@ -1202,8 +1202,11 @@ providers:
       but you MUST check email/email_verified yourself. ACCEPT BOTH issuer forms
       rather than pinning one. Three comparisons must be lenient or valid deliveries
       get rejected: iss (both forms), the "Bearer" scheme (case-insensitive per
-      RFC 7235), and the service account email (case-insensitive — normalize both
-      sides). aud may also arrive as an ARRAY, which the official libraries handle.
+      RFC 9110 s11.1), and the service account email (case-insensitive — normalize
+      both sides). JWT permits aud to be a string OR an array (RFC 7519) and defensive
+      implementations accept both, but Google's documented Pub/Sub token shows a single
+      string and no Pub/Sub doc says an array is sent — do not assert the array form as
+      a Pub/Sub behaviour.
       Verified firsthand against google-auth-library 11.0.2 and google-auth 2.56.3,
       and cross-checked against Hookdeck's own GOOGLE_PUBSUB controller in
       hookdeck/core (server/integrations/platforms/google-pubsub.ts), whose test

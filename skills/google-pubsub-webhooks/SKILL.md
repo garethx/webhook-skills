@@ -83,7 +83,7 @@ const client = new OAuth2Client();
 const GOOGLE_ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
 
 async function verifyPushJwt(authorizationHeader) {
-  // RFC 7235: the scheme is case-insensitive.
+  // RFC 9110: the auth scheme is case-insensitive.
   const [scheme, token] = String(authorizationHeader || '').split(' ');
   if (!token || scheme.toLowerCase() !== 'bearer') return null;
 

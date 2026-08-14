@@ -109,7 +109,7 @@ describe('OIDC token verification', () => {
     expect(res.status).toBe(204);
   });
 
-  it('accepts a lowercase bearer scheme (RFC 7235)', async () => {
+  it('accepts a lowercase bearer scheme (RFC 9110)', async () => {
     const res = await POST(
       new Request(ENDPOINT, {
         method: 'POST',
