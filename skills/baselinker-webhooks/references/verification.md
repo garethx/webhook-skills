@@ -8,7 +8,8 @@ a weak scheme, not an optional one — none at all:
 - ❌ No HMAC (SHA-1, SHA-256, or otherwise)
 - ❌ No signature header of any name
 - ❌ No timestamp header, and therefore no replay window to enforce
-- ❌ No shared signing secret, and nowhere in the panel to create one
+- ❌ No shared signing secret — none is documented, and Hookdeck's source config
+  for BaseLinker accepts no secret at all
 - ❌ No handshake, challenge, or subscription-confirmation step
 - ❌ No published source-IP allowlist
 - ❌ No SDK helper (there is no webhook SDK, because there is no documented webhook)

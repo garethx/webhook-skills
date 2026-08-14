@@ -37,6 +37,11 @@ merge; contributions to close them are welcome.
 - [ ] **The `state` value space is unknown.** It is treated as an opaque string,
   not an enum and not an event-type discriminator. No `switch` over state values
   appears anywhere in the skill, by design.
+- [ ] **No BaseLinker account was available**, so nothing in the panel was ever
+  inspected. Every "there is no X" claim in this skill is scoped to the
+  *documentation*, which was searched exhaustively in both locales. Claims about
+  panel contents were removed for this reason; if you have an account, the panel
+  beats every inference here.
 - [ ] **The exact panel path that registers the callback URL is unconfirmed.**
   Setup is described via the Automatic Actions system because that is the only
   place order state changes can trigger an outbound action, but BaseLinker

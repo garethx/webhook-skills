@@ -2,17 +2,23 @@
 
 ## Start Here: There Is No Webhook Page
 
-**BaseLinker publishes no webhook documentation, and its panel has no "Webhooks"
-settings page.** There is no endpoint registry, no event-subscription list, no
-signing-secret screen, and no "test webhook" button — because none of that
-exists. The documented API (`api.baselinker.com`, ~195 methods over
-`connector.php`) is request/response only; nothing in it registers a callback URL.
+**BaseLinker publishes no webhook documentation.** No endpoint registry, no
+event-subscription list, no signing-secret screen and no "test webhook" button is
+documented anywhere, in either the English or Polish Help Centre. The documented
+API (`api.baselinker.com`, ~195 methods over `connector.php`) is request/response
+only; nothing in it registers a callback URL.
+
+> **Scope of that claim.** It is about the *documentation*, which was searched
+> exhaustively. It is **not** a claim about what the panel contains — this skill
+> was written without account access, so the panel was never inspected. If your
+> panel does expose a webhook or HTTP-request feature, it is undocumented, and
+> what you find there beats anything below.
 
 So setup is not "paste your URL into the webhooks page". It is:
 
 1. Prepare a receiver that speaks **HTTP HEAD** and reads **query params**.
-2. Wire an outbound call to that URL from the **Automatic Actions** system (the
-   only place in BaseLinker where an order state change can trigger something).
+2. Get BaseLinker to call that URL. **This is the one step this skill cannot
+   fully specify** — see step 2 below.
 3. Because there is **no signature**, protect the endpoint by other means.
 
 ## Prerequisites
@@ -46,8 +52,18 @@ See [examples/express/](../examples/express/),
 
 ## 2. Point BaseLinker at the URL
 
-Configure the outbound call from **Automatic Actions** (panel → *Orders/Products
-→ Automatic actions*), attaching an action to the system event(s) you care about —
+> **The unresolved step.** BaseLinker documents **no action that calls a URL** —
+> not in the Automatic Actions reference, not anywhere in either Help Centre. So
+> this section cannot tell you which control to click, and does not pretend to.
+> What is established is only the *shape* of what arrives (HEAD + query string,
+> from Hookdeck's implementation of the source type). Confirm in your own panel
+> that an outbound-HTTP action exists before building against this; if it does
+> not, the callback is not available to your account and `getJournalList` polling
+> (step 5) is the supported path.
+
+Automatic Actions is the only subsystem where an order state change can trigger
+anything, so it is where such an action would live. Attach it to the system
+event(s) you care about —
 order fetched, order paid, order confirmed, status set, shipment created/deleted,
 courier parcel status changed, invoice/receipt issued, returns created/accepted/
 completed/rejected, PickPack collecting/packing, marketplace cancellation.

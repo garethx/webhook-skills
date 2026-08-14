@@ -207,7 +207,7 @@ selection only, stays editable, and is not re-applied on later updates.
 ## Reference Materials
 
 - [references/overview.md](references/overview.md) - What is (and isn't) known about the callback, observed query params, the Automatic Actions background, polling alternatives
-- [references/setup.md](references/setup.md) - Registering the endpoint URL via Automatic Actions, Hookdeck source configuration
+- [references/setup.md](references/setup.md) - Preparing the receiver, why the registration step cannot be fully specified, securing an unauthenticated endpoint, Hookdeck source configuration
 - [references/verification.md](references/verification.md) - Why there is nothing to verify, and what to do instead
 
 ## Attribution
