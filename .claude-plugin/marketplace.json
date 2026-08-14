@@ -31,6 +31,27 @@
       ]
     },
     {
+      "name": "aircall-webhooks",
+      "description": "Receive and verify Aircall webhooks. Use when setting up Aircall webhook handlers, debugging Aircall webhook token verification, or handling Aircall cloud phone events like call.created, call.answered, call.ended, message.received, contact.updated, or user.connected.v2. Aircall does NOT use an HMAC signature — verification is a timing-safe comparison of the `token` field inside the JSON body.",
+      "source": "./skills/aircall-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/aircall-webhooks",
+      "keywords": [
+        "webhooks",
+        "aircall"
+      ]
+    },
+    {
       "name": "akeneo-webhooks",
       "description": "Receive and verify Akeneo PIM (Events API) webhooks. Use when setting up Akeneo webhook handlers, debugging x-akeneo-request-signature verification, or handling batched product and product-model events like product.created, product.updated, product.removed, product_model.created, product_model.updated, or product_model.removed.",
       "source": "./skills/akeneo-webhooks",
