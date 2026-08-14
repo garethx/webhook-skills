@@ -86,6 +86,27 @@ describe('OIDC token verification', () => {
     expect(res.status).toBe(204);
   });
 
+  it('accepts the bare accounts.google.com issuer', async () => {
+    const res = await post(pushEnvelope(), createToken({ iss: 'accounts.google.com' }));
+    expect(res.status).toBe(204);
+  });
+
+  it('accepts a lowercase bearer scheme (RFC 7235)', async () => {
+    const res = await request(app)
+      .post('/webhooks/google-pubsub')
+      .set('Authorization', `bearer ${createToken()}`)
+      .send(pushEnvelope());
+    expect(res.status).toBe(204);
+  });
+
+  it('accepts a service account email that differs only in casing', async () => {
+    const res = await post(
+      pushEnvelope(),
+      createToken({ email: SERVICE_ACCOUNT.toUpperCase() })
+    );
+    expect(res.status).toBe(204);
+  });
+
   it('rejects a request with no Authorization header', async () => {
     const res = await post(pushEnvelope());
     expect(res.status).toBe(401);

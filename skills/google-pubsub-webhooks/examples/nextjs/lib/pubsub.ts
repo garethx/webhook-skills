@@ -24,9 +24,9 @@ export type AuthResult =
 // caches them, honouring the endpoint's Cache-Control max-age.
 export const authClient = new OAuth2Client();
 
-// Pub/Sub push tokens are issued by this issuer. google-auth-library also
-// accepts the scheme-less "accounts.google.com", so we pin the exact one ourselves.
-const GOOGLE_ISSUER = 'https://accounts.google.com';
+// Both forms are valid Google issuers and the official libraries accept either,
+// so accept both rather than pinning one and rejecting a legitimate token.
+const GOOGLE_ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
 
 function timingSafeCompare(a: string, b: string): boolean {
   const bufA = Buffer.from(a);
@@ -49,13 +49,14 @@ export async function verifyPushJwt(
   authorizationHeader: string | null,
   { audience, serviceAccountEmail }: { audience: string; serviceAccountEmail: string }
 ): Promise<Record<string, unknown> | null> {
+  // RFC 7235 makes the scheme case-insensitive, so match it that way.
   const [scheme, token] = String(authorizationHeader || '').split(' ');
-  if (scheme !== 'Bearer' || !token) return null;
+  if (!token || scheme.toLowerCase() !== 'bearer') return null;
 
   let claims;
   try {
     // Verifies the RS256 signature against Google's public keys, plus aud + exp.
-    const ticket = await authClient.verifyIdToken({ idToken: token, audience });
+    const ticket = await authClient.verifyIdToken({ idToken: token.trim(), audience });
     claims = ticket.getPayload();
   } catch (err) {
     const detail = err instanceof Error ? err.message : 'unknown error';
@@ -66,9 +67,13 @@ export async function verifyPushJwt(
 
   // Checks the library does NOT do for you. Without the email check, any
   // Google-signed token with the right audience would be accepted.
-  if (claims.iss !== GOOGLE_ISSUER) return null;
-  if (claims.email !== serviceAccountEmail) return null;
+  if (!claims.iss || !GOOGLE_ISSUERS.includes(claims.iss)) return null;
   if (claims.email_verified !== true) return null;
+
+  // Service account emails are case-insensitive: compare normalized so a casing
+  // typo in config does not silently reject every message.
+  const tokenEmail = typeof claims.email === 'string' ? claims.email.toLowerCase() : null;
+  if (!tokenEmail || tokenEmail !== serviceAccountEmail.trim().toLowerCase()) return null;
 
   return claims as Record<string, unknown>;
 }

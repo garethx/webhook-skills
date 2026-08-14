@@ -56,7 +56,7 @@ Check all four of these:
 | signature | RS256 against Google's public keys | The library |
 | `exp` | Not in the past | The library |
 | `aud` | The subscription's audience, or the push endpoint URL if no audience was set | The library, when you pass it |
-| `iss` | `https://accounts.google.com` | **You** — the libraries accept either form (`accounts.google.com` and `https://accounts.google.com`) |
+| `iss` | `https://accounts.google.com` **or** `accounts.google.com` | **You** — accept both; the official libraries do |
 | `email` | Your push service account's email | **You** |
 | `email_verified` | `true` | **You** |
 
@@ -66,6 +66,19 @@ project. `aud` alone is not an authorization decision.
 
 Tokens attached to push requests may be **up to an hour old**, so do not add a
 tighter freshness check of your own.
+
+Three comparisons that must be lenient, or you reject valid deliveries:
+
+- **`iss` has two valid forms.** Accept both `https://accounts.google.com` and
+  the scheme-less `accounts.google.com`. Pinning one is a plausible-looking
+  hardening that buys nothing — Google's own libraries accept either.
+- **The `Bearer` scheme is case-insensitive** per RFC 7235. Match it with a
+  lowercased comparison, not `=== 'Bearer'`.
+- **Service account emails are case-insensitive.** Normalize both sides before
+  comparing, or a casing typo in your config silently rejects every message.
+
+`aud` may also arrive as an **array** rather than a string; the official
+libraries handle that for you, but hand-rolled checks often miss it.
 
 ## Implementation
 

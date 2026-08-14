@@ -79,15 +79,19 @@ You must still check the service account yourself.
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client();
 
+// Both are valid Google issuers — accept either, as the official libraries do.
+const GOOGLE_ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
+
 async function verifyPushJwt(authorizationHeader) {
+  // RFC 7235: the scheme is case-insensitive.
   const [scheme, token] = String(authorizationHeader || '').split(' ');
-  if (scheme !== 'Bearer' || !token) return null;
+  if (!token || scheme.toLowerCase() !== 'bearer') return null;
 
   let claims;
   try {
     // Verifies the RS256 signature against Google's public keys, plus aud + exp.
     const ticket = await client.verifyIdToken({
-      idToken: token,
+      idToken: token.trim(),
       audience: process.env.PUBSUB_AUDIENCE, // defaults to the push endpoint URL
     });
     claims = ticket.getPayload();
@@ -95,11 +99,15 @@ async function verifyPushJwt(authorizationHeader) {
     return null;
   }
 
-  // The library accepts the scheme-less "accounts.google.com" too — pin the form
-  // Pub/Sub uses, and check the service account, which the library does not.
-  if (claims.iss !== 'https://accounts.google.com') return null;
-  if (claims.email !== process.env.PUBSUB_SERVICE_ACCOUNT_EMAIL) return null;
+  // Checks the library does not do for you.
+  if (!claims.iss || !GOOGLE_ISSUERS.includes(claims.iss)) return null;
   if (claims.email_verified !== true) return null;
+
+  // Service account emails are case-insensitive — normalize before comparing.
+  const email = String(claims.email || '').toLowerCase();
+  if (!email || email !== process.env.PUBSUB_SERVICE_ACCOUNT_EMAIL.trim().toLowerCase()) {
+    return null;
+  }
   return claims;
 }
 ```
@@ -159,6 +167,24 @@ subscription has no explicit audience, the audience **is** that full URL — set
 
 The **Pub/Sub emulator sends no `Authorization` header**, so local emulator
 testing always exercises the unauthenticated path.
+
+## Using the Hookdeck `GOOGLE_PUBSUB` Source
+
+If you receive these through Hookdeck rather than at your own endpoint,
+**OIDC is mandatory** — the source type's verification takes exactly two
+required fields and there is no unauthenticated or URL-token option:
+
+| Field | Value |
+|-------|-------|
+| Audience | The subscription's `--push-auth-token-audience`, or the full push endpoint URL if the subscription sets none |
+| Service Account Email | The subscription's `--push-auth-service-account` |
+
+Hookdeck verifies the JWT signature and the `iss` / `aud` / `email` /
+`email_verified` claims, but **deliberately ignores `exp`**: it re-verifies
+stored requests on retry, and enforcing expiry would fail a request that was
+valid when it arrived. Your own endpoint is in a different position — it sees
+each request once, live — so the examples here **do** let the library enforce
+`exp`. Do not copy the gateway's expiry behaviour into a direct receiver.
 
 ## Reference Materials
 

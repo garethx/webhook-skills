@@ -1199,9 +1199,23 @@ providers:
       fetch/cache, signature, aud and exp, and check iss against BOTH accepted forms
       ("accounts.google.com" and "https://accounts.google.com" — NOT googleapis.com;
       verified in google-auth _GOOGLE_ISSUERS and google-auth-library's issuers list),
-      but you MUST check email/email_verified yourself and should pin the
-      "https://accounts.google.com" form Pub/Sub actually sends.
-      Verified firsthand against google-auth-library 11.0.2 and google-auth 2.56.3.
+      but you MUST check email/email_verified yourself. ACCEPT BOTH issuer forms
+      rather than pinning one. Three comparisons must be lenient or valid deliveries
+      get rejected: iss (both forms), the "Bearer" scheme (case-insensitive per
+      RFC 7235), and the service account email (case-insensitive — normalize both
+      sides). aud may also arrive as an ARRAY, which the official libraries handle.
+      Verified firsthand against google-auth-library 11.0.2 and google-auth 2.56.3,
+      and cross-checked against Hookdeck's own GOOGLE_PUBSUB controller in
+      hookdeck/core (server/integrations/platforms/google-pubsub.ts), whose test
+      suite asserts all three leniencies explicitly.
+      HOOKDECK SOURCE CONFIG (server/integrations/sourceTypeSchemas.ts): VERIFICATION
+      is required:true with exactly two required fields, audience and
+      service_account_email — Hookdeck supports ONLY the OIDC posture for this source
+      type, with no unauthenticated or URL-token option. Core verifies signature +
+      iss/aud/email/email_verified but DELIBERATELY SKIPS exp, because it re-verifies
+      stored requests on retry and expiry would fail a request that was valid on
+      arrival. That rationale is gateway-specific: a direct receiver sees each request
+      once and SHOULD let the library enforce exp. Do not copy the skip into a skill.
       Gotchas: the JWT does NOT sign the body — it authenticates the caller, so unlike
       HMAC providers there is NO raw-body requirement; tokens may be up to an hour old
       and are reused across pushes (not a nonce); aud mismatch is the #1 cause of 401s;

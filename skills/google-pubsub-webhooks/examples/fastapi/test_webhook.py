@@ -99,6 +99,26 @@ def test_acks_push_with_valid_token():
     assert post(token=create_token()).status_code == 204
 
 
+def test_accepts_bare_accounts_google_com_issuer():
+    assert post(token=create_token(iss="accounts.google.com")).status_code == 204
+
+
+def test_accepts_lowercase_bearer_scheme():
+    response = client.post(
+        "/webhooks/google-pubsub",
+        content=json.dumps(push_envelope()),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"bearer {create_token()}",
+        },
+    )
+    assert response.status_code == 204
+
+
+def test_accepts_service_account_email_differing_only_in_casing():
+    assert post(token=create_token(email=SERVICE_ACCOUNT.upper())).status_code == 204
+
+
 def test_rejects_request_with_no_authorization_header():
     response = post()
     assert response.status_code == 401

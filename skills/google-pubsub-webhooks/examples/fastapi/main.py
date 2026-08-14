@@ -27,9 +27,9 @@ load_dotenv()
 
 app = FastAPI()
 
-# Pub/Sub push tokens are issued by this issuer. google-auth also accepts
-# the scheme-less "accounts.google.com", so we pin the exact one ourselves.
-GOOGLE_ISSUER = "https://accounts.google.com"
+# Both forms are valid Google issuers and the official libraries accept either,
+# so accept both rather than pinning one and rejecting a legitimate token.
+GOOGLE_ISSUERS = ("https://accounts.google.com", "accounts.google.com")
 
 # Status codes Pub/Sub treats as an acknowledgement: 102, 200, 201, 202, 204.
 # Anything else (including a timeout) is a nack and the message is redelivered.
@@ -44,24 +44,30 @@ def verify_push_jwt(authorization_header, audience, service_account_email):
 
     Returns the token claims, or None if verification failed.
     """
+    # RFC 7235 makes the scheme case-insensitive, so match it that way.
     scheme, _, token = (authorization_header or "").partition(" ")
-    if scheme != "Bearer" or not token:
+    if scheme.lower() != "bearer" or not token:
         return None
 
     try:
         # Verifies the RS256 signature against Google's public keys, plus aud + exp.
-        claims = id_token.verify_oauth2_token(token, _request, audience=audience)
+        claims = id_token.verify_oauth2_token(token.strip(), _request, audience=audience)
     except Exception as exc:  # noqa: BLE001 - ValueError / GoogleAuthError
         print("Pub/Sub OIDC verification failed:", exc)
         return None
 
     # Checks the library does NOT do for you. Without the email check, any
     # Google-signed token with the right audience would be accepted.
-    if claims.get("iss") != GOOGLE_ISSUER:
-        return None
-    if claims.get("email") != service_account_email:
+    if claims.get("iss") not in GOOGLE_ISSUERS:
         return None
     if claims.get("email_verified") is not True:
+        return None
+
+    # Service account emails are case-insensitive: compare normalized so a casing
+    # typo in config does not silently reject every message.
+    token_email = claims.get("email")
+    token_email = token_email.lower() if isinstance(token_email, str) else None
+    if not token_email or token_email != service_account_email.strip().lower():
         return None
 
     return claims
