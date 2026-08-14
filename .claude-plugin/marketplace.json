@@ -75,6 +75,27 @@
       ]
     },
     {
+      "name": "baselinker-webhooks",
+      "description": "Receive BaseLinker (Base.com) webhooks. Use when building a BaseLinker order or warehouse callback receiver, because BaseLinker is not a normal webhook source: deliveries arrive as HTTP HEAD requests with NO body, the entire payload is in the query string (observed params: order_id, state), there is NO signature verification of any kind (no HMAC, no secret, no handshake), and your response must be a bare bodyless 200. Use when debugging an empty req.body, wiring app.head / an exported HEAD route handler / @app.head, or polling getJournalList for change tracking.",
+      "source": "./skills/baselinker-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/baselinker-webhooks",
+      "keywords": [
+        "webhooks",
+        "baselinker"
+      ]
+    },
+    {
       "name": "bunny-stream-webhooks",
       "description": "Receive and verify Bunny Stream webhooks. Use when setting up Bunny Stream webhook handlers, debugging X-BunnyStream-Signature verification, or handling video encoding events like Status 3 (Finished / encoding done), Status 5 (Failed), or captions and title/description generation.",
       "source": "./skills/bunny-stream-webhooks",
