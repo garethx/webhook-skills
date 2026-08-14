@@ -12,7 +12,7 @@ const app = express();
 const authClient = new OAuth2Client();
 
 // Pub/Sub push tokens are issued by this issuer. google-auth-library also
-// accepts googleapis.com, so we pin the exact one ourselves.
+// accepts the scheme-less "accounts.google.com", so we pin the exact one ourselves.
 const GOOGLE_ISSUER = 'https://accounts.google.com';
 
 // Status codes Pub/Sub treats as an acknowledgement: 102, 200, 201, 202, 204.
@@ -72,7 +72,8 @@ async function authenticate(req) {
   const allowUnauthenticated = process.env.PUBSUB_ALLOW_UNAUTHENTICATED === 'true';
 
   // Optional shared token embedded in the push endpoint URL (?token=...).
-  // A DIY convention, not a Google-defined scheme — see references/verification.md.
+  // A shared-secret convention (Google uses the same env var in its App Engine
+  // sample), not a signature scheme — see references/verification.md.
   if (verificationToken && !timingSafeCompare(req.query.token || '', verificationToken)) {
     return { ok: false, status: 401, error: 'Invalid verification token' };
   }

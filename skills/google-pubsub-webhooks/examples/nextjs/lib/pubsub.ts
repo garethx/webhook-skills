@@ -25,7 +25,7 @@ export type AuthResult =
 export const authClient = new OAuth2Client();
 
 // Pub/Sub push tokens are issued by this issuer. google-auth-library also
-// accepts googleapis.com, so we pin the exact one ourselves.
+// accepts the scheme-less "accounts.google.com", so we pin the exact one ourselves.
 const GOOGLE_ISSUER = 'https://accounts.google.com';
 
 function timingSafeCompare(a: string, b: string): boolean {
@@ -86,7 +86,8 @@ export async function authenticate(request: Request): Promise<AuthResult> {
   const allowUnauthenticated = process.env.PUBSUB_ALLOW_UNAUTHENTICATED === 'true';
 
   // Optional shared token embedded in the push endpoint URL (?token=...).
-  // A DIY convention, not a Google-defined scheme — see references/verification.md.
+  // A shared-secret convention (Google uses the same env var in its App Engine
+  // sample), not a signature scheme — see references/verification.md.
   if (verificationToken) {
     const provided = new URL(request.url).searchParams.get('token') || '';
     if (!timingSafeCompare(provided, verificationToken)) {

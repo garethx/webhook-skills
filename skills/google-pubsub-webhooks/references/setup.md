@@ -112,10 +112,11 @@ gcloud pubsub subscriptions create my-sub \
   --push-endpoint="https://example.com/webhooks/google-pubsub?token=$(openssl rand -hex 32)"
 ```
 
-Then set the same value as `PUBSUB_VERIFICATION_TOKEN` in your receiver. This is
-a shared-secret convention, **not a Google-defined scheme** — it is only as
-strong as your TLS and your logging hygiene (URLs with query strings end up in
-access logs). Prefer OIDC where you can, and pair either approach with
+Then set the same value as `PUBSUB_VERIFICATION_TOKEN` in your receiver — the same
+name Google's own App Engine sample uses for this pattern. It is a shared-secret
+convention, **not a signature scheme**: it authenticates nothing about the body and
+is only as strong as your TLS and your logging hygiene (URLs with query strings end
+up in access logs). Prefer OIDC where you can, and pair either approach with
 network-level ingress restriction.
 
 ## Testing

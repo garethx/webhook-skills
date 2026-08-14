@@ -67,7 +67,7 @@ gcloud pubsub topics publish my-topic \
      library does not, and without the `email` check any Google-signed token
      with the right audience would pass.
 2. Optionally compares a `?token=` query parameter for subscriptions that cannot
-   use OIDC (a DIY convention, not a Google scheme).
+   use OIDC (a shared-secret convention, not a signature scheme).
 3. Fails closed: with no authentication configured it returns 500 until
    `PUBSUB_ALLOW_UNAUTHENTICATED=true` is set explicitly, which is what the
    Pub/Sub emulator needs.

@@ -95,8 +95,8 @@ async function verifyPushJwt(authorizationHeader) {
     return null;
   }
 
-  // The library also accepts googleapis.com as an issuer — pin the one Pub/Sub
-  // uses, and check the service account, which the library does not do for you.
+  // The library accepts the scheme-less "accounts.google.com" too — pin the form
+  // Pub/Sub uses, and check the service account, which the library does not.
   if (claims.iss !== 'https://accounts.google.com') return null;
   if (claims.email !== process.env.PUBSUB_SERVICE_ACCOUNT_EMAIL) return null;
   if (claims.email_verified !== true) return null;

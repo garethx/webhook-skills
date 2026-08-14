@@ -56,7 +56,7 @@ Check all four of these:
 | signature | RS256 against Google's public keys | The library |
 | `exp` | Not in the past | The library |
 | `aud` | The subscription's audience, or the push endpoint URL if no audience was set | The library, when you pass it |
-| `iss` | `https://accounts.google.com` | **You** — the libraries also accept `googleapis.com` |
+| `iss` | `https://accounts.google.com` | **You** — the libraries accept either form (`accounts.google.com` and `https://accounts.google.com`) |
 | `email` | Your push service account's email | **You** |
 | `email_verified` | `true` | **You** |
 
@@ -169,11 +169,17 @@ defences are:
      && crypto.timingSafeEqual(provided, expected);
    ```
 
-   This is a **DIY convention, not a Google-documented scheme**. Weaknesses worth
-   knowing: the secret travels in the URL, so it lands in access logs, proxy
-   logs, and error trackers, and it is replayable by anyone who reads one. It
-   also interacts with OIDC — if the subscription has no explicit audience, the
-   audience is the URL *including* `?token=…`.
+   This is a **shared-secret convention, not a signature scheme** — but it is not
+   something this skill invented. Google's own App Engine sample uses exactly this
+   pattern under the same `PUBSUB_VERIFICATION_TOKEN` name, comparing
+   `request.args.get("token")` against the configured value
+   ([python-docs-samples](https://github.com/GoogleCloudPlatform/python-docs-samples/blob/main/appengine/standard_python3/pubsub/main.py),
+   referenced from [Authentication for push subscriptions](https://cloud.google.com/pubsub/docs/authenticate-push-subscriptions)).
+   It still proves nothing about the body. Weaknesses worth knowing: the secret
+   travels in the URL, so it lands in access logs, proxy logs, and error trackers,
+   and it is replayable by anyone who reads one. It also interacts with OIDC — if
+   the subscription has no explicit audience, the audience is the URL *including*
+   `?token=…`.
 
 2. **Network-level ingress restriction** — Cloud Run/Cloud Functions with
    `--no-allow-unauthenticated` and IAM, an internal load balancer, VPC Service

@@ -28,7 +28,7 @@ load_dotenv()
 app = FastAPI()
 
 # Pub/Sub push tokens are issued by this issuer. google-auth also accepts
-# googleapis.com, so we pin the exact one ourselves.
+# the scheme-less "accounts.google.com", so we pin the exact one ourselves.
 GOOGLE_ISSUER = "https://accounts.google.com"
 
 # Status codes Pub/Sub treats as an acknowledgement: 102, 200, 201, 202, 204.
@@ -83,7 +83,8 @@ def authenticate(request: Request):
     allow_unauthenticated = os.environ.get("PUBSUB_ALLOW_UNAUTHENTICATED") == "true"
 
     # Optional shared token embedded in the push endpoint URL (?token=...).
-    # A DIY convention, not a Google-defined scheme — see references/verification.md.
+    # A shared-secret convention (Google uses the same env var in its App Engine
+    # sample), not a signature scheme — see references/verification.md.
     if verification_token:
         provided = request.query_params.get("token", "")
         if not hmac.compare_digest(provided, verification_token):

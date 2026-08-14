@@ -1177,8 +1177,13 @@ providers:
       TWO auth postures, both must be covered honestly:
       (1) DEFAULT (no subscription auth) — Pub/Sub sends no proof of origin at all and
       no header worth checking. Only endpoint-side defenses exist: an unguessable token
-      in the push endpoint URL as a query parameter checked server-side (a DIY pattern,
-      NOT a Google-documented scheme — hedge it), and/or platform ingress restriction.
+      in the push endpoint URL as a query parameter checked server-side, and/or platform
+      ingress restriction. That URL-token pattern is a shared-secret convention rather
+      than a signature scheme, but it is NOT undocumented — Google's own App Engine
+      sample uses it under the name PUBSUB_VERIFICATION_TOKEN, comparing
+      request.args.get("token") (python-docs-samples appengine/standard_python3/pubsub,
+      linked from the authenticate-push-subscriptions doc). Describe it that way rather
+      than as a DIY invention.
       (2) OIDC (recommended; what Hookdeck's GOOGLE_PUBSUB source type documents) —
       subscription created with --push-auth-service-account and optional
       --push-auth-token-audience (audience DEFAULTS to the full push endpoint URL when
@@ -1191,9 +1196,12 @@ providers:
       libraries — Node "google-auth-library" (OAuth2Client#verifyIdToken({idToken,
       audience})), Python "google-auth" (id_token.verify_oauth2_token(token,
       google.auth.transport.requests.Request(), audience)) — they handle key
-      fetch/cache, signature, aud and exp, and check iss loosely (they also accept
-      googleapis.com), but you MUST check email/email_verified yourself and should pin
-      iss. Verified firsthand against google-auth-library 11.0.2 and google-auth 2.56.3.
+      fetch/cache, signature, aud and exp, and check iss against BOTH accepted forms
+      ("accounts.google.com" and "https://accounts.google.com" — NOT googleapis.com;
+      verified in google-auth _GOOGLE_ISSUERS and google-auth-library's issuers list),
+      but you MUST check email/email_verified yourself and should pin the
+      "https://accounts.google.com" form Pub/Sub actually sends.
+      Verified firsthand against google-auth-library 11.0.2 and google-auth 2.56.3.
       Gotchas: the JWT does NOT sign the body — it authenticates the caller, so unlike
       HMAC providers there is NO raw-body requirement; tokens may be up to an hour old
       and are reused across pushes (not a nonce); aud mismatch is the #1 cause of 401s;
