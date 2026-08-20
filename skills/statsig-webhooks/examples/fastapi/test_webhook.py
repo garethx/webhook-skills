@@ -169,6 +169,17 @@ class TestStatsigWebhookEndpoint:
         )
         assert response.status_code == 200
 
+    def test_url_verification_handshake_answered_without_signature(self):
+        body = b'{"data": {"event": "url_verification", "verification_code": "test_code_123"}}'
+
+        response = client.post(
+            "/webhooks/statsig",
+            content=body,
+            headers={"Content-Type": "application/json"},
+        )
+        assert response.status_code == 200
+        assert response.json() == {"verification_code": "test_code_123"}
+
     def test_invalid_json_returns_400(self):
         body = b"not valid json"
         ts = current_timestamp()

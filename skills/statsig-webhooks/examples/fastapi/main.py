@@ -61,13 +61,21 @@ async def statsig_webhook(request: Request):
     timestamp_header = request.headers.get("x-statsig-request-timestamp")
     signing_secret = os.environ.get("STATSIG_WEBHOOK_SECRET")
 
-    if not verify_statsig_request(raw_body, signature_header, timestamp_header, signing_secret):
-        return PlainTextResponse("Invalid signature", status_code=401)
-
     try:
         payload = json.loads(raw_body)
     except json.JSONDecodeError:
         return PlainTextResponse("Invalid JSON", status_code=400)
+
+    # URL validation handshake (sent when the integration is saved): echo the
+    # code back or the webhook never registers. It only reflects a
+    # caller-supplied value, so it is answered before signature verification.
+    if isinstance(payload, dict):
+        data = payload.get("data")
+        if isinstance(data, dict) and data.get("event") == "url_verification":
+            return JSONResponse({"verification_code": data.get("verification_code")})
+
+    if not verify_statsig_request(raw_body, signature_header, timestamp_header, signing_secret):
+        return PlainTextResponse("Invalid signature", status_code=401)
 
     # Statsig delivers batches. Config changes arrive as {"data": [...]};
     # exposure events arrive as a top-level JSON array.

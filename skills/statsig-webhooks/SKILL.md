@@ -22,6 +22,8 @@ metadata:
   experiment, or dynamic config `created` / `updated` events)
 - Handling Statsig's JSON **batch** payloads (arrays) and the config-change
   `{ "data": [...] }` envelope
+- Answering the **`url_verification` handshake** so the webhook actually
+  registers (a missed handshake fails silently — no events, no log entries)
 
 ## Essential Code (USE THIS)
 
@@ -33,6 +35,28 @@ before verifying will change byte ordering and break the signature.
 
 > **Note:** Statsig's `X-Statsig-Request-Timestamp` is a Unix timestamp in
 > **milliseconds** (13 digits), not seconds.
+
+### URL Validation Handshake (answer this or the webhook never registers)
+
+When you save the Generic Webhook integration, Statsig POSTs a validation
+request to the destination URL and registers the webhook only if the endpoint
+echoes the code back:
+
+```json
+{ "data": { "event": "url_verification", "verification_code": "abc123" } }
+```
+
+Respond `200` with a JSON body carrying the **same value**:
+
+```json
+{ "verification_code": "abc123" }
+```
+
+A missed handshake fails **silently**: the webhook never registers, no event is
+ever delivered, and nothing appears in any delivery log. Answer it before
+enforcing signature verification — it only echoes a value the caller supplied,
+the same way an unauthenticated URL-check ping is answered for providers like
+Mailchimp. The Express handler below includes the responder.
 
 ### Statsig Signature Verification (JavaScript)
 
@@ -81,12 +105,17 @@ app.post('/webhooks/statsig',
     const signature = req.headers['x-statsig-signature'];
     const timestamp = req.headers['x-statsig-request-timestamp'];
     const rawBody = req.body.toString('utf8');
+    const payload = JSON.parse(rawBody);
+
+    // URL validation handshake (sent when the integration is saved):
+    // echo the code back or the webhook never registers.
+    if (payload?.data?.event === 'url_verification') {
+      return res.status(200).json({ verification_code: payload.data.verification_code });
+    }
 
     if (!verifyStatsigRequest(rawBody, signature, timestamp, process.env.STATSIG_WEBHOOK_SECRET)) {
       return res.status(401).send('Invalid signature');
     }
-
-    const payload = JSON.parse(rawBody);
 
     // Statsig delivers batches. Config changes arrive as { data: [...] };
     // exposure events arrive as a top-level JSON array.

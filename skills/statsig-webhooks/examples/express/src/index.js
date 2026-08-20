@@ -63,16 +63,23 @@ app.post('/webhooks/statsig',
     const timestamp = req.headers['x-statsig-request-timestamp'];
     const rawBody = req.body.toString('utf8');
 
-    if (!verifyStatsigRequest(rawBody, signature, timestamp, process.env.STATSIG_WEBHOOK_SECRET)) {
-      console.error('Statsig signature verification failed');
-      return res.status(401).send('Invalid signature');
-    }
-
     let payload;
     try {
       payload = JSON.parse(rawBody);
     } catch {
       return res.status(400).send('Invalid JSON');
+    }
+
+    // URL validation handshake (sent when the integration is saved): echo the
+    // code back or the webhook never registers. It only reflects a
+    // caller-supplied value, so it is answered before signature verification.
+    if (payload?.data?.event === 'url_verification') {
+      return res.status(200).json({ verification_code: payload.data.verification_code });
+    }
+
+    if (!verifyStatsigRequest(rawBody, signature, timestamp, process.env.STATSIG_WEBHOOK_SECRET)) {
+      console.error('Statsig signature verification failed');
+      return res.status(401).send('Invalid signature');
     }
 
     // Statsig delivers batches. Config changes arrive as { data: [...] };
