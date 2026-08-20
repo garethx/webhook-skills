@@ -110,6 +110,26 @@ def verify_statsig_request(raw_body: bytes, signature_header: str, timestamp_hea
     return hmac.compare_digest(expected, signature_header)
 ```
 
+## URL Validation Handshake
+
+Before any signed delivery arrives, Statsig validates the endpoint. When the
+Generic Webhook integration is saved, Statsig POSTs:
+
+```json
+{ "data": { "event": "url_verification", "verification_code": "abc123" } }
+```
+
+The endpoint must respond `200` with a JSON body echoing the same value:
+
+```json
+{ "verification_code": "abc123" }
+```
+
+If the handshake is not answered, the webhook silently never registers: no
+events are delivered and nothing appears in any delivery log. Answer it before
+enforcing signature verification — the responder only echoes a value the caller
+supplied, so it is safe to serve unauthenticated.
+
 ## Common Gotchas
 
 - **Use the raw body.** If you let Express or FastAPI parse JSON first and then
@@ -138,3 +158,4 @@ def verify_statsig_request(raw_body: bytes, signature_header: str, timestamp_hea
 | Off-by-one mismatch | Forgot the `v0=` prefix on the computed signature. |
 | Tests fail with "Cannot read property of undefined" | Header lookup is case-sensitive in your framework. Statsig sends lowercase over HTTP/2. |
 | Works in dev, fails in production | Production uses a different signing secret. Each integration has its own. |
+| No requests ever arrive, nothing in any log | The `url_verification` handshake was not answered when the integration was saved, so the webhook never registered. Add the responder and re-save. |

@@ -15,6 +15,12 @@
 1. In the Generic Webhook integration card, enter your public endpoint in the
    **destination URL** field, e.g. `https://your-domain.com/webhooks/statsig`.
 2. Save the integration.
+3. On save, Statsig POSTs a **URL validation request** to the endpoint:
+   `{ "data": { "event": "url_verification", "verification_code": "..." } }`.
+   Your endpoint must already be running and reply `200` with
+   `{ "verification_code": "<the same value>" }`, or the webhook silently never
+   registers — see
+   [verification.md](verification.md#url-validation-handshake).
 
 ## 3. Choose What to Receive (Event Filtering)
 

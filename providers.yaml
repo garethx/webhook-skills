@@ -2613,7 +2613,11 @@ providers:
       "created", "updated"). Setup: Project Settings > Integrations > Generic Webhook,
       enter destination URL, use Event Filtering to pick Exposures vs Config Changes.
       No official webhook-verification SDK; docs give HMAC pseudo-code. Retry behavior
-      not documented.
+      not documented. REQUIRED HANDSHAKE: on save, Statsig POSTs
+      {"data":{"event":"url_verification","verification_code":"..."}} and the endpoint
+      must reply 200 with {"verification_code":"<same value>"} or the webhook silently
+      never registers (no events, no log entries). Answer the handshake before
+      enforcing signature verification — it only echoes a caller-supplied value.
     testScenario:
       events:
         - config_change

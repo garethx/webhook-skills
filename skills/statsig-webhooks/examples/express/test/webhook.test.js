@@ -110,6 +110,20 @@ describe('POST /webhooks/statsig', () => {
     expect(res.status).toBe(401);
   });
 
+  it('answers the url_verification handshake without a signature', async () => {
+    const body = JSON.stringify({
+      data: { event: 'url_verification', verification_code: 'test_code_123' },
+    });
+
+    const res = await request(app)
+      .post('/webhooks/statsig')
+      .set('Content-Type', 'application/json')
+      .send(body);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ verification_code: 'test_code_123' });
+  });
+
   it('returns 200 for a valid config-change batch', async () => {
     const body = JSON.stringify({
       data: [
