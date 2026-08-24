@@ -206,6 +206,27 @@
       ]
     },
     {
+      "name": "community-webhooks",
+      "description": "Receive and verify Community (community.com) SMS platform webhooks. Use when setting up a Community webhook handler, debugging `community-signature` HMAC-SHA256 verification, or handling message.inbound, message.outbound, member.created, member.updated, and member.deleted events.",
+      "source": "./skills/community-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/community-webhooks",
+      "keywords": [
+        "webhooks",
+        "community"
+      ]
+    },
+    {
       "name": "ethoca-webhooks",
       "description": "Receive and verify Ethoca (Mastercard) Alerts webhooks. Use when setting up an Ethoca Alerts Push API receiver, securing the endpoint (mTLS, with optional onboarding-agreed HTTP Basic Auth; no HMAC signature), or handling fraud and dispute alert notifications.",
       "source": "./skills/ethoca-webhooks",
