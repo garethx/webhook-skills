@@ -82,9 +82,16 @@ function verifyCommunitySignature(
     .update(`${timestamp}.${body}`, 'utf8')
     .digest('hex');
 
+  // Hex is case-insensitive (0xAB === 0xab). Community's documented example is
+  // lowercase and Hookdeck's own generic HMAC verifier normalizes both sides
+  // before comparing, so do the same rather than rejecting a valid uppercase
+  // digest. `expected` is already lowercase — digest('hex') emits lowercase.
   // Constant-time comparison; timingSafeEqual throws on a length mismatch
   try {
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+    return crypto.timingSafeEqual(
+      Buffer.from(signature.toLowerCase()),
+      Buffer.from(expected)
+    );
   } catch {
     return false;
   }

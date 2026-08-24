@@ -94,9 +94,14 @@ function verifyCommunitySignature(rawBody, signatureHeader, secret, toleranceSec
     .update(`${timestamp}.${body}`, 'utf8')
     .digest('hex');
 
-  // Constant-time comparison; timingSafeEqual throws on length mismatch
+  // Constant-time comparison; timingSafeEqual throws on length mismatch.
+  // Lowercase the incoming signature first: hex is case-insensitive, and
+  // Hookdeck's generic HMAC verifier normalizes both sides the same way.
   try {
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+    return crypto.timingSafeEqual(
+      Buffer.from(signature.toLowerCase()),
+      Buffer.from(expected)
+    );
   } catch {
     return false;
   }
@@ -150,7 +155,7 @@ def verify_community_signature(
         secret.encode("utf-8"), signed_content, hashlib.sha256
     ).hexdigest()
 
-    return hmac.compare_digest(expected, signature)
+    return hmac.compare_digest(expected, signature.lower())
 ```
 
 ## Timestamp tolerance
@@ -189,6 +194,12 @@ tolerance window would.
   `hmac.compare_digest`. Wrap `timingSafeEqual` in a `try` — it throws when the
   buffers differ in length, which is exactly what a malformed signature looks
   like.
+- **Compare hex case-insensitively.** `0xAB` and `0xab` are the same byte, so
+  lowercase the incoming `v1` before comparing. Community's documented example is
+  lowercase and this has not been observed to vary, but Hookdeck's own generic
+  HMAC verifier normalizes both sides, and a case-sensitive compare would reject
+  a signature that is arithmetically correct. Normalizing case leaks nothing
+  about the secret, so it costs nothing to be lenient here.
 - **One secret per webhook.** If you have several webhooks pointing at the same
   service, each carries its own secret; route to the right secret per endpoint.
 - **Don't use the API token.** The `community_api`-prefixed Async REST API

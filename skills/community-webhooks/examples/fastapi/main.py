@@ -87,8 +87,11 @@ def verify_community_signature(
         secret.encode("utf-8"), signed_content, hashlib.sha256
     ).hexdigest()
 
-    # Constant-time comparison
-    return hmac.compare_digest(expected, signature)
+    # Constant-time comparison. Hex is case-insensitive (0xAB === 0xab), and
+    # Hookdeck's own generic HMAC verifier normalizes both sides before comparing,
+    # so a valid uppercase digest is accepted rather than rejected. `expected` is
+    # already lowercase — hexdigest() emits lowercase.
+    return hmac.compare_digest(expected, signature.lower())
 
 
 async def verified_event(request: Request) -> dict[str, Any]:

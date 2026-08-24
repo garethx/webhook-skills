@@ -160,6 +160,15 @@ describe('verifyCommunitySignature', () => {
     expect(verifyCommunitySignature(body, `t=${ts},v1=deadbeef`, SECRET)).toBe(false);
   });
 
+  it('accepts an uppercase hex signature (hex is case-insensitive)', () => {
+    const body = '{}';
+    const ts = currentTimestamp();
+    const header = generateSignatureHeader(body, ts, SECRET).toUpperCase()
+      .replace('T=', 't=').replace('V1=', 'v1=');
+
+    expect(verifyCommunitySignature(body, header, SECRET)).toBe(true);
+  });
+
   it('returns false when the signature header is missing', () => {
     expect(verifyCommunitySignature('{}', undefined, SECRET)).toBe(false);
   });

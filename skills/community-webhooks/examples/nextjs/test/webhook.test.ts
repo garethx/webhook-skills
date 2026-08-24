@@ -169,6 +169,16 @@ describe('verifyCommunitySignature', () => {
     );
   });
 
+  it('accepts an uppercase hex signature (hex is case-insensitive)', () => {
+    const body = '{}';
+    const ts = currentTimestamp();
+    const header = generateSignatureHeader(body, ts, SECRET);
+    const [tPart, vPart] = header.split(',');
+    const upper = `${tPart},v1=${vPart.split('=')[1].toUpperCase()}`;
+
+    expect(verifyCommunitySignature(body, upper, SECRET)).toBe(true);
+  });
+
   it('rejects an invalid signature', () => {
     expect(
       verifyCommunitySignature('{}', `t=${currentTimestamp()},v1=deadbeef`, SECRET)
