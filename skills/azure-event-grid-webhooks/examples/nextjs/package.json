@@ -1,0 +1,25 @@
+{
+  "name": "azure-event-grid-webhooks-nextjs",
+  "version": "1.0.0",
+  "description": "Azure Event Grid webhook handler with Next.js App Router",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^4.1.0",
+    "next": "^16.3.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.18",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}

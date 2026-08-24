@@ -1,0 +1,14 @@
+fastapi>=0.141.1
+uvicorn>=0.52.4
+python-dotenv>=1.2.3
+
+# Azure Event Grid does NOT sign the payload, so there is no verification SDK
+# to install for that — nothing to verify. PyJWT is here only to validate the
+# Microsoft Entra ID bearer token when the endpoint is protected with Entra ID.
+# `cryptography` provides the RS256 backend PyJWT needs.
+PyJWT>=2.13.0
+cryptography>=50.0.0
+
+# Testing
+pytest>=9.1.1
+httpx>=0.28.1
