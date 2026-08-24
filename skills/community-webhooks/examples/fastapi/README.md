@@ -1,0 +1,90 @@
+# Community Webhooks - FastAPI Example
+
+Minimal example of receiving Community (community.com) webhooks with
+`community-signature` HMAC-SHA256 verification using FastAPI.
+
+## Prerequisites
+
+- Python 3.10+
+- A Community account with **webhook permission** and a configured webhook
+  (Dashboard → Settings → Integrations → Webhooks). Contact
+  <yourfriends@community.com> if the option is not available on your plan.
+
+## Setup
+
+1. Create a virtual environment and install dependencies:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. Copy environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Add your webhook's **signature secret** to `.env` as
+   `COMMUNITY_WEBHOOK_SECRET`. It is shown in the webhook modal in the Community
+   Dashboard and is unique to each webhook — it is *not* your
+   `community_api`-prefixed Async REST API token.
+
+## Run
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+Server runs on http://localhost:8000
+
+## Test
+
+### Using Hookdeck CLI
+
+```bash
+# Forward Community webhooks to your local server (no account needed)
+npx hookdeck-cli listen 8000 community --path /webhooks/community
+```
+
+Paste the HTTPS URL the CLI prints into the **endpoint URL** field of your
+webhook in the Community Dashboard. Community only accepts HTTPS endpoints with
+a valid certificate, so a tunnel is required for local development.
+
+### Trigger Test Events
+
+Community has no "send test event" button, so trigger real events:
+
+- `member.created` — have a test phone number join your Community
+- `message.inbound` — text your Community number from that phone
+- `message.outbound` — DM that member from the Dashboard
+- `member.updated` — change a standard personal data field for the member
+- `member.deleted` — have the test number text `STOP`
+
+### Run Unit Tests
+
+```bash
+pytest test_webhook.py -v
+```
+
+## Endpoint
+
+- `POST /webhooks/community` — Verifies the `community-signature` header
+  (HMAC-SHA256 of `{t}.{raw_body}`, hex) in a FastAPI dependency, deduplicates
+  on the event `id`, and dispatches `message.inbound`, `message.outbound`,
+  `member.created`, `member.updated`, and `member.deleted`.
+- `GET /health` — Health check.
+
+## Notes
+
+- **No official SDK.** Community publishes no webhook-verification SDK in any
+  language, so verification is implemented directly with `hmac` / `hashlib`.
+- **Raw body is required.** The `verified_event` dependency reads
+  `await request.body()` before parsing. Never bind a Pydantic model to the
+  request body on this route — FastAPI would parse and re-serialize it, and the
+  signature would no longer match.
+- **At-least-once delivery.** Community can send the same event more than once.
+  The example keeps an in-memory dict of event ids for an hour; use Redis or
+  your database in production.
+- **Respond within 15 seconds** with a 2xx. Failed deliveries are retried up to
+  5 times with increasing backoff for up to an hour, and persistently failing
+  webhooks may be disabled by Community.
