@@ -98,6 +98,11 @@ class TestVerifyCronofyWebhook:
         header = f"{sign(self.body, ROTATED_SECRET)},{sign(self.body, 'CRN_someoneelse')}"
         assert not verify_cronofy_webhook(self.body.encode(), header, TEST_SECRET)
 
+    def test_rejects_header_of_only_separators(self):
+        # Parity with the hookdeck/core CRONOFY controller, which filters empty candidates.
+        for header in (" , ", "", ",,,"):
+            assert not verify_cronofy_webhook(self.body.encode(), header, TEST_SECRET)
+
     def test_rejects_non_ascii_header_without_raising(self):
         # Header values reach the app latin-1 decoded, so a hostile sender can put
         # non-ASCII characters in them. hmac.compare_digest refuses non-ASCII *str*

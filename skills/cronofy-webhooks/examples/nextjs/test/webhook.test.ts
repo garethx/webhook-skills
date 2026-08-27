@@ -131,6 +131,13 @@ describe('verifyCronofyWebhook', () => {
     const reserialized = JSON.stringify(JSON.parse(body), null, 2);
     expect(verifyCronofyWebhook(reserialized, sign(body), TEST_SECRET)).toBe(false);
   });
+
+  // Parity with the hookdeck/core CRONOFY controller, which filters empty candidates.
+  it('rejects a header of only separators', () => {
+    expect(verifyCronofyWebhook(body, ' , ', TEST_SECRET)).toBe(false);
+    expect(verifyCronofyWebhook(body, '', TEST_SECRET)).toBe(false);
+    expect(verifyCronofyWebhook(body, ',,,', TEST_SECRET)).toBe(false);
+  });
 });
 
 describe('POST /webhooks/cronofy', () => {
