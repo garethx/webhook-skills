@@ -5,7 +5,10 @@
 - A Cronofy developer account in the **correct data centre** (see below)
 - A Cronofy application (gives you a client ID and client secret)
 - An OAuth access token for the account whose calendar you want notifications for
-- A publicly reachable HTTPS callback URL
+- A publicly reachable callback URL. Cronofy accepts HTTP or HTTPS but **strongly
+  prefers HTTPS**, and it *verifies the certificate*: self-signed certs or partial
+  trust chains block delivery entirely. Cronofy states an SSL Labs grade of **A** is
+  required.
 
 ## Pick the Right Data Centre First
 
@@ -71,17 +74,33 @@ Response:
   "channel": {
     "channel_id": "chn_54cf7c7cb4ad4c1027000001",
     "callback_url": "https://your-app.example.com/webhooks/cronofy",
-    "filters": {
-      "calendar_ids": ["cal_n23kjnwrw2_sakdnawerd3"],
-      "only_managed": false
-    }
+    "filters": {}
   }
 }
 ```
 
+`channel.filters` echoes only *non-default* filters, so it is empty here — the request set
+none. The filtered example below shows it populated.
+
 Immediately after creation Cronofy sends a `verification` notification to the callback URL
-to check it works. Your endpoint must already be deployed and returning 2xx, or channel
-creation will look like it silently did nothing.
+to check it works. Deploy your endpoint *before* creating the channel: creation itself
+still returns `200` with a `channel_id` even if the callback is unreachable, so a broken
+endpoint does not surface as a creation error — it surfaces 24 hours later when Cronofy
+gives up and closes the channel.
+
+Two behaviours worth knowing before you write channel-management code:
+
+- **Creating an identical channel returns the existing one.** Per the docs, the returned
+  `channel_id` "may be for an existing channel if you make a request to create a channel
+  that is identical to an existing one." Re-running creation is therefore not automatically
+  a duplicate — but it is not a documented general-purpose upsert either, so don't lean on
+  it for changing a channel's filters.
+- **The cap is 128 channels per connected account**, and Cronofy explicitly recommends
+  using only one. If you create a channel per user session without closing the old ones,
+  you will hit this.
+
+Errors: `401` for unrecognised credentials (refresh the access token and retry) and `422`
+for invalid parameters, whose body carries an `errors` object keyed by parameter name.
 
 ### Optional filters
 
