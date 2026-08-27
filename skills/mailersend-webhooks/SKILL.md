@@ -67,9 +67,10 @@ if (!signedByYou && !signedByPing) return res.status(401).send('Invalid signatur
 > **For complete handlers with tests**, see [examples/express/](examples/express/), [examples/nextjs/](examples/nextjs/), [examples/fastapi/](examples/fastapi/).
 
 The official Node SDK (`mailersend`) ships `MailerSendUtils.verifyWebHook()`, but
-it is **not exported from the package entry point** and it calls
-`timingSafeEqual` without a length guard (throws `RangeError` on a malformed
-header). Verify manually as above — it matches the docs' own Node/Go/PHP samples.
+it is **not exported from the package entry point**, it calls `timingSafeEqual`
+without a length guard (throws `RangeError` on a malformed header), and its
+README snippet reads a `x-mailersend-signature` header that MailerSend does not
+send. Verify manually as above — it matches the docs' own Node/Go/PHP samples.
 See [references/verification.md](references/verification.md).
 
 ## The `webhook.test` Ping (read this before your first webhook fails to save)

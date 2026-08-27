@@ -75,8 +75,17 @@ helper, but as of `mailersend@3.2.0`:
   truncated `Signature` header throws `RangeError: Input buffers must have the
   same byte length` instead of returning `false` — an unhandled 500 on
   attacker-controlled input.
+- Its README's usage snippet reads the signature from
+  `request.headers['x-mailersend-signature']`. **No such header is sent.** The
+  API docs' Security section and all six of its language samples use `Signature`
+  (the Go sample calls `r.Header.Get("Signature")` outright), and that is the
+  header on real deliveries. Copy the SDK snippet verbatim and you pass
+  `undefined` as the signature, which the helper rejects with
+  `Error: No signature provided` — a 500 on every delivery.
 
-**Python (`mailersend`)** ships no webhook verification helper at all.
+**Python (`mailersend`)** ships no webhook verification helper at all. As of
+`mailersend==2.0.3` the only signing-related thing in the package is a
+`signing_secret` field on the SMS-webhook model.
 
 Verify manually, as the official docs' own Node, Go and PHP samples do. That is
 what the examples in this skill do.
