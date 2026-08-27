@@ -1,0 +1,21 @@
+{
+  "name": "mailersend-webhooks-express",
+  "version": "1.0.0",
+  "description": "MailerSend webhook handler with Express and Signature (HMAC-SHA256) verification",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
