@@ -1066,6 +1066,27 @@
       ]
     },
     {
+      "name": "cronofy-webhooks",
+      "description": "Receive and verify Cronofy push notifications (webhooks). Use when setting up Cronofy notification channels, debugging Cronofy-HMAC-SHA256 verification, or handling Cronofy calendar events like verification, change, profile_disconnected, conferencing_profile_disconnected, profile_initial_sync_completed, and gdpr_requested. Cronofy signs the raw body with your application's client secret and sends a COMMA-SEPARATED list of base64 HMACs in the Cronofy-HMAC-SHA256 header.",
+      "source": "./skills/cronofy-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/cronofy-webhooks",
+      "keywords": [
+        "webhooks",
+        "cronofy"
+      ]
+    },
+    {
       "name": "cursor-webhooks",
       "description": "Verify Cursor Cloud Agent webhook signatures (HMAC-SHA256), handle agent status events.",
       "source": "./skills/cursor-webhooks",
