@@ -158,6 +158,29 @@ inspecting requests.
 - **4xx other than 429, and DNS resolution failures, are never retried.**
 - Acknowledge with 2xx immediately and do the work in a background job.
 
+## Using the Hookdeck MailerSend Source
+
+Hookdeck ships a first-class `MAILERSEND` source type. It verifies the same way
+this skill does — HMAC-SHA256, hex, read from the `Signature` header — and the
+dashboard field it asks for, **Webhook Signing Secret**, is the per-webhook
+signing secret, not your API token.
+
+Mind the ordering, because of the public test secret:
+
+1. Create the Hookdeck source **before** configuring verification on it.
+2. Point a new MailerSend webhook at the source URL. The `webhook.test` ping is
+   signed with the public test secret rather than your signing secret, so a
+   source that is already verifying will reject it — and MailerSend refuses to
+   save a webhook whose URL did not return 2xx.
+3. Once the webhook saves, copy the generated signing secret into the source's
+   verification config.
+
+After that the source verifies real events normally. Note that later pings — the
+dashboard's **Test webhook** button, and the re-validation on any URL edit — are
+still signed with the public test secret and will fail verification. That is
+correct behaviour, not a misconfiguration: a request anyone could forge should
+not reach your handler as a trusted event.
+
 ## Production: Put a Gateway in Front
 
 MailerSend gives you ~3 days of retries and then pauses the webhook. If your
