@@ -171,8 +171,10 @@ Full list: [references/overview.md](references/overview.md).
 
 - **Respond within 3 seconds** or the attempt is logged as failed. Acknowledge
   with 2xx immediately and do the work in a background job.
-- Failed calls retry with exponential backoff for **~3 days**, after which the
-  webhook is **automatically paused** and must be re-enabled in the dashboard.
+- Failed calls retry with exponential backoff for **~3 days**. Separately, a
+  webhook whose endpoint "stays down too long" is **automatically paused** and
+  must be re-enabled in the dashboard — the docs don't pin that threshold to the
+  retry window, so don't assume they're the same deadline.
 - **4xx other than 429, and DNS failures, are never retried.** A signature
   rejection therefore gets exactly one attempt — that is intended.
 - **No replay-protection material is sent** (no timestamp, no nonce, no delivery
