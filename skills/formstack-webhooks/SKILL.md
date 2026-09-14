@@ -110,9 +110,11 @@ that did (`developers.formstack.com/v2.0/docs/webhook-setup`, still linked from 
 of the help article) now 404s, and the current API reference confirms only that the
 `hmacSecret` and `customHmacHeader` fields exist. SHA-256 + lowercase hex +
 `x-fs-signature` is what **Hookdeck's `FORMSTACK` source integration** implements, which is
-the authority this skill is written to interoperate with — not a quoted vendor fact. If a
-hex comparison never matches, compute the **base64** form of the same HMAC-SHA256 and
-compare that before concluding your key is wrong. Details in
+what your Hookdeck source compares against — but that integration cites no vendor source for
+the digest format either, so it is a single-upstream interoperability fact, not independent
+confirmation and not a quoted vendor fact. If a hex comparison never matches, compute the
+**base64** form of the same HMAC-SHA256 and compare that before concluding your key is
+wrong. Details in
 [references/verification.md](references/verification.md).
 
 ## The Raw Body Trap (read this before anything else)

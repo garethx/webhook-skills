@@ -41,12 +41,25 @@ docs.
   `developers.formstack.com` documents only the webhook CRUD API, whose schema confirms the
   fields exist but not the digest format.
 
-**So where does SHA-256 + hex come from?** It is what **Hookdeck's own `FORMSTACK` source
-integration** implements for this source type, and that integration is the authority this
-skill is written to interoperate with. Implement SHA-256/hex — but treat it as an
-interoperability fact, **not a quoted vendor fact**, and see
+**So where does SHA-256 + hex come from?** From **Hookdeck's own `FORMSTACK` source
+integration** — `server/integrations/index.ts` registers it as an alias of the generic HMAC
+controller with `sha256` / `x-fs-signature` / `hex`, and `sourceTypeSchemas.ts` exposes the
+header as an optional override with that default.
+
+**Be precise about how much that proves.** It is the right thing to implement, because it is
+what your Hookdeck source will compare against. It is *not* independent confirmation of what
+Formstack sends. That integration was added on 2026-09-01 and cites no vendor source for the
+digest format beyond the same help article quoted above, and its tests generate the expected
+digest with the same HMAC helper they verify with — so they prove the controller round-trips,
+not that Formstack emits hex. Treat SHA-256/hex as an **interoperability fact with a single
+upstream**, not a quoted vendor fact, and see
 [If hex never matches](#if-hex-never-matches-try-base64) below before concluding your key
 is wrong.
+
+The same caveat applies to the `sha256=` prefix. Hookdeck's integration states that Formstack
+sends the digest prefixed, and its HMAC controller strips the prefix when present and compares
+the bare digest when it is not — which is why this skill accepts both forms. No vendor page
+confirms which one actually arrives, so accept both rather than asserting either.
 
 ## Not FastSpring
 

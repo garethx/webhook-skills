@@ -21,6 +21,17 @@ Contributions to address these items are welcome.
   help article — now returns **404**, and the current `developers.formstack.com` documents
   only the webhook CRUD API (its schema confirms `hmacSecret` and `customHmacHeader` exist,
   but not the digest format).
+  - **The Hookdeck integration is a single upstream, not corroboration.** Cross-checked
+    against `hookdeck/core` on 2026-09-14: `server/integrations/index.ts` registers FORMSTACK
+    as an alias of the generic HMAC controller (`sha256` / `x-fs-signature` / `hex`) and
+    `sourceTypeSchemas.ts` exposes the header override — but that source type was added on
+    2026-09-01 citing no vendor source for the digest format, and the tests added with it
+    (`server/tests/tasks/eventIngestion.test.ts`) generate the expected digest with the same
+    HMAC helper they verify against, so they prove the controller round-trips rather than
+    that Formstack emits hex. There is no captured delivery anywhere in the chain.
+  - The `sha256=` prefix has the same standing. Hookdeck's integration asserts Formstack
+    sends the digest prefixed; no vendor page says so. The examples accept both the bare and
+    the prefixed form rather than asserting either.
   - Revisit if Formstack republishes the developer webhook-setup page, or once a live
     delivery has been captured and its digest recomputed. Either would upgrade this from an
     interoperability fact to a documented one.

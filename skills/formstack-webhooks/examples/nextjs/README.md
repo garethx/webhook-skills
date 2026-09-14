@@ -157,5 +157,7 @@ the form's field keys. Nothing else is confirmed — there is no documented `Tim
 
 Formstack's current public documentation states the header name and the "HMAC Key" field but
 **never names the algorithm or the encoding**. SHA-256 + lowercase hex is what Hookdeck's
-`FORMSTACK` source integration implements. If a hex comparison never matches, compute the
+`FORMSTACK` source integration implements — what your Hookdeck source will compare against,
+but a single-upstream interoperability fact rather than independent confirmation of what
+Formstack sends. If a hex comparison never matches, compute the
 **base64** form of the same HMAC-SHA256 and compare that before assuming your key is wrong.
