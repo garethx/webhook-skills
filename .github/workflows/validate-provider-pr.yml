@@ -51,7 +51,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node 20 reached EOL on 2026-04-30; 24 also carries npm 11 (see
+          # test-examples.yml for why npm 10 breaks installs).
+          node-version: '24'
 
       - name: Check marketplace.json is in sync with skills/
         run: |
