@@ -76,7 +76,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # Node 24 for its bundled npm 11. npm 10 (bundled with Node 20 and 22)
+          # crashes in `npm install` with "Cannot read properties of null (reading
+          # 'edgesOut')" while resolving vitest's optional peer set -- see the
+          # comment above test-nextjs. Node 20 is also EOL (2026-04-30).
+          node-version: "24"
           cache: "npm"
           cache-dependency-path: skills/${{ matrix.provider }}/examples/express/package.json
 
@@ -88,6 +92,19 @@ jobs:
         working-directory: skills/${{ matrix.provider }}/examples/express
         run: npm test
 
+  # Requires npm >= 11. The Next.js examples devDepend on vitest 4.x, which declares
+  # optional peer dependencies pinned to its own version (@vitest/ui,
+  # @vitest/browser-playwright, @vitest/coverage-v8, ...). Now that the @vitest/* 5.x
+  # line exists, npm 10's arborist resolves the wrong major while walking that peer
+  # set and dies on a null node in #loadPeerSet, before a single test runs:
+  #
+  #   silly fetch manifest @vitest/browser-playwright@5.0.0
+  #   TypeError: Cannot read properties of null (reading 'edgesOut')
+  #       at #loadPeerSet (.../arborist/lib/arborist/build-ideal-tree.js:1289)
+  #
+  # Verified against a clean cache with `npm install vitest@4.1.10`: npm 10.9.4 fails,
+  # npm 11.19.1 and 12.0.2 succeed. It is an npm bug, not a vitest one -- do not
+  # "fix" it by bumping ~168 skills to vitest 5.
   test-nextjs:
     name: Next.js - ${{ matrix.provider }}
     runs-on: ubuntu-latest
@@ -104,7 +121,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # Node 24 for its bundled npm 11. npm 10 (bundled with Node 20 and 22)
+          # crashes in `npm install` with "Cannot read properties of null (reading
+          # 'edgesOut')" while resolving vitest's optional peer set -- see the
+          # comment above test-nextjs. Node 20 is also EOL (2026-04-30).
+          node-version: "24"
           cache: "npm"
           cache-dependency-path: skills/${{ matrix.provider }}/examples/nextjs/package.json
 
