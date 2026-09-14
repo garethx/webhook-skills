@@ -1585,7 +1585,7 @@ providers:
       should still return 2xx fast and process async. status.formstack.com publishes
       incidents.
 
-      SETUP: UI — Form Settings > Emails & Actions > Advanced Settings > Add Webhook.
+      SETUP: UI — Form Settings > Emails & Actions > Advance Settings > Add Webhook.
       API (v2025, base https://www.formstack.com/api/v2025) — POST/GET/PUT/DELETE
       /forms/{formId}/webhooks[/{webhookId}] with name, url, contentType, fileTransferType,
       postDataFieldKeys, useFieldIds, sharedSecret, hmacSecret, customHmacHeader, errorEmails,

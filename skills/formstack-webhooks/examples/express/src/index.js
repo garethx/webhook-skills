@@ -77,10 +77,17 @@ app.get('/health', (req, res) => {
  * pointed at several forms configured by different people. Each parser is a no-op when
  * the request's content type doesn't match, so chaining them covers both.
  */
+// The limit is raised from body-parser's 100kb default because a WebHook set to
+// `fileTransferType: base64encode` inlines uploaded files in the body. At the default a
+// delivery like that is rejected with a 413 before this handler ever runs, which reads as
+// a Formstack delivery failure rather than a limit you chose. Size it to your largest
+// expected upload.
+const BODY_LIMIT = process.env.FORMSTACK_BODY_LIMIT || '10mb';
+
 app.post(
   '/webhooks/formstack',
-  express.urlencoded({ extended: true, verify: saveRawBody }),
-  express.json({ verify: saveRawBody }),
+  express.urlencoded({ extended: true, limit: BODY_LIMIT, verify: saveRawBody }),
+  express.json({ limit: BODY_LIMIT, verify: saveRawBody }),
   (req, res) => {
     const rawBody = req.rawBody;
 

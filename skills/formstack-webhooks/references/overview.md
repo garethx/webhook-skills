@@ -155,8 +155,10 @@ sample delivery, because it covers fields a sample happened to leave blank.
 | `internal_labels` | Internal label text | |
 | `internal_labels_api_friendly` | API-friendly internal label | |
 
-A legacy boolean `useFieldIds` ("Post using field IDs instead of field names") also exists
-and does the same job as `postDataFieldKeys: field_ids`.
+A legacy boolean `useFieldIds` ("Post using field IDs instead of field names") is reported
+back on the webhook object and means the same thing as `postDataFieldKeys: field_ids`. It is
+**not settable** through the v2025 API — it appears in the webhook response schema but not
+in the create/update request schema — so configure `postDataFieldKeys` instead.
 
 ### The duplicate-label footgun (documented)
 

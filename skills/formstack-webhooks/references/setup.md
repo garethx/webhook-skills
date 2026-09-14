@@ -20,7 +20,7 @@ Personal Access Token.
 
 ## Option 1: The Form Builder UI
 
-**Form Settings → Emails & Actions → Advanced Settings → Add Webhook**
+**Form Settings → Emails & Actions → Advance Settings → Add Webhook**
 
 (Or edit an existing WebHook.) This opens the **"Send Data to an External URL (WebHook)"**
 action.
@@ -115,7 +115,7 @@ curl -X POST "https://www.formstack.com/api/v2025/forms/$FORM_ID/webhooks" \
 | `contentType` | `urlencoded` \| `json` | Content type of the webhook data |
 | `fileTransferType` | `downloadLink` \| `signedUrl` \| `base64encode` | Method for transferring file data in webhook payloads. `downloadLink` is the default; `base64encode` can make bodies very large |
 | `postDataFieldKeys` | `field_names` \| `field_ids` \| `api_friendly_field_names` \| `internal_labels` \| `internal_labels_api_friendly` | Format of field keys in POST data. `field_names` is the default |
-| `useFieldIds` | boolean | Legacy format toggle — "whether to use field IDs instead of field names" |
+| `useFieldIds` | boolean | Legacy format toggle — "whether to use field IDs instead of field names". **Response-only**: it appears on the webhook object you read back, but is absent from the create/update request schema, so sending it may be rejected. Set `postDataFieldKeys: field_ids` instead |
 | `sharedSecret` | string \| null | Shared secret for the webhook (the Handshake Key) |
 | `hmacSecret` | string \| null | **HMAC secret used for signing webhook payload data** |
 | `customHmacHeader` | string \| null | Custom HMAC header name. Blank → `X-FS-Signature` |
@@ -138,12 +138,31 @@ and the form's own field keys.
 
 ## Credit Card Data Requires HMAC + Error Emails
 
-Formstack will not send **full credit-card data** over a webhook unless the WebHook has
-**an HMAC Key set and at least one error email configured**, plus a separate PCI
-acknowledgement (`customerApprovedPciCompliant` on the API object).
+Formstack will not send **full credit-card data** over a webhook unless several extra
+conditions are met. Per Formstack's
+[Sending Full Credit Card data via Webhook](https://help.formstack.com/hc/en-us/articles/44593169354259-Sending-Full-Credit-Card-data-via-Webhook):
 
-If you are receiving payment fields and they look truncated or absent, check those three
-settings before debugging your handler.
+1. The endpoint URL must be **HTTPS** — required for credit-card data.
+2. Tick **"Allow full credit card data to be sent through webhook"**.
+3. Click **"I understand"** on the disclaimer accepting the risk of sending cardholder data
+   to a PCI non-compliant server.
+4. **Enable the HMAC Key setting** — required for credit-card data.
+5. Add **at least one error email** under Error Handling — also required.
+
+On the API object this corresponds to `hmacSecret`, `errorEmails` and the
+`customerApprovedPciCompliant` acknowledgement.
+
+Two things worth knowing before you debug a handler:
+
+- **PCI-compliant webhooks may need enabling on your account.** If you are not already
+  using Formstack to store credit-card information, you may have to ask Formstack Support
+  to turn them on.
+- **A failed delivery loses the card data.** Formstack: *"If the webhook fails, the
+  submission will be stored in Formstack, but the credit card data will not be saved."*
+  There is no way to re-fetch it afterwards, which is why the error email is mandatory.
+
+If you are receiving payment fields and they look truncated or absent, check those settings
+before debugging your handler.
 
 ## WebHook Shared Secret (Handshake Key)
 

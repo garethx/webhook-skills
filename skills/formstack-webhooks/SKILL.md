@@ -154,7 +154,8 @@ be hard-coded.
 
 Key format is configurable per WebHook (`postDataFieldKeys`): `field_names` (default),
 `field_ids`, `api_friendly_field_names`, `internal_labels`, `internal_labels_api_friendly`.
-A legacy boolean `useFieldIds` also exists.
+A legacy boolean `useFieldIds` is reported back on the webhook object but is not settable
+through the v2025 API — use `postDataFieldKeys: field_ids`.
 
 **Documented footgun:** with `field_names` (default) or `api_friendly_field_names`,
 **duplicate labels collapse**. The help article: if two fields share a label, or a repeated
@@ -241,7 +242,7 @@ regardless.
 
 ## Setup in One Minute
 
-**UI:** Form Settings → Emails & Actions → Advanced Settings → **Add Webhook**. Set the URL,
+**UI:** Form Settings → Emails & Actions → Advance Settings → **Add Webhook**. Set the URL,
 Content Type, field-key format, and — the important first step — an **HMAC Key**. Without
 one, Formstack sends no signature at all.
 

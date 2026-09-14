@@ -31,7 +31,7 @@ verifying the `X-FS-Signature` HMAC header.
 
 3. Add your WebHook's **HMAC Key** to `.env` as `FORMSTACK_HMAC_KEY`.
 
-   Find it in Formstack: **Form Settings → Emails & Actions → Advanced Settings → Add
+   Find it in Formstack: **Form Settings → Emails & Actions → Advance Settings → Add
    Webhook** (or edit an existing one), in the **HMAC Key** field. It's `hmacSecret` on the
    v2025 API object.
 
