@@ -56,7 +56,7 @@ configure on your server. A handler that may receive both must implement both.
 
 | | **Scheme A — current** | **Scheme B — legacy** |
 |---|---|---|
-| Created via | `POST /webhooks` with `Quo-Api-Version: 2026-03-30` | unversioned `/v1/webhooks/messages`, `/v1/webhooks/calls`, … |
+| Created via | `POST /webhooks` with `Quo-Api-Version: 2026-03-30` | legacy `/v1/webhooks/messages`, `/v1/webhooks/calls`, … |
 | Header(s) | `webhook-id`, `webhook-timestamp`, `webhook-signature` | `openphone-signature` (single header) |
 | Header format | `webhook-signature: v1,<base64> v1,<base64>` (**space**-separated) | `hmac;1;1639710054089;mw1K4fv…=` (**semicolon**-separated, 4 fields) |
 | Signed content | `{webhook-id}.{webhook-timestamp}.{raw-body}` | `{timestamp}.{raw-body}` |
@@ -230,7 +230,7 @@ Field names differ between generations: legacy uses `body` / `from` / `to`;
 `context.recipientIdentifiers`. **Branch on `apiVersion`** (or on the presence
 of `data.resource` vs `data.object`) if your endpoint may receive both.
 
-**`data.id` is the EVENT id, not the delivery id.** Every endpoint subscribed to
+**The top-level `id` is the EVENT id, not the delivery id.** Every endpoint subscribed to
 that event receives the *same* `id`. Deduplicate on the **`webhook-id` header**,
 which is unique per delivery and stable across retries. Store processed ids for
 **at least 28 hours** to cover the full retry window.
@@ -289,7 +289,8 @@ curl -X POST https://api.quo.com/webhooks \
   }'
 ```
 
-The 201 response contains `key` — the `whsec_…` signing secret. **Store it
+The 201 response wraps everything in a top-level `data` object, so the
+`whsec_…` signing secret is `data.key`. **Store it
 immediately.** Quo's docs say only "Save the `key` field from the response" and
 don't say whether it can be re-read later, so treat it as create-time-only; if
 you lose it, rotate with `POST /webhooks/{webhookId}/rotate`.

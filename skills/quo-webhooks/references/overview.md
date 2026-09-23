@@ -30,7 +30,7 @@ decided **when the subscription is created**, not by anything on your server.
 
 | | Current | Legacy |
 |---|---|---|
-| Created with | `Quo-Api-Version: 2026-03-30` | unversioned `/v1/webhooks/messages`, `/v1/webhooks/calls`, `/v1/webhooks/call-summaries`, `/v1/webhooks/call-transcripts` |
+| Created with | `Quo-Api-Version: 2026-03-30` | legacy `/v1/webhooks/messages`, `/v1/webhooks/calls`, `/v1/webhooks/call-summaries`, `/v1/webhooks/call-transcripts` |
 | `apiVersion` in payload | `"2026-03-30"` | `"v2"`, or `"v3"` for AI events |
 | Payload body | `data.resource` + `data.context` + `data.links` | `data.object` |
 | Signature header | `webhook-id` / `webhook-timestamp` / `webhook-signature` | `openphone-signature` |

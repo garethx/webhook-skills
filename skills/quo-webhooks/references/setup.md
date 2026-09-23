@@ -59,13 +59,23 @@ Request fields:
 | `resourceIds` | Optional; defaults to `["*"]`. Either phone number ids matching `^PN.*$`, or the single wildcard `["*"]`. Filters **activity** events only — contact events are always org-wide |
 | `label` | Optional human-readable name |
 
-The `201` response object carries `id`, `orgId`, `label`, `status`
-(`enabled`/`disabled`), `url`, `createdAt`, `updatedAt`, `apiVersion`, `events`,
-`resourceIds` — and:
+The `201` response object nests everything under `data`, which carries `id`,
+`orgId`, `label`, `status` (`enabled`/`disabled`), `url`, `createdAt`,
+`updatedAt`, `apiVersion`, `events`, `resourceIds` — and `key`:
 
 ```json
-{ "key": "whsec_exampleSecret" }
+{
+  "data": {
+    "id": "123",
+    "orgId": "OR123",
+    "status": "enabled",
+    "apiVersion": "2026-03-30",
+    "key": "whsec_exampleSecret"
+  }
+}
 ```
+
+Read it as `response.data.key`, not `response.key`.
 
 ### Store `key` immediately
 

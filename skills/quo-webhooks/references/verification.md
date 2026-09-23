@@ -9,7 +9,7 @@ migrate.
 
 | | **Scheme A — current** | **Scheme B — legacy** |
 |---|---|---|
-| Subscription created with | `Quo-Api-Version: 2026-03-30` | unversioned `/v1/webhooks/messages`, `/v1/webhooks/calls`, … |
+| Subscription created with | `Quo-Api-Version: 2026-03-30` | legacy `/v1/webhooks/messages`, `/v1/webhooks/calls`, … |
 | Headers | `webhook-id`, `webhook-timestamp`, `webhook-signature` | `openphone-signature` |
 | Header syntax | `v1,<b64> v1,<b64>` — **space**-separated entries, each `version,sig` | `hmac;1;1639710054089;<b64>` — **semicolon**-separated, 4 fields |
 | Multi-signature separator | space | comma (reserved for future use) |
@@ -432,7 +432,8 @@ credential.
 
 **Reproduce it offline.** Capture one real delivery's raw body and headers, then
 compute the digest by hand and diff the two base64 strings. Quo's
-`GET /v1/webhook-events/{id}` returns the exact request it sent, which makes
+`GET /webhooks/{webhookId}/events/{deliveryId}` (with
+`Quo-Api-Version: 2026-03-30`) returns the exact request it sent, which makes
 this a closed loop.
 
 ```bash
