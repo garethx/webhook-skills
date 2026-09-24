@@ -273,6 +273,7 @@ Things that do **not** exist for Inbound Parse, however plausible they sound:
 | Fails on every request, text-only included | Middleware parsed the body first (`express.urlencoded`, `multer`, `request.form()` before `request.body()`), or the timestamp was omitted from the signed content |
 | `ERR_OSSL_UNSUPPORTED` / "Could not deserialize key data" | The public key was treated as PEM. It is base64 DER SPKI — decode it, or add the PEM armour |
 | Works locally, fails behind a proxy/ingress | Something is re-encoding the body. Check for gzip/charset rewriting, body-size truncation, or a WAF that normalises multipart |
+| Fails only with attachments, and only when routed through a gateway | The gateway decoded the body as UTF-8. Lossless for text-only mail, lossy the moment an attachment carries non-UTF-8 bytes. Verify at the edge, or switch the Parse Setting to `send_raw: true` so attachments arrive base64-encoded and the body stays ASCII |
 | Intermittent failures under load | Body-size limit too low — a 30 MB message needs a 30 MB limit; truncated bodies never verify |
 | Verified, then `JSON.parse` throws | You parsed `dkim`. It is not JSON |
 

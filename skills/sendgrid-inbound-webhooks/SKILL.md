@@ -171,6 +171,27 @@ SENDGRID_INBOUND_MAX_AGE_SECONDS=
 SENDGRID_INBOUND_REQUIRE_OAUTH=false
 ```
 
+## Verifying behind a proxy or gateway
+
+Anything between SendGrid and your handler must pass the body through as bytes.
+A proxy that decodes the body as UTF-8 and re-encodes it is lossless only while
+every byte is valid UTF-8 — true for a text-only email, false as soon as an
+attachment carries arbitrary bytes. The signature then fails on exactly the
+messages that have attachments, which reads as an intermittent bug.
+
+This applies to Hookdeck today. Multipart requests are ingested on the text
+path, so the body is decoded to a string before it reaches your destination.
+Text-only mail round-trips unchanged and verifies; mail with a binary attachment
+does not. Two ways to live with it:
+
+- Verify at the edge — terminate the SendGrid POST on your own endpoint, check
+  the signature against the raw bytes there, and forward the already-verified
+  result onward.
+- Or set the Parse Setting to `send_raw: true`. The raw MIME format base64-encodes
+  attachments inside the `email` field, so the whole body stays 7-bit ASCII and
+  survives a UTF-8 round trip. This changes the payload shape — see
+  [overview.md](references/overview.md).
+
 ## Local Development
 
 ```bash
@@ -179,6 +200,10 @@ npx hookdeck-cli listen 3000 sendgrid-inbound --path /webhooks/sendgrid-inbound
 
 No account required — the CLI creates a guest account on first run and provides
 a local tunnel plus a web UI for inspecting requests. Use `8000` for FastAPI.
+
+The same caveat applies here, and the CLI adds one of its own: it does not
+deliver binary payloads at all. Develop against `send_raw: true`, or against
+text-only mail, and keep an end-to-end signature test on a direct HTTPS endpoint.
 
 ## Resources
 
