@@ -179,10 +179,13 @@ every byte is valid UTF-8 — true for a text-only email, false as soon as an
 attachment carries arbitrary bytes. The signature then fails on exactly the
 messages that have attachments, which reads as an intermittent bug.
 
-This applies to Hookdeck today. Multipart requests are ingested on the text
-path, so the body is decoded to a string before it reaches your destination.
-Text-only mail round-trips unchanged and verifies; mail with a binary attachment
-does not. Two ways to live with it:
+Hookdeck is mid-rollout on exactly this. Binary payload passthrough has landed;
+multipart is the next stage and not shipped yet, so as of September 2026 a
+multipart request is still ingested on the text path and the body is decoded to a
+string before it reaches your destination. Text-only mail round-trips unchanged
+and verifies; mail with a binary attachment does not. Once multipart moves to the
+binary path this caveat stops applying and only the generic proxy warning above
+matters. Until then, two options:
 
 - Verify at the edge — terminate the SendGrid POST on your own endpoint, check
   the signature against the raw bytes there, and forward the already-verified
