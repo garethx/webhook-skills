@@ -127,7 +127,7 @@ That JSON mirrors the example in the v2025 API reference's own
 |---|---|---|
 | `FormID` | In the API reference's example schema, and on every real delivery, as a **string** | Routing: which form produced this |
 | `UniqueID` | In the API reference's example schema, and on every real delivery, as a **string** | Idempotency key |
-| `HandshakeKey` | **Observed, not documented.** Present only when the WebHook has a Shared Secret, and carries that secret's value | Optional static-token check. Strip before storing |
+| `HandshakeKey` | **Observed, not documented.** Carries the WebHook's Shared Secret. Seen only with one set, so its form without one is unknown | Optional static-token check. Strip before storing |
 
 A real delivery from a form with no answer fields, exactly as it arrived on the wire:
 

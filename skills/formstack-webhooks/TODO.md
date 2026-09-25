@@ -32,6 +32,9 @@ Contributions to address these items are welcome.
   documented, and the examples handle it, but no JSON delivery has been recomputed yet. A
   JSON capture would confirm the key order and that the signature covers the JSON bytes as
   sent.
+- [ ] **Unobserved: a delivery from a WebHook with no Shared Secret.** Both captures had one
+  set, so whether `HandshakeKey` is omitted or sent empty without one is unknown. The skill
+  says so rather than asserting either.
 - [ ] **The `HandshakeKey` field name and the user-agent are observed, not documented.**
   They come from two deliveries on one account. Revisit if Formstack documents either.
 

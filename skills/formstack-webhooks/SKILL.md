@@ -189,7 +189,8 @@ with no answer fields, captured on the wire, was exactly:
 FormID=6606394&UniqueID=1500878955&HandshakeKey=test
 ```
 
-`HandshakeKey` appears **only when a Shared Secret is set** (see below). Treat `FormID` as
+`HandshakeKey` carries the WebHook's Shared Secret (see below). Both captures had one set, so
+whether the field is omitted or sent empty without one is unobserved. Treat `FormID` as
 the routing key and `UniqueID` as the idempotency key, and read every key defensively. There
 is **no** `Timestamp`, `FormName` or `SubmissionID` field; don't depend on one.
 
