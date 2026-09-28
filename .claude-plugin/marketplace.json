@@ -183,6 +183,29 @@
       ]
     },
     {
+      "name": "checkout-com-webhooks",
+      "description": "Receive and verify Checkout.com webhooks (checkout.com — the global payments processor: card acquiring, APMs, disputes, payouts, issuing). Use when setting up a Checkout.com webhook handler, debugging Cko-Signature verification, or handling events like payment_approved, payment_captured, payment_declined, payment_refunded, dispute_received or fraud_reported. Checkout.com signs with HMAC-SHA256 over the RAW body, hex-encoded, in the Cko-Signature header, and can optionally send a static Authorization header key. Not Checkout Page (checkoutpage.com), not CheckoutJoy, not 2Checkout / Verifone, not Stripe Checkout, not Shopify checkout webhooks.",
+      "source": "./skills/checkout-com-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/checkout-com-webhooks",
+      "keywords": [
+        "webhooks",
+        "checkout.com",
+        "payments",
+        "cko-signature"
+      ]
+    },
+    {
       "name": "circleci-webhooks",
       "description": "Receive and verify CircleCI outbound webhooks. Use when setting up a CircleCI webhook handler, debugging `circleci-signature` verification, or handling the `workflow-completed` and `job-completed` events CircleCI sends when a workflow or job reaches a terminal state. CircleCI signs the raw body with HMAC-SHA256 and sends a hex digest in a comma-separated versioned list (`v1=<hex>`) — only the latest version (`v1`) should ever be checked. Not Circle (circle.com, USDC/Circle Mint, ECDSA `X-Circle-Signature`) — unrelated company. Not CircleCI custom webhooks, which are inbound pipeline triggers going the other direction.",
       "source": "./skills/circleci-webhooks",
