@@ -2039,9 +2039,19 @@ providers:
     docs:
       webhooks: https://docs.gitlab.com/ee/user/project/integrations/webhooks.html
       events: https://docs.gitlab.com/ee/user/project/integrations/webhook_events.html
+      verification: https://docs.gitlab.com/user/project/integrations/webhooks/#signing-tokens
     notes: >
-      Code hosting platform. Uses X-Gitlab-Token header for secret token verification
-      (simple string comparison, not HMAC). Use timing-safe comparison.
+      Code hosting platform. Two auth mechanisms, both configurable on one webhook.
+      (1) Signing token (recommended; GitLab 19.0+, GA 19.1): follows the Standard
+      Webhooks spec. HMAC-SHA256 over "{webhook-id}.{webhook-timestamp}.{raw body}",
+      key = signing token with the whsec_ prefix stripped then base64-decoded, sent as
+      webhook-signature: v1,<base64> (space-separated list; match any entry), timing-safe
+      compare. GitLab says to check webhook-timestamp is recent but gives no number; use
+      the Standard Webhooks library default of 5 minutes. (2) Secret token (legacy, "not
+      recommended for new webhooks"): plain-text X-Gitlab-Token, timing-safe string
+      compare. Examples should verify the signature when webhook-signature is present and
+      fall back to X-Gitlab-Token otherwise (GitLab's migration advice). Do not describe
+      GitLab as token-only or "not HMAC".
       Common events: push, merge_request, issue, pipeline, release.
     testScenario:
       events:
@@ -2300,7 +2310,9 @@ providers:
       X-HubSpot-Request-Timestamp value. Reject requests with timestamp older than
       5 minutes. v1 and v2 (SHA-256 of clientSecret+body, no timestamp) are deprecated
       — new integrations should use v3 only. Signing key is the App's Client Secret
-      (Application Secret). Common subscription types: contact.creation,
+      (Application Secret). HubSpot's official SDKs ship a helper (Signature.isValid in
+      Node/PHP, Signature.is_valid in Python/Ruby) supporting v1/v2/v3; do not claim there is
+      no SDK helper. Common subscription types: contact.creation,
       contact.propertyChange, contact.deletion, deal.creation, deal.propertyChange,
       company.creation, ticket.creation. (Note: the v3 validation page is canonically
       hosted under /docs/apps/legacy-apps/authentication/validating-requests — the
@@ -2341,7 +2353,9 @@ providers:
       Customer messaging platform. Uses X-Hub-Signature header (Facebook-style)
       with HMAC-SHA1 (40-byte hex). Signature format is sha1=<hex_digest>.
       Computed over the raw JSON request body using the app's client_secret as
-      the key (from Developer Hub → Basic Information). Subscribe to topics
+      the key (from Developer Hub → Basic Information). X-Hub-Signature is the only
+      webhook signature header; X-Body-Signature belongs to Canvas Kit requests
+      (HMAC-SHA256) and is not an alternate webhook header. Subscribe to topics
       such as conversation.user.created, conversation.admin.replied,
       contact.user.created, ticket.created, and ping (handshake).
     testScenario:
@@ -2416,7 +2430,9 @@ providers:
       Customer, User), Linear-Delivery is a UUID v4 for idempotency, plus
       Content-Type: application/json and User-Agent: Linear-Webhook. Payload includes
       a webhookTimestamp field — reject if it's more than 1 minute old. Payload action
-      values: create, update, remove.
+      values: create, update, remove. The official @linear/sdk ships a verify helper:
+      LinearWebhookClient from @linear/sdk/webhooks, verify(rawBody, signature) checks the
+      HMAC and webhookTimestamp (±60 s) and throws on failure. Do not claim there is no SDK helper.
     testScenario:
       events:
         - Issue create
@@ -3655,7 +3671,8 @@ providers:
     notes: >
       Payment platform. Uses Stripe-Signature header with HMAC-SHA256 (hex encoded).
       Signature format includes timestamp (t) and signature (v1). Secret starts with whsec_.
-      Always use raw request body for verification. Common events: checkout.session.completed,
+      v1 is the only valid live scheme; test events also carry a fake v0 signature, which is
+      not a legacy scheme and must be ignored. Always use raw request body for verification. Common events: checkout.session.completed,
       payment_intent.succeeded, customer.subscription.created.
     testScenario:
       events:
@@ -4405,7 +4422,10 @@ providers:
       Payments and commerce platform. Verify with the x-square-hmacsha256-signature header:
       HMAC-SHA256 (base64) computed over the concatenation of the notification URL and the
       raw request body, using the webhook subscription's signature key. Compare with a
-      timing-safe equality check. The official Square SDK exposes
+      timing-safe equality check. Square's docs document only this header; an
+      x-square-signature (HMAC-SHA1) header has been seen on live deliveries but is
+      undocumented, so don't describe it as deprecated/legacy on Square's authority and
+      never verify with it. The official Square SDK exposes
       WebhooksHelper.verifySignature / isValidWebhookEventSignature. Common events:
       payment.created, payment.updated, refund.created, invoice.payment_made, order.updated.
     testScenario:
@@ -4423,7 +4443,9 @@ providers:
       notificationItems (JSON). Verify each item's additionalData.hmacSignature: HMAC-SHA256
       (base64) over a payload built from specific fields
       (pspReference, originalReference, merchantAccountCode, merchantReference, amount value,
-      amount currency, eventCode, success) joined with ':'. The HMAC key is configured in the
+      amount currency, eventCode, success) joined with ':' exactly as-is (no escaping of ':'
+      or '\' inside values; the docs and every official Adyen library join the raw values).
+      The HMAC key is configured in the
       Customer Area (hex string, must be hex-decoded before use). Endpoints are also typically
       protected with Basic Auth. Respond with body "[accepted]". The @adyen/api-library SDK
       provides hmacValidator.validateHMAC. Common events: AUTHORISATION, CAPTURE, REFUND, CANCELLATION.
