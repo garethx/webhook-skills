@@ -179,7 +179,8 @@ boot). Never skip verification because `PAGERDUTY_WEBHOOK_SECRET` is missing.
 no subscription-confirmation POST. The secret arrives in the create-subscription
 **API response**, not over the wire. Don't build an endpoint for one. The one
 delivery you *can* ask for is an explicit test: `POST
-/webhook_subscriptions/{id}/ping` sends a signed `pagey.ping` event.
+/webhook_subscriptions/{id}/ping` sends a `pagey.ping` event (signing is not
+documented for it — see Testing).
 
 **`event.agent` and `event.client` can be `null`.** A `null` agent often means
 automation rather than a person. `event.agent.id` will throw on
@@ -419,8 +420,10 @@ curl -X POST https://api.pagerduty.com/webhook_subscriptions/PWHSUB1/ping \
   -H 'Authorization: Token token=YOUR_API_TOKEN'
 ```
 
-PagerDuty returns `202` and delivers a signed **`pagey.ping`** event (needs the
-`webhook_subscriptions.write` scope). PagerDuty sends no handshake, challenge or
+PagerDuty returns `202` and delivers a **`pagey.ping`** event (needs the
+`webhook_subscriptions.write` scope). It goes through the subscription's normal
+delivery method; PagerDuty does not document whether the ping is signed, so
+check your own logs rather than assuming a signed ping either way. PagerDuty sends no handshake, challenge or
 validation request — that ping is the only unsolicited delivery you can trigger.
 `pagey.ping` is not subscribable, so it lands in your default branch.
 

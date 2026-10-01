@@ -190,8 +190,11 @@ ping endpoint. To get a genuine signed delivery:
    ```
 
    PagerDuty returns `202 Accepted` and, *"if properly configured, this will
-   deliver the `pagey.ping` webhook event to the destination"* — a real, signed
-   delivery, so it exercises your verification path end to end. Requires the
+   deliver the `pagey.ping` webhook event to the destination"* — a real delivery
+   through the subscription's delivery method, so it exercises the whole path.
+   PagerDuty does not document whether the ping carries
+   `X-PagerDuty-Signature`; expect it to, but confirm against your own logs
+   before treating a signed ping as a guarantee. Requires the
    `webhook_subscriptions.write` scope. See
    [Test a webhook subscription](https://docs.pagerduty.com/developer/api/reference/rest/webhooks/test-webhook-subscription).
 

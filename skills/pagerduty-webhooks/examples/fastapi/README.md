@@ -78,8 +78,10 @@ curl -X POST https://api.pagerduty.com/webhook_subscriptions/PWHSUB1/ping \
   -H 'Authorization: Token token=YOUR_API_TOKEN'
 ```
 
-That returns `202` and delivers a **signed `pagey.ping` event** — enough to
-prove the endpoint is reachable and that verification works. `pagey.ping` is not
+That returns `202` and delivers a **`pagey.ping` event** — enough to prove the
+endpoint is reachable. PagerDuty does not document whether the ping carries
+`X-PagerDuty-Signature`, so check your logs before reading a ping as proof that
+verification works. `pagey.ping` is not
 in the Event Types table and is not something you subscribe to, so it lands in
 this example's **default branch** with a `resource_type` and `data` you have not
 seen before; that is expected, not a bug.
