@@ -525,6 +525,27 @@
       ]
     },
     {
+      "name": "polytomic-webhooks",
+      "description": "Receive and authenticate Polytomic webhooks. Use when building a Polytomic Webhook *destination* receiver, because Polytomic does NOT sign its payloads — there is NO signature, NO HMAC and NO signing secret, and the only authentication is a static shared bearer token compared against the connection Secret. Use when the `Polytomic-Signature-Timestamp` header misleads you into writing an HMAC verifier (it carries only an RFC 3339 timestamp, not a digest), when handling the single `sync.records` event, when looping over the `object.records[]` batch and its `hash` / user-defined `fields` keys, when deciding what `object.metadata` may be, or when a non-2xx response makes a Polytomic Model Sync appear as a failure.",
+      "source": "./skills/polytomic-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/polytomic-webhooks",
+      "keywords": [
+        "webhooks",
+        "polytomic"
+      ]
+    },
+    {
       "name": "praxis-webhooks",
       "description": "Receive and verify Praxis (Praxis Tech / Cashier payment orchestration) webhooks. Use when setting up a Praxis webhook endpoint, verifying the gt-authentication SHA-384 signature, signing the acknowledgement with the external-request-signature header, or handling Payment Notification (transaction_status pending, approved, rejected, error) and Subscription Notification events.",
       "source": "./skills/praxis-webhooks",
