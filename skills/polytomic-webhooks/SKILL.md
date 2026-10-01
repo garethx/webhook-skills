@@ -271,9 +271,10 @@ if your API sits behind a firewall. Those addresses are `54.190.82.25`,
 `44.232.40.21`, `35.155.106.54`, `54.200.67.134`, `44.224.213.129` and
 `54.149.95.139`.
 
-Two honest caveats: that page frames the list as the IPs for *"integrating
-Polytomic with databases, data warehouses, and cloud storage"* (the webhooks page
-merely links to it for webhook traffic), and it **does not apply to self-hosted /
+Two honest caveats: that page frames the list for a different purpose —
+*"When connecting Polytomic to your databases, data warehouses, and cloud storage
+buckets, you may need to whitelist our IP addresses"* (the webhooks page merely
+links to it for webhook traffic) — and it **does not apply to self-hosted /
 on-premise Polytomic deployments** — stated on that page. Treat it as **a
 firewall convenience Polytomic points you at, not an authentication mechanism.**
 

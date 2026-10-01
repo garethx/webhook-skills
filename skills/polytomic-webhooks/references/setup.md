@@ -129,8 +129,9 @@ If your API sits behind a firewall, the webhooks page points you at
 
 Three honest caveats:
 
-1. **That page is framed around a different purpose** — it describes the IPs for
-   *"integrating Polytomic with databases, data warehouses, and cloud storage"*.
+1. **That page is framed around a different purpose.** Verbatim: *"When
+   connecting Polytomic to your databases, data warehouses, and cloud storage
+   buckets, you may need to whitelist our IP addresses."*
    The webhooks page merely links to it for webhook traffic. Present it as **the
    allowlist Polytomic points you at**, not as a documented webhook-egress range.
 2. **It does not apply to self-hosted / on-premise Polytomic.** Verbatim from
