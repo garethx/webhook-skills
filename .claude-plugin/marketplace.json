@@ -756,6 +756,27 @@
       ]
     },
     {
+      "name": "tikkie-webhooks",
+      "description": "Receive Tikkie (ABN AMRO) API v2 notifications. Use when setting up a Tikkie payment request, refund or transaction bundle webhook handler, subscribing via POST /paymentrequestssubscription or /transactionssubscription, or asking how to verify a Tikkie webhook signature. Tikkie notifications are UNSIGNED (no signature header, no secret, no HMAC), so this skill teaches the subscriptionId check plus re-fetching the record from the Tikkie API, and dispatching on notificationType PAYMENT, REFUND and BUNDLE.",
+      "source": "./skills/tikkie-webhooks",
+      "strict": false,
+      "skills": [
+        "./"
+      ],
+      "category": "integration",
+      "license": "MIT",
+      "author": {
+        "name": "Hookdeck",
+        "email": "phil@hookdeck.com"
+      },
+      "repository": "https://github.com/hookdeck/webhook-skills",
+      "homepage": "https://github.com/hookdeck/webhook-skills/tree/main/skills/tikkie-webhooks",
+      "keywords": [
+        "webhooks",
+        "tikkie"
+      ]
+    },
+    {
       "name": "tiktok-webhooks",
       "description": "Receive and verify TikTok for Developers webhooks (Login Kit, Content Posting, Data Portability). Use when setting up TikTok webhook handlers, debugging TikTok-Signature verification, or handling events like authorization.removed, video.upload.failed, video.publish.completed, or portability.download.ready. Not for TikTok Shop — see tiktok-shop-webhooks.",
       "source": "./skills/tiktok-webhooks",
