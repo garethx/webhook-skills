@@ -1,0 +1,22 @@
+name: cloudtalk
+displayName: CloudTalk
+docs:
+  webhooks: https://help.cloudtalk.io/guides/webhooks/overview
+  verification: https://help.cloudtalk.io/guides/webhooks/verify-signatures
+notes: >
+  Cloud call center. Account-level webhooks (Settings > Webhooks) are signed with the Svix
+  scheme: svix-id, svix-timestamp, svix-signature ("v1,<base64>" space-delimited); HMAC-SHA256
+  over "<svix-id>.<svix-timestamp>.<raw body>"; secret starts with whsec_ and the key is the
+  base64-decoded remainder. Use the svix library or verify manually. Call Flow Designer webhook
+  steps, AI Voice Agent "Send via Webhook" and Workflow Automation actions are NOT signed this
+  way. Envelope is {event_id, type, version, occurred_at, company_id, data}; dedupe on event_id.
+  Events include call.started, call.answered, call.ended, call.recording_ready, contact.created,
+  message.received, transcript.ready. Express examples use express.raw({ type: '*/*' }).
+testScenario:
+  events:
+    - call.ended
+    - contact.created
+    - message.received
+catalog:
+  summary: Verify CloudTalk (Svix) webhook signatures (`svix-id`, `svix-timestamp`, `svix-signature`, HMAC-SHA256), handle call.started, call.answered, call.ended and contact.created events
+  docsUrl: https://help.cloudtalk.io/guides/webhooks/overview

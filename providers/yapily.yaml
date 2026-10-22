@@ -1,0 +1,20 @@
+name: yapily
+displayName: 'Yapily'
+docs:
+  webhooks: https://docs.yapily.com/tools-and-services/webhooks/introduction
+  verification: https://docs.yapily.com/tools-and-services/webhooks/get-started
+  events: https://docs.yapily.com/payments/payment-resources/payment-notifications
+notes: >
+  Open banking. Header webhook-signature: plain hex HMAC-SHA256 of the raw body keyed with the
+  webhook secret as UTF-8 (shown only in the register-webhook response); compare case-insensitively.
+  NOT Standard Webhooks despite the header name (no webhook-id/timestamp). During a delayed secret
+  reset Yapily also sends webhook-rotation-signature; accept either. Payload {id, type, event}; type
+  is an event category type such as payment status changes or async data-access completion. Express
+  examples must read the raw body with express.raw({ type: '*/*' }) so any content type verifies.
+testScenario:
+  events:
+    - single_payment.status.completed
+    - hosted_pis.payment_status.completed.v1
+    - hosted_pis.payment_status.failed.v1
+catalog:
+  summary: 'Verify Yapily webhook signatures (`webhook-signature`, HMAC-SHA256 hex of the raw body; not Standard Webhooks), handle single_payment.status.completed and hosted_pis.payment_status.completed.v1 events'
