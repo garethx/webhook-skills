@@ -26,17 +26,17 @@ metadata:
 Kombo signs the **raw request body** (JSON with two-space indentation) with
 HMAC-SHA256. The key is your **Kombo Webhook Secret** used as its UTF-8 bytes
 (do not base64-decode it). The digest is sent in `X-Kombo-Signature` as
-**base64url without padding**. Decode the header to bytes and compare the bytes
-in constant time. Never re-serialize the parsed JSON: use the exact bytes received.
+**base64url without padding**. Encode your HMAC as base64url, strip any `=`
+padding, and compare it with the header text in constant time. Never re-serialize the parsed JSON: use the exact bytes received.
 
 ```javascript
 const crypto = require('crypto');
 
 function verifyKomboWebhook(rawBody, signatureHeader, secret) {
   if (!signatureHeader) return false;
-  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest();
-  const provided = Buffer.from(signatureHeader, 'base64url');
-  return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('base64url');
+  const provided = Buffer.from(signatureHeader.replace(/=+$/, ''));
+  return provided.length === expected.length && crypto.timingSafeEqual(provided, Buffer.from(expected));
 }
 ```
 
@@ -47,11 +47,9 @@ def verify_kombo_webhook(raw_body: bytes, signature_header: "str | None", secret
     if not signature_header:
         return False
     expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).digest()
-    try:
-        provided = base64.urlsafe_b64decode(signature_header + "=" * (-len(signature_header) % 4))
-    except Exception:
-        return False
-    return hmac.compare_digest(provided, expected)
+    # Compare base64url text (Kombo strips the padding) so trailing junk can't decode to a match
+    expected_b64 = base64.urlsafe_b64encode(expected).rstrip(b"=")
+    return hmac.compare_digest(signature_header.rstrip("=").encode(), expected_b64)
 ```
 
 Kombo has no webhook-verification SDK, so verify manually. In Express read the
