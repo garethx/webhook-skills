@@ -1,0 +1,23 @@
+name: zoho-sign
+displayName: Zoho Sign
+docs:
+  webhooks: https://help.zoho.com/portal/en/kb/zoho-sign/admin-guide/articles/webhooks-management
+  verification: https://help.zoho.com/portal/en/kb/zoho-sign/admin-guide/webhooks/articles/securing-zoho-sign-webhooks-with-hmac-authentication
+  events: https://help.zoho.com/portal/en/kb/zoho-sign/admin-guide/articles/webhooks-management
+notes: >
+  Zoho Sign e-signature. HMAC is opt-in per webhook (HMAC signature checkbox; secret key
+  is entered or generated and cannot be retrieved later). Header X-ZS-WEBHOOK-SIGNATURE is
+  base64(HMAC-SHA256(key=secret as UTF-8, message=raw body)). The doc's
+  "HMAC SHA-256(payload+secret_key)" wording is misleading: a plain HMAC keyed with the
+  secret reproduces the published sample (secret thisisthesamplekeyfortestingpurposes;
+  the sample body starts with '{{', a doc typo that must be kept for the sample to verify);
+  payload+secret does not. No timestamp is signed. Payload is
+  {requests, notifications}; the event is notifications.operation_type. Express examples
+  read the raw body with express.raw({ type: '*/*' }).
+testScenario:
+  events:
+    - RequestCompleted
+    - RequestSigningSuccess
+    - RequestRejected
+catalog:
+  summary: Verify Zoho Sign webhook signatures (`X-ZS-WEBHOOK-SIGNATURE`, HMAC-SHA256 base64), handle RequestCompleted and RequestSigningSuccess events
