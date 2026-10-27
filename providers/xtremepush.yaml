@@ -1,0 +1,26 @@
+name: xtremepush
+displayName: Xtremepush
+docs:
+  webhooks: https://docs.xtremepush.com/docs/webhooks-integration
+  verification: https://docs.xtremepush.com/docs/verify-webhook-signatures
+notes: >
+  Xtremepush (customer engagement and messaging). With the Signed Payload auth type each request carries
+  X-Xtremepush-Signature: 't=<unix seconds>, v1=<hex>[, v1=<hex>]'. v1 is lowercase-hex HMAC-SHA256 of
+  '<t>.<raw body>' keyed with the Webhook Secret Key as UTF-8 bytes (not decoded); t is used exactly as
+  the header string. Accept if any v1 matches (two appear for up to 24 h after a key replacement),
+  ignore other keys, and fail a header with no t. Validate each v1 as exactly 64 hex chars before
+  comparing in constant time (Node timingSafeEqual on equal-length Buffers, never Buffer.from(x, 'hex') on
+  unvalidated input; Python hmac.compare_digest on bytes). Missing/malformed/mismatch gives 401. No
+  timestamp window by default (Hookdeck retries and replays resend the original t); opt-in
+  XTREMEPUSH_WEBHOOK_TOLERANCE_SECONDS. Events: dispatch on top-level `event` (default body event, time,
+  properties; custom formats may rename it): message_send, message_delivery. The HTTP method isn't
+  documented and Hookdeck's source pre-selects POST without managing it, so examples accept
+  GET/POST/PUT/PATCH/DELETE. Delivery must respond within 5 s; no retry policy documented.
+  Hookdeck setup (say this verbatim in SKILL.md and setup.md): Choose the Signed Payload auth type on the
+  Xtremepush webhook and paste its Webhook Secret Key. Other auth types are unsigned and fail verification.
+testScenario:
+  events:
+    - message_send
+    - message_delivery
+catalog:
+  summary: 'Verify Xtremepush webhook signatures (`X-Xtremepush-Signature` `t=<ts>, v1=<hex>`, HMAC-SHA256 over `{t}.{body}`), handle message_send and message_delivery events'
