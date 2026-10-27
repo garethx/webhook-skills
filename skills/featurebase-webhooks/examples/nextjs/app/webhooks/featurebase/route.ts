@@ -25,7 +25,8 @@ function handleEvent(event: FeaturebaseEvent): void {
       console.log(`Request created: ${item.title} (${item.id})`);
       break;
     case 'post.updated': {
-      const fields = (event.data?.changes ?? []).map((c) => c.field);
+      const changes = event.data?.changes;
+      const fields = (Array.isArray(changes) ? changes : []).map((c) => c?.field);
       console.log(`Request updated: ${item.id}, changed: ${fields.join(', ') || 'n/a'}`);
       break;
     }
@@ -83,6 +84,9 @@ export async function POST(request: NextRequest) {
     event = JSON.parse(rawBody.toString('utf8'));
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+  if (event === null || typeof event !== 'object') {
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
 
   if (event.id && processedEventIds.has(event.id)) {

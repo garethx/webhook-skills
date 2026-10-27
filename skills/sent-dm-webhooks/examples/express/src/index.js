@@ -45,7 +45,8 @@ function verifySentWebhook(rawBody, headers, secret = process.env.SENT_WEBHOOK_S
 const processedEventIds = new Set();
 
 function handleEvent(event) {
-  const { event: type, payload = {} } = event; // dispatch on the body's `event` field
+  const { event: type } = event; // dispatch on the body's `event` field
+  const payload = event.payload ?? {};
 
   switch (type) {
     case 'message.delivered':
@@ -94,6 +95,9 @@ app.post('/webhooks/sent-dm', express.raw({ type: '*/*' }), (req, res) => {
   } catch (err) {
     console.error('Sent webhook verification failed:', err.message);
     return res.status(401).json({ error: 'invalid signature' });
+  }
+  if (event === null || typeof event !== 'object') {
+    return res.status(400).json({ error: 'Invalid payload' });
   }
 
   // Dedupe on the event's own id, NOT x-webhook-id (that is the webhook's id).

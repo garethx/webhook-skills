@@ -46,7 +46,8 @@ function verifySentWebhook(
 const processedEventIds = new Set<string>();
 
 function handleEvent(event: SentEvent): void {
-  const { event: type, payload = {} } = event; // dispatch on the body's `event` field
+  const { event: type } = event; // dispatch on the body's `event` field
+  const payload = event.payload ?? {};
 
   switch (type) {
     case 'message.delivered':
@@ -99,6 +100,9 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error('Sent webhook verification failed:', (err as Error).message);
     return NextResponse.json({ error: 'invalid signature' }, { status: 401 });
+  }
+  if (event === null || typeof event !== 'object') {
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
 
   // Dedupe on the event's own id, NOT x-webhook-id (that is the webhook's id).
