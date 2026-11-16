@@ -91,7 +91,7 @@ The event name is in the `x-holded-webhook-event` header. Events are grouped by 
 
 ## Delivery and Idempotency
 
-- Return any `2xx` to acknowledge. Otherwise Holded retries with exponential backoff.
+- Return any `2xx` to acknowledge. A non-2xx or a timeout is retried up to 5 times, with exponential backoff.
 - Deduplicate on `x-holded-webhook-id`.
 - Return `2xx` for event types you don't handle.
 

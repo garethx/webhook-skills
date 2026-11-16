@@ -47,7 +47,7 @@ Holded also exposes a "List supported webhook event types" API endpoint, which i
 ## Delivery Behaviour
 
 - Respond with any `2xx` to acknowledge.
-- On a non-2xx response Holded retries with exponential backoff (the docs don't give the schedule).
+- A non-2xx response or a timeout is a failed delivery. Holded retries it up to 5 times ([help center](https://help.holded.com/en/articles/15704965-webhooks)) with exponential backoff; the intervals and the timeout length aren't published.
 - Deduplicate on `x-holded-webhook-id`.
 - Answer `2xx` for events you don't handle.
 

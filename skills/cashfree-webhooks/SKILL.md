@@ -5,7 +5,7 @@ description: >
   Secure ID, PPI). Use when setting up a Cashfree webhook endpoint, debugging
   x-webhook-signature / x-webhook-timestamp verification, or handling events
   like PAYMENT_SUCCESS_WEBHOOK, PAYMENT_FAILED_WEBHOOK, REFUND_STATUS_WEBHOOK,
-  SETTLEMENT_STATUS_WEBHOOK, TRANSFER_SUCCESS, BANK_ACCOUNT_VERIFICATION_SUCCESS
+  SETTLEMENT_SUCCESS, TRANSFER_SUCCESS, BANK_ACCOUNT_VERIFICATION_SUCCESS
   and PPI_CREDIT_SUCCESS.
 license: MIT
 metadata:
@@ -60,7 +60,7 @@ Python: `hmac.new(secret.encode(), timestamp.encode("latin-1") + raw_body, hashl
 
 Cashfree's SDK has `PGVerifyWebhookSignature` (`cashfree-pg`), but the examples verify by hand so every framework treats the body as raw bytes. Never `JSON.parse` / `JSON.stringify` before verifying. Details: [references/verification.md](references/verification.md).
 
-**Timestamp window: off by default.** Hookdeck retries and replays resend the original headers and timestamp, and Hookdeck applies no tolerance, so a fixed window would reject legitimate retries. The examples offer an opt-in `CASHFREE_WEBHOOK_TOLERANCE_SECONDS` (unset or `0` = off). Cashfree's docs suggest 5 minutes, but the unit of `x-webhook-timestamp` is not stated, so check a real delivery first.
+**Timestamp window: off by default.** Hookdeck retries and replays resend the original headers and timestamp, so a fixed window would reject legitimate late retries. The examples offer an opt-in `CASHFREE_WEBHOOK_TOLERANCE_SECONDS` (unset or `0` = off). Cashfree's docs suggest 5 minutes. They don't state the unit of `x-webhook-timestamp` in words, but the Payment Gateway header examples are 13-digit millisecond values, so check a real delivery first.
 
 Legacy **Payouts V1 and Cashgram** webhooks (form-encoded, different scheme) are not covered and fail this verification.
 
@@ -76,7 +76,7 @@ Payment Gateway and Payouts V2 bodies carry the event in `type`; Secure ID and P
 | `PAYMENT_FAILED_WEBHOOK` | Payment Gateway | A payment fails |
 | `PAYMENT_USER_DROPPED_WEBHOOK` | Payment Gateway | The customer abandons the payment |
 | `REFUND_STATUS_WEBHOOK` | Payment Gateway | A refund changes status |
-| `SETTLEMENT_STATUS_WEBHOOK` | Payment Gateway | A settlement changes status |
+| `SETTLEMENT_INITIATED` / `SETTLEMENT_SUCCESS` / `SETTLEMENT_FAILED` / `SETTLEMENT_REVERSED` | Payment Gateway | A settlement to your bank account changes status |
 | `TRANSFER_SUCCESS` / `TRANSFER_FAILED` / `TRANSFER_REVERSED` | Payouts V2 | A transfer succeeds, fails or is reversed |
 | `BANK_ACCOUNT_VERIFICATION_*` (e.g. `_SUCCESS`), `VKYC_*` (e.g. `VKYC_AUDITOR_REVIEW_COMPLETED`) | Secure ID | Verification and Video KYC progress |
 | `PPI_CREDIT_SUCCESS` | PPI | A wallet credit succeeds |

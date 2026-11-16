@@ -33,8 +33,11 @@ function handleEvent(payload: CashfreePayload): void {
     case 'REFUND_STATUS_WEBHOOK':
       console.log(`Refund status update: ${data.refund?.refund_id}`);
       break;
-    case 'SETTLEMENT_STATUS_WEBHOOK':
-      console.log('Settlement status update');
+    case 'SETTLEMENT_INITIATED':
+    case 'SETTLEMENT_SUCCESS':
+    case 'SETTLEMENT_FAILED':
+    case 'SETTLEMENT_REVERSED':
+      console.log(`Settlement update: ${name}`);
       break;
 
     // --- Payouts V2 --------------------------------------------------------

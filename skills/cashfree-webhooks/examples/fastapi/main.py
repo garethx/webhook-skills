@@ -90,8 +90,8 @@ def handle_event(payload: dict) -> None:
         print(f"Customer dropped payment: order {_as_dict(data.get('order')).get('order_id')}")
     elif name == "REFUND_STATUS_WEBHOOK":
         print(f"Refund status update: {_as_dict(data.get('refund')).get('refund_id')}")
-    elif name == "SETTLEMENT_STATUS_WEBHOOK":
-        print("Settlement status update")
+    elif name in ("SETTLEMENT_INITIATED", "SETTLEMENT_SUCCESS", "SETTLEMENT_FAILED", "SETTLEMENT_REVERSED"):
+        print(f"Settlement update: {name}")
     # --- Payouts V2 --------------------------------------------------------
     elif name in ("TRANSFER_SUCCESS", "TRANSFER_FAILED", "TRANSFER_REVERSED"):
         print(f"{name}: transfer {data.get('transfer_id')} ({data.get('status')})")

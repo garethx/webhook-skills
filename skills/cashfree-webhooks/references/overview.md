@@ -25,7 +25,7 @@ The event name is in `type` for Payment Gateway and Payouts V2 bodies, and in `e
 | `PAYMENT_FAILED_WEBHOOK` | Payment Gateway | A payment fails |
 | `PAYMENT_USER_DROPPED_WEBHOOK` | Payment Gateway | The customer abandons the payment |
 | `REFUND_STATUS_WEBHOOK` | Payment Gateway | A refund changes status |
-| `SETTLEMENT_STATUS_WEBHOOK` | Payment Gateway | A settlement changes status |
+| `SETTLEMENT_INITIATED` / `SETTLEMENT_SUCCESS` / `SETTLEMENT_FAILED` / `SETTLEMENT_REVERSED` | Payment Gateway | A settlement to your bank account changes status |
 | `TRANSFER_SUCCESS` | Payouts V2 | A transfer reaches the beneficiary |
 | `TRANSFER_FAILED` | Payouts V2 | A transfer fails |
 | `TRANSFER_REVERSED` | Payouts V2 | A transfer is reversed |
